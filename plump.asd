@@ -16,5 +16,8 @@
   :maintainer "Nicolas Hafner <shinmera@tymoon.eu>"
   :description "An X/HTML parser that aims to be as lenient as possible."
   :serial T
-  :components ((:file "package"))
+  :components ((:file "package")
+               (:file "array")
+               (:file "dom")
+               (:file "lexer"))
   :depends-on ())
