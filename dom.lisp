@@ -45,7 +45,7 @@
   (make-instance 'root :children children))
 
 (defun make-element (parent tag &key (children (make-child-array)) (attributes (make-attribute-map)))
-  (make-instance 'element :tag tag :parent parent :children children :attributes attributes))
+  (make-instance 'element :tag-name tag :parent parent :children children :attributes attributes))
 
 (defun make-text-node (parent &optional (text ""))
   (make-instance 'text-node :text text :parent parent))
@@ -196,3 +196,27 @@
 
 (defun root-p (object)
   (typep object 'root))
+
+(defgeneric serialize (node stream)
+  (:documentation "")
+  (:method ((node text-node) stream)
+    (write-string (text node) stream))
+  (:method ((node comment) stream)
+    (format stream "<!-- ~a -->" (text node)))
+  (:method ((node element) stream)
+    (format stream "<~a" (tag-name node))
+    (serialize (attributes node) stream)
+    (if (< 0 (length (children node)))
+        (progn
+          (write-char #\> stream)
+          (loop for child across (children node)
+                do (serialize child stream))
+          (format stream "</~a>" (tag-name node)))
+        (write-string "/>" stream)))
+  (:method ((table hash-table) stream)
+    (loop for key being the hash-keys of table
+          for val being the hash-values of table
+          do (format stream " ~a=\"~a\"" key val)))
+  (:method ((node nesting-node) stream)
+    (loop for child across (children node)
+          do (serialize child stream))))
