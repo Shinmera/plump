@@ -6,6 +6,7 @@
 
 (in-package #:org.tymoonnext.plump)
 
+(defvar *whitespace* '(#\Tab #\Newline #\Linefeed #\Page #\Return #\Space))
 (defvar *root* NIL)
 
 (defun peek-char-n (n stream)
@@ -150,7 +151,7 @@
         do (case char
              ((#\/ #\> NIL)
               (return table))
-             (#\Space
+             (#.*whitespace*
               (consume stream))
              (T
               (let ((entry (read-attribute stream)))
@@ -171,7 +172,7 @@
 (defun read-tag (stream)
   (let ((next-2 (peek-char-n 2 stream)))
     (when (and (char= #\< (first next-2))
-               (not (char= #\Space (second next-2))))
+               (not (member (second next-2) *whitespace* :test #'char=)))
       (consume stream)
       (let ((name (read-name stream)))
         (if (and (<= 3 (length name))
