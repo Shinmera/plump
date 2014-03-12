@@ -126,14 +126,11 @@
   (decode-entities
    (let ((first (peek-char NIL stream NIL NIL)))
      (if (and first (char= first #\"))
-         (progn
-           (consume stream)
-           (prog1 (consume-until (make-matcher (is "\"")) stream)
-             (consume stream) ;; ??
-             (consume stream)))
-         (progn
-           (prog1 (consume-until (make-matcher (is " ")) stream)
-             (consume stream)))))))
+         (prog2 (consume stream)
+             (consume-until (make-matcher (is "\"")) stream)
+           (consume stream) ;; ??
+           (consume stream))
+         (consume-until (make-matcher (or (is " ") (is "/") (is ">"))) stream)))))
 
 (defun read-attribute-name (stream)
   (consume-until (make-matcher (or (is "=") (is " ") (is "/") (is ">"))) stream))
