@@ -9,9 +9,16 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defvar *whitespace* '(#\Tab #\Newline #\Linefeed #\Page #\Return #\Space)))
 (defvar *root* NIL)
+(defvar *tag-dispatchers* ())
+
+(defmacro define-tag-dispatcher (name (tagvar streamvar) test-form &body body)
+  `(pushnew (list ',name
+                  #'(lambda (,tagvar) ,test-form)
+                  #'(lambda (,streamvar) ,@body))
+            *tag-dispatchers* :key #'first))
 
 (defun peek-char-n (n stream)
-  (let ((result (loop repeat n collect (read-char stream))))
+  (let ((result (loop repeat n collect (read-char stream NIL NIL))))
     (loop for char in (reverse result)
           repeat n do (unread-char char stream))
     result))
@@ -20,7 +27,7 @@
   (read-char stream))
 
 (defun consume-n (n stream)
-  (loop repeat n collect (read-char stream)))
+  (loop repeat n collect (read-char stream NIL NIL)))
 
 (defun consume-until (matcher stream)
   (loop with output = (make-string-output-stream)
@@ -162,7 +169,8 @@
   (let ((attrs (read-attributes stream))
         (closing (read-char stream)))
     (case closing
-      (#\/ (read-char stream)
+      (#\/
+       (consume stream)
        (make-element *root* name :attributes attrs))
       (#\>
        (let ((*root* (make-element *root* name :attributes attrs)))
@@ -176,14 +184,26 @@
                (not (member (second next-2) *whitespace* :test #'char=)))
       (consume stream)
       (let ((name (read-name stream)))
-        (if (and (<= 3 (length name))
-                 (string= name "!--" :end1 3))
-            (read-comment stream)
-            (read-standard-tag stream name))))))
+        (loop for (d test func) in *tag-dispatchers*
+              when (funcall test name)
+                do (return (funcall func stream))
+              finally (return (read-standard-tag stream name)))))))
 
-(defun read-root (stream)
-  (let ((*root* (make-root)))
+(defun read-root (stream &optional (root (make-root)))
+  (let ((*root* root))
     (loop while (peek-char NIL stream NIL NIL)
           do (append-child *root* (or (read-tag stream)
                                       (read-text stream))))
     *root*))
+
+(defgeneric parse (input &key root)
+  (:documentation "")
+  (:method ((input string) &key root)
+    (parse (make-string-input-stream input) :root root))
+  (:method ((input pathname) &key root)
+    (with-open-file (stream input :direction :input)
+      (parse stream :root root)))
+  (:method ((input stream) &key root)
+    (if root
+        (read-root input root)
+        (read-root input))))
