@@ -19,5 +19,6 @@
   :components ((:file "package")
                (:file "array")
                (:file "dom")
+               (:file "entities")
                (:file "lexer"))
   :depends-on ())
