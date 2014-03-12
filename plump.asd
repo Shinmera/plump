@@ -20,5 +20,6 @@
                (:file "array")
                (:file "dom")
                (:file "entities")
-               (:file "lexer"))
+               (:file "lexer")
+               (:file "special-tags"))
   :depends-on ())
