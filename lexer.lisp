@@ -93,7 +93,10 @@
   (consume-until (make-matcher (or (is " ") (is "/") (is ">"))) stream))
 
 (defun read-text (stream)
-  (make-text-node *root* (consume-until (make-matcher (and (is "<") (not (is " ")))) stream)))
+  (make-text-node
+   *root*
+   (decode-entities
+    (consume-until (make-matcher (and (is "<") (not (is " ")))) stream))))
 
 (defun read-comment (stream)
   (loop for char = (read-char stream NIL NIL)
@@ -101,7 +104,10 @@
         do (unless (char= #\- char)
              (unread-char char stream)
              (return)))
-  (prog1 (make-comment *root* (consume-until (make-matcher (is "-->")) stream))
+  (prog1 (make-comment
+          *root*
+          (decode-entities
+           (consume-until (make-matcher (is "-->")) stream)))
     (consume-n 6 stream)))
 
 (defun read-children (stream)
@@ -117,16 +123,17 @@
                          (return children)))))
 
 (defun read-attribute-value (stream)
-  (let ((first (peek-char NIL stream NIL NIL)))
-    (if (and first (char= first #\"))
-        (progn
-          (consume stream)
-          (prog1 (consume-until (make-matcher (is "\"")) stream)
-            (consume stream) ;; ??
-            (consume stream)))
-        (progn
-          (prog1 (consume-until (make-matcher (is " ")) stream)
-            (consume stream))))))
+  (decode-entities
+   (let ((first (peek-char NIL stream NIL NIL)))
+     (if (and first (char= first #\"))
+         (progn
+           (consume stream)
+           (prog1 (consume-until (make-matcher (is "\"")) stream)
+             (consume stream) ;; ??
+             (consume stream)))
+         (progn
+           (prog1 (consume-until (make-matcher (is " ")) stream)
+             (consume stream)))))))
 
 (defun read-attribute-name (stream)
   (consume-until (make-matcher (or (is "=") (is " ") (is "/") (is ">"))) stream))
