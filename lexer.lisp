@@ -6,7 +6,8 @@
 
 (in-package #:org.tymoonnext.plump)
 
-(defvar *whitespace* '(#\Tab #\Newline #\Linefeed #\Page #\Return #\Space))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defvar *whitespace* '(#\Tab #\Newline #\Linefeed #\Page #\Return #\Space)))
 (defvar *root* NIL)
 
 (defun peek-char-n (n stream)
