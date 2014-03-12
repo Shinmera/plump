@@ -35,6 +35,11 @@
    (%attributes :initarg :attributes :initform (make-attribute-map) :accessor attributes))
   (:documentation ""))
 
+(defmethod print-object ((node element) stream)
+  (print-unreadable-object (node stream :type T :identity T)
+    (write-string (tag-name node) stream))
+  node)
+
 (defun make-child-array ()
   (make-array 0 :adjustable T :fill-pointer 0))
 
@@ -197,26 +202,31 @@
 (defun root-p (object)
   (typep object 'root))
 
+(defvar *indent* 0)
+(defun indent ()
+  (make-string *indent* :initial-element #\Space))
+
 (defgeneric serialize (node stream)
   (:documentation "")
   (:method ((node text-node) stream)
-    (write-string (text node) stream))
+    (format stream "~a~a~%" (indent) (text node)))
   (:method ((node comment) stream)
-    (format stream "<!-- ~a -->" (text node)))
+    (format stream "<!--~a-->" (text node)))
   (:method ((node element) stream)
-    (format stream "<~a" (tag-name node))
+    (format stream "~a<~a" (indent) (tag-name node))
     (serialize (attributes node) stream)
     (if (< 0 (length (children node)))
         (progn
-          (write-char #\> stream)
-          (loop for child across (children node)
-                do (serialize child stream))
-          (format stream "</~a>" (tag-name node)))
-        (write-string "/>" stream)))
+          (format stream ">~%")
+          (let ((*indent* (+ *indent* 2)))
+            (loop for child across (children node)
+                  do (serialize child stream)))
+          (format stream "~a</~a>~%" (indent) (tag-name node)))
+        (format stream "/>~%")))
   (:method ((table hash-table) stream)
     (loop for key being the hash-keys of table
           for val being the hash-values of table
-          do (format stream " ~a=\"~a\"" key val)))
+          do (format stream " ~a~@[=~s~]" key val)))
   (:method ((node nesting-node) stream)
     (loop for child across (children node)
           do (serialize child stream))))
