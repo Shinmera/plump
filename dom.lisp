@@ -206,9 +206,10 @@
 (defun root-p (object)
   (typep object 'root))
 
-(defvar *indent* 0)
+(defvar *indent-step* 2)
+(defvar *indent-level* 0)
 (defun indent ()
-  (make-string *indent* :initial-element #\Space))
+  (make-string (* *indent-level* *indent-step*) :initial-element #\Space))
 
 (defgeneric serialize (node stream)
   (:documentation "")
@@ -222,7 +223,7 @@
     (if (< 0 (length (children node)))
         (progn
           (format stream ">~%")
-          (let ((*indent* (+ *indent* 2)))
+          (let ((*indent-level* (1+ *indent-level*)))
             (loop for child across (children node)
                   do (serialize child stream)))
           (format stream "~a</~a>~%" (indent) (tag-name node)))
