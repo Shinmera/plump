@@ -106,7 +106,11 @@
         finally (return array)))
 
 (defun clone-attributes (node)
-  (alexandria:copy-hash-table (attributes node) :test 'equalp))
+  (let ((map (make-attribute-map)))
+    (loop for key being the hash-keys of (attributes node)
+          for val being the hash-values of (attributes node)
+          do (setf (gethash key map) val))
+    map))
 
 (defgeneric clone-node (node &key deep)
   (:method ((node comment) &key (deep T))
