@@ -15,9 +15,27 @@
   `(define-tag-dispatcher ,tag (name stream)
                           (string-equal name ,(string tag))
      (let ((attrs (read-attributes stream)))
-       (consume stream)
-       (make-element *root* ,(string tag) :attributes attrs))))
+       (when (char= (consume stream) #\/)
+         (consume stream)) ;; Consume closing
+       (make-element *root* ,(string-downcase tag) :attributes attrs))))
 
+;; According to http://www.w3.org/html/wg/drafts/html/master/syntax.html#void-elements
+;; area, base, br, col, embed, hr, img, input, keygen, link, menuitem, meta, param, source, track, wbr
+(define-self-closing-element area)
+(define-self-closing-element base)
+(define-self-closing-element br)
+(define-self-closing-element col)
 (define-self-closing-element doctype)
-(define-self-closing-element meta)
+(define-self-closing-element embed)
+(define-self-closing-element hr)
+(define-self-closing-element img)
+(define-self-closing-element input)
+(define-self-closing-element keygen)
 (define-self-closing-element link)
+(define-self-closing-element menuitem)
+(define-self-closing-element meta)
+(define-self-closing-element param)
+(define-self-closing-element source)
+(define-self-closing-element track)
+(define-self-closing-element wbr)
+
