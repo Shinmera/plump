@@ -16,7 +16,7 @@
     `(let* ((,namegens ',name)
             (,valgens (list ,namegens
                             #'(lambda (,tagvar) ,test-form)
-                            #'(lambda (,streamvar) ,@body)))
+                            #'(lambda (,streamvar ,tagvar) (declare (ignorable ,tagvar)) ,@body)))
             (,posgens (position ,namegens *tag-dispatchers* :key #'first)))
        (if ,posgens
            (setf (nth ,posgens *tag-dispatchers*) ,valgens)
@@ -44,10 +44,7 @@
         for char = (read-char stream NIL NIL)
         while char
         do (write-char char output)
-        finally (progn
-                  (loop for char across string
-                        do (unread-char char stream))
-                  (return (get-output-stream-string output)))))
+        finally (return (get-output-stream-string output))))
 
 (defun matcher-string (string)
   #'(lambda (stream)
@@ -68,7 +65,6 @@
       (loop for matcher in matchers
             for (match . string) = (funcall matcher stream)
             do (when match
-                 (consume-n (length string) stream)
                  (return (cons match string)))
             finally (return (cons NIL "")))))
 
@@ -79,13 +75,16 @@
               for (match . string) = (funcall matcher stream)
               do (if match
                      (progn
-                       (write-string string consumed)
-                       (consume-n (length string) stream))
+                       (consume-n (length string) stream)
+                       (write-string string consumed))
                      (progn
                        (loop for char across (get-output-stream-string consumed)
                              do (unread-char char stream))
                        (return (cons NIL ""))))
-              finally (return (cons T (get-output-stream-string consumed)))))))
+              finally (let ((consumed (get-output-stream-string consumed)))
+                        (loop for char across consumed
+                              do (unread-char char stream))
+                        (return (cons T consumed)))))))
 
 (defun matcher-not (matcher)
   #'(lambda (stream)
@@ -138,8 +137,7 @@
      (if (and first (char= first #\"))
          (prog2 (consume stream)
              (consume-until (make-matcher (is "\"")) stream)
-           (consume-n 2 stream) ;; ??
-           )
+           (consume stream))
          (consume-until (make-matcher (or (is " ") (is "/>") (is ">"))) stream)))))
 
 (defun read-attribute-name (stream)
@@ -174,7 +172,7 @@
                     (make-attribute-map))))
     (case closing
       (#\/
-       (consume stream)
+       (consume-n 2 stream)
        (make-element *root* name :attributes attrs))
       (#\>
        (let ((*root* (make-element *root* name :attributes attrs)))
@@ -190,7 +188,7 @@
       (let ((name (read-name stream)))
         (loop for (d test func) in *tag-dispatchers*
               when (funcall test name)
-                do (return (funcall func stream))
+                do (return (funcall func stream name))
               finally (return (read-standard-tag stream name)))))))
 
 (defun read-root (stream &optional (root (make-root)))
