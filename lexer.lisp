@@ -104,7 +104,7 @@
     (transform form)))
 
 (defun read-name (stream)
-  (consume-until (make-matcher (or (is " ") (is ">") (and (is "/") (is ">")))) stream))
+  (consume-until (make-matcher (or (is " ") (is "/>") (is ">"))) stream))
 
 (defun read-text (stream)
   (make-text-node
@@ -112,10 +112,11 @@
    (decode-entities
     (consume-until (make-matcher (and (is "<") (not (is " ")))) stream))))
 
+;; Robustify
 (defun read-tag-contents (stream)
-  (consume-until (make-matcher (or (is ">") (and (is "/") (is ">")))) stream))
+  (decode-entities
+   (consume-until (make-matcher (or (is "/>") (is ">"))) stream)))
 
-;; Fix issue of invalid order of closing tags.
 (defun read-children (stream)
   (let ((close-tag (format NIL "</~a>" (tag-name *root*))))
     (loop with children = (make-child-array)
@@ -136,10 +137,10 @@
              (consume-until (make-matcher (is "\"")) stream)
            (consume stream) ;; ??
            (consume stream))
-         (consume-until (make-matcher (or (is " ") (is ">") (and (is "/") (is ">")))) stream)))))
+         (consume-until (make-matcher (or (is " ") (is "/>") (is ">"))) stream)))))
 
 (defun read-attribute-name (stream)
-  (consume-until (make-matcher (or (is "=") (is " ") (is ">") (and (is "/") (is ">")))) stream))
+  (consume-until (make-matcher (or (is "=") (is " ") (is "/>") (is ">"))) stream))
 
 (defun read-attribute (stream)
   (let ((name (read-attribute-name stream))
