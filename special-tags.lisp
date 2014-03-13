@@ -9,22 +9,19 @@
 (define-tag-dispatcher invalid-closing-tag (name stream)
                        (char= (elt name 0) #\/)
   (consume-until (make-matcher (is ">")) stream)
-  (consume-n 2 stream)
+  (consume stream)
   NIL)
 
 (define-tag-dispatcher comment (name stream)
                        (and (<= 3 (length name))
                             (string= name "!--" :end1 3))
-  (loop for char = (read-char stream NIL NIL)
-        while char
-        do (unless (char= #\- char)
-             (unread-char char stream)
-             (return)))
   (prog1 (make-comment
           *root*
           (decode-entities
-           (consume-until (make-matcher (is "-->")) stream)))
-    (consume-n 6 stream)))
+           (concatenate
+            'string (subseq name 3)
+            (consume-until (make-matcher (is "-->")) stream))))
+    (consume-n 3 stream)))
 
 (define-tag-dispatcher doctype (name stream)
                        (string-equal name "!DOCTYPE")
