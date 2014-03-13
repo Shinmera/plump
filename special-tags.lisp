@@ -9,7 +9,16 @@
 (define-tag-dispatcher comment (name stream)
                        (and (<= 3 (length name))
                             (string= name "!--" :end1 3))
-  (read-comment stream))
+  (loop for char = (read-char stream NIL NIL)
+        while char
+        do (unless (char= #\- char)
+             (unread-char char stream)
+             (return)))
+  (prog1 (make-comment
+          *root*
+          (decode-entities
+           (consume-until (make-matcher (is "-->")) stream)))
+    (consume-n 6 stream)))
 
 (define-tag-dispatcher doctype (name stream)
                        (string-equal name "!DOCTYPE")

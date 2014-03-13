@@ -115,18 +115,6 @@
 (defun read-tag-contents (stream)
   (consume-until (make-matcher (or (is ">") (and (is "/") (is ">")))) stream))
 
-(defun read-comment (stream)
-  (loop for char = (read-char stream NIL NIL)
-        while char
-        do (unless (char= #\- char)
-             (unread-char char stream)
-             (return)))
-  (prog1 (make-comment
-          *root*
-          (decode-entities
-           (consume-until (make-matcher (is "-->")) stream)))
-    (consume-n 6 stream)))
-
 ;; Fix issue of invalid order of closing tags.
 (defun read-children (stream)
   (let ((close-tag (format NIL "</~a>" (tag-name *root*))))
