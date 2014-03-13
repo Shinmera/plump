@@ -11,13 +11,20 @@
                             (string= name "!--" :end1 3))
   (read-comment stream))
 
-(defmacro define-self-closing-element (tag)
+(define-tag-dispatcher doctype (name stream)
+                       (string-equal name "!DOCTYPE")
+  (let ((declaration (read-tag-contents stream)))
+    (when (char= (consume stream) #\/)
+      (consume stream)) ;; Consume closing
+    (make-instance 'doctype :parent *root* :doctype (string-trim " " declaration))))
+
+(defmacro define-self-closing-element (tag &optional (class 'element))
   `(define-tag-dispatcher ,tag (name stream)
                           (string-equal name ,(string tag))
      (let ((attrs (read-attributes stream)))
        (when (char= (consume stream) #\/)
          (consume stream)) ;; Consume closing
-       (make-element *root* ,(string-downcase tag) :attributes attrs))))
+       (make-instance ',class :parent *root* :tag-name ,(string-downcase tag) :attributes attrs))))
 
 ;; According to http://www.w3.org/html/wg/drafts/html/master/syntax.html#void-elements
 ;; area, base, br, col, embed, hr, img, input, keygen, link, menuitem, meta, param, source, track, wbr
@@ -25,7 +32,6 @@
 (define-self-closing-element base)
 (define-self-closing-element br)
 (define-self-closing-element col)
-(define-self-closing-element doctype)
 (define-self-closing-element embed)
 (define-self-closing-element hr)
 (define-self-closing-element img)
