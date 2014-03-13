@@ -6,6 +6,12 @@
 
 (in-package #:org.tymoonnext.plump)
 
+(define-tag-dispatcher invalid-closing-tag (name stream)
+                       (char= (elt name 0) #\/)
+  (consume-until (make-matcher (is ">")) stream)
+  (consume-n 2 stream)
+  NIL)
+
 (define-tag-dispatcher comment (name stream)
                        (and (<= 3 (length name))
                             (string= name "!--" :end1 3))
