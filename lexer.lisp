@@ -12,10 +12,15 @@
 (defvar *tag-dispatchers* ())
 
 (defmacro define-tag-dispatcher (name (tagvar streamvar) test-form &body body)
-  `(pushnew (list ',name
-                  #'(lambda (,tagvar) ,test-form)
-                  #'(lambda (,streamvar) ,@body))
-            *tag-dispatchers* :key #'first))
+  (let ((namegens (gensym "NAME")) (posgens (gensym "POSITION")) (valgens (gensym "VALUE")))
+    `(let* ((,namegens ',name)
+            (,valgens (list ,namegens
+                            #'(lambda (,tagvar) ,test-form)
+                            #'(lambda (,streamvar) ,@body)))
+            (,posgens (position ,namegens *tag-dispatchers* :key #'first)))
+       (if ,posgens
+           (setf (nth ,posgens *tag-dispatchers*) ,valgens)
+           (push ,valgens *tag-dispatchers*)))))
 
 (defun peek-char-n (n stream)
   (let ((result (loop repeat n collect (read-char stream NIL NIL))))
@@ -99,13 +104,16 @@
     (transform form)))
 
 (defun read-name (stream)
-  (consume-until (make-matcher (or (is " ") (is "/") (is ">"))) stream))
+  (consume-until (make-matcher (or (is " ") (is ">") (and (is "/") (is ">")))) stream))
 
 (defun read-text (stream)
   (make-text-node
    *root*
    (decode-entities
     (consume-until (make-matcher (and (is "<") (not (is " ")))) stream))))
+
+(defun read-tag-contents (stream)
+  (consume-until (make-matcher (or (is ">") (and (is "/") (is ">")))) stream))
 
 (defun read-comment (stream)
   (loop for char = (read-char stream NIL NIL)
@@ -119,6 +127,7 @@
            (consume-until (make-matcher (is "-->")) stream)))
     (consume-n 6 stream)))
 
+;; Fix issue of invalid order of closing tags.
 (defun read-children (stream)
   (let ((close-tag (format NIL "</~a>" (tag-name *root*))))
     (loop with children = (make-child-array)
@@ -139,10 +148,10 @@
              (consume-until (make-matcher (is "\"")) stream)
            (consume stream) ;; ??
            (consume stream))
-         (consume-until (make-matcher (or (is " ") (is "/") (is ">"))) stream)))))
+         (consume-until (make-matcher (or (is " ") (is ">") (and (is "/") (is ">")))) stream)))))
 
 (defun read-attribute-name (stream)
-  (consume-until (make-matcher (or (is "=") (is " ") (is "/") (is ">"))) stream))
+  (consume-until (make-matcher (or (is "=") (is " ") (is ">") (and (is "/") (is ">")))) stream))
 
 (defun read-attribute (stream)
   (let ((name (read-attribute-name stream))
