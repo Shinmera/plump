@@ -22,21 +22,24 @@
            (setf (nth ,posgens *tag-dispatchers*) ,valgens)
            (push ,valgens *tag-dispatchers*)))))
 
+(declaim (inline peek-char-n))
 (defun peek-char-n (n stream)
   (let ((result (loop repeat n collect (read-char stream NIL NIL))))
     (loop for char in (reverse result)
           repeat n do (unread-char char stream))
     result))
 
+(declaim (inline consume))
 (defun consume (stream)
   (read-char stream))
 
+(declaim (inline consume-n))
 (defun consume-n (n stream)
-  (loop repeat n collect (read-char stream NIL NIL)))
+  (loop repeat n do (read-char stream NIL NIL)))
 
-(defun consume-until (matcher stream)
+(defun consume-until (matcher stream) 
   (loop with output = (make-string-output-stream)
-        for (match string) = (multiple-value-list (funcall matcher stream))
+        for (match . string) = (funcall matcher stream)
         until match
         for char = (read-char stream NIL NIL)
         while char
@@ -48,7 +51,7 @@
 
 (defun matcher-string (string)
   #'(lambda (stream)
-      (values
+      (cons
        (let ((read ()))
          (unwind-protect
               (loop for curr across string
@@ -61,19 +64,19 @@
        string)))
 
 (defun matcher-or (&rest matchers)
-  #'(lambda (stream)
+  #'(lambda (stream) 
       (loop for matcher in matchers
-            for (match string) = (multiple-value-list (funcall matcher stream))
+            for (match . string) = (funcall matcher stream)
             do (when match
                  (consume-n (length string) stream)
-                 (return (values match string)))
-            finally (return (values NIL "")))))
+                 (return (cons match string)))
+            finally (return (cons NIL "")))))
 
 (defun matcher-and (&rest matchers)
   #'(lambda (stream)
       (let ((consumed (make-string-output-stream)))
         (loop for matcher in matchers
-              for (match string) = (multiple-value-list (funcall matcher stream))
+              for (match . string) = (funcall matcher stream)
               do (if match
                      (progn
                        (write-string string consumed)
@@ -81,13 +84,13 @@
                      (progn
                        (loop for char across (get-output-stream-string consumed)
                              do (unread-char char stream))
-                       (return (values NIL ""))))
-              finally (return (values T (get-output-stream-string consumed)))))))
+                       (return (cons NIL ""))))
+              finally (return (cons T (get-output-stream-string consumed)))))))
 
 (defun matcher-not (matcher)
   #'(lambda (stream)
-      (multiple-value-bind (match string) (funcall matcher stream)
-        (values (not match) string))))
+       (let ((result (funcall matcher stream)))
+        (cons (not (car result)) (cdr result)))))
 
 (defmacro make-matcher (form)
   (labels ((transform (form)
@@ -121,7 +124,7 @@
   (let ((close-tag (format NIL "</~a>" (tag-name *root*))))
     (loop with children = (make-child-array)
           while (peek-char NIL stream NIL NIL)
-          for (match string) = (multiple-value-list (funcall (make-matcher (is close-tag)) stream))
+          for (match . string) = (funcall (make-matcher (is close-tag)) stream)
           until match
           do (vector-push-extend (or (read-tag stream)
                                      (read-text stream)) children)
@@ -135,8 +138,8 @@
      (if (and first (char= first #\"))
          (prog2 (consume stream)
              (consume-until (make-matcher (is "\"")) stream)
-           (consume stream) ;; ??
-           (consume stream))
+           (consume-n 2 stream) ;; ??
+           )
          (consume-until (make-matcher (or (is " ") (is "/>") (is ">"))) stream)))))
 
 (defun read-attribute-name (stream)
@@ -164,8 +167,11 @@
                 (setf (gethash (car entry) table) (cdr entry)))))))
 
 (defun read-standard-tag (stream name)
-  (let ((attrs (read-attributes stream))
-        (closing (read-char stream)))
+  (let* ((closing (read-char stream))
+         (attrs (if (char= closing #\Space)
+                    (prog1 (read-attributes stream)
+                      (setf closing (read-char stream)))
+                    (make-attribute-map))))
     (case closing
       (#\/
        (consume stream)
