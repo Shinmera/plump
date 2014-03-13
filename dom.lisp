@@ -40,6 +40,15 @@
     (write-string (tag-name node) stream))
   node)
 
+(defclass doctype (child-node)
+  ((%doctype :initarg :doctype :initform (error "Doctype declaration required.") :accessor doctype))
+  (:documentation ""))
+
+(defmethod print-object ((node doctype) stream)
+  (print-unreadable-object (node stream :type T)
+    (write-string (doctype node) stream))
+  node)
+
 (defun make-child-array ()
   (make-array 0 :adjustable T :fill-pointer 0))
 
@@ -215,6 +224,8 @@
   (:documentation "")
   (:method ((node text-node) stream)
     (format stream "~a" (text node)))
+  (:method ((node doctype) stream)
+    (format stream "<!DOCTYPE ~a>" (doctype node)))
   (:method ((node comment) stream)
     (format stream "<!--~a-->" (text node)))
   (:method ((node element) stream)
