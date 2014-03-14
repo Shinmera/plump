@@ -274,21 +274,13 @@
               (code-char (parse-integer (subseq entity 1)))))
       (gethash entity *entity-map*)))
 
+
+(defvar *entity-regex* (cl-ppcre:create-scanner "&([0-9a-zA-Z#]+);"))
 (defun decode-entities (text)
-  (let ((stream (make-string-output-stream)))
-    (loop with previous = 0
-          for pos = (position #\& text) then (position #\& text :start (1+ pos))
-          while pos
-          for nextspace = (position #\Space text :start pos)
-          for nextcolon = (position #\; text :start pos)
-          do (when (and nextcolon
-                        (or (not nextspace)
-                            (< nextcolon nextspace)))
-               ;; Looks like something we have to care about
-               (let* ((entity (subseq text (1+ pos) nextcolon))
-                      (char (translate-entity entity)))
-                 (when char
-                   (format stream "~a~a" (subseq text previous pos) char)
-                   (setf previous (1+ nextcolon)))))
-          finally (write-string (subseq text previous) stream))
-    (get-output-stream-string stream)))
+  (cl-ppcre:regex-replace-all
+   *entity-regex* text
+   #'(lambda (target start end m-start m-end r-start r-end)
+       (declare (ignore start end r-start r-end))
+       (let* ((entity (subseq target (1+ m-start) (1- m-end)))
+              (char (translate-entity entity)))
+         (if char (string char) (format NIL "&~a;" entity))))))

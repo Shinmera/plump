@@ -22,4 +22,4 @@
                (:file "entities")
                (:file "lexer")
                (:file "special-tags"))
-  :depends-on ())
+  :depends-on (:cl-ppcre))
