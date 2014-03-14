@@ -21,5 +21,6 @@
                (:file "dom")
                (:file "entities")
                (:file "lexer")
+               (:file "parser")
                (:file "special-tags"))
   :depends-on (:cl-ppcre))
