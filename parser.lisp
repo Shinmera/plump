@@ -8,7 +8,7 @@
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defvar *whitespace* '(#\Tab #\Newline #\Linefeed #\Page #\Return #\Space)))
-(defvar *root* NIL)
+(defvar *root*)
 (defvar *tag-dispatchers* ())
 
 (defmacro define-tag-dispatcher (name (tagvar) test-form &body body)
@@ -44,7 +44,7 @@
           until match
           do (vector-push-extend (or (read-tag) (read-text)) children)
           finally (progn (when match
-                           (consume-n (length string)))
+                           (consume-n (length (the simple-string string))))
                          (return children)))))
 
 (defun read-attribute-value ()
@@ -101,8 +101,8 @@
            (not (member (peek) *whitespace* :test #'char=)))     
       (let ((name (read-name)))
         (loop for (d test func) in *tag-dispatchers*
-              when (funcall test name)
-                do (return (funcall func name))
+              when (funcall (the function test) name)
+                do (return (funcall (the function func) name))
               finally (return (read-standard-tag name))))
       (progn (unread) NIL)))
 
