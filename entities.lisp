@@ -264,23 +264,32 @@
                              ("hearts" . "♥")
                              ("diams" . "♦"))
         do (setf (gethash key table) val)
-        finally (return table)))
+        finally (return table))
+  "String hash-table containing the entity names and mapping them to their respective characters.")
 
 (defun translate-entity (entity)
+  "Translates the given entity identifier (a name, #Dec or #xHex) into their respective strings if possible.
+Otherwise returns NIL."
   (if (char= (elt entity 0) #\#)
       (when (<= 2 (length entity))
+        (string
+         (code-char
           (if (char= (elt entity 1) #\x)
-              (code-char (parse-integer (subseq entity 2) :radix 16))
-              (code-char (parse-integer (subseq entity 1)))))
+              (parse-integer (subseq entity 2) :radix 16)
+              (parse-integer (subseq entity 1))))))
       (gethash entity *entity-map*)))
 
-
-(defvar *entity-regex* (cl-ppcre:create-scanner "&([0-9a-zA-Z#]+);"))
-(defun decode-entities (text)
+(defvar *entity-regex* (cl-ppcre:create-scanner "&([0-9a-zA-Z#]+);") "Regex matching an entity.")
+(defun decode-entities (text &optional remove-invalid)
+  "Translates all entities in the text into their character counterparts if possible.
+If an entity does not match, it is left in place unless REMOVE-INVALID is non-NIL."
   (cl-ppcre:regex-replace-all
    *entity-regex* text
    #'(lambda (target start end m-start m-end r-start r-end)
        (declare (ignore start end r-start r-end))
        (let* ((entity (subseq target (1+ m-start) (1- m-end)))
               (char (translate-entity entity)))
-         (if char (string char) (format NIL "&~a;" entity))))))
+         (cond
+           (char char)
+           (remove-invalid "")
+           (t (format NIL "&~a;" entity)))))))

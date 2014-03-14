@@ -6,12 +6,24 @@
 
 (in-package #:org.tymoonnext.plump)
 
+;; We simply ignore closing tags.
+;; We can do this because the matching of the proper
+;; closing tag in READ-CHILDREN happens before this
+;; even has a chance to dispatch. Thus only
+;; inappropriate or badly ordered closing tags are
+;; handled by this, which are best left ignored.
+;; That way the order of the closing tags is
+;; restored naturally by the reading algorithm.
 (define-tag-dispatcher invalid-closing-tag (name)
                        (char= (elt name 0) #\/)
   (consume-until (make-matcher (is ">")))
   (consume)
   NIL)
 
+;; Comments are special nodes. We try to handle them
+;; with a bit of grace, but having the inner content
+;; be read in the best way possible is hard to get
+;; right.
 (define-tag-dispatcher comment (name)
                        (and (<= 3 (length name))
                             (string= name "!--" :end1 3))
@@ -23,6 +35,7 @@
             (consume-until (make-matcher (is "-->"))))))
     (consume-n 3)))
 
+;; Special handling for the doctype tag
 (define-tag-dispatcher doctype (name)
                        (string-equal name "!DOCTYPE")
   (let ((declaration (read-tag-contents)))
@@ -30,6 +43,7 @@
       (consume)) ;; Consume closing
     (make-instance 'doctype :parent *root* :doctype (string-trim " " declaration))))
 
+;; Shorthand macro to define self-closing elements
 (defmacro define-self-closing-element (tag &optional (class 'element))
   `(define-tag-dispatcher ,tag (name)
                           (string-equal name ,(string tag))
