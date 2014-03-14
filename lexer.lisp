@@ -17,17 +17,14 @@
 
 ;; Fix to use smarter scheme that doesn't rely on a check every time.
 (defun unread ()
-  (format T "-")
   (when (< 0 *index*)
     (decf *index*)))
 
 (defun peek ()
-  (format T "?")
   (when (< *index* *length*)
     (elt *string* *index*)))
 
 (defun consume ()
-  (format T "+")
   (when (< *index* *length*)
     (prog1 (elt *string* *index*)
       (incf *index*))))
@@ -36,17 +33,14 @@
   (loop for i from *index*
         while (< i *length*)
         repeat n
-        do (format T "?")
         collect (elt *string* i)))
 
 (defun consume-n (n)
-  (format T "~a" (make-string n :initial-element #\+))
   (incf *index* n)
   (when (<= *length* *index*)
     (setf *index* (1- *length*))))
 
 (defun unread-n (n)
-  (format T "~a" (make-string n :initial-element #\-))
   (decf *index* n)
   (when (< *index* 0)
     (setf *index* 0)))
