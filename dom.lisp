@@ -83,11 +83,13 @@ Note that the node is automatically appended to the parent's child list."
   (append-child parent (make-instance 'comment :text text :parent parent)))
 
 (defun siblings (child)
-  "Returns the array of siblings of the given child."
+  "Returns the array of siblings of the given child.
+Note that this is a copy of the array, modifying it is safe."
   (remove child (children (parent child))))
 
 (defun family (child)
-  "Returns the array of children of the parent of the given child."
+  "Returns the direct array of children of the parent of the given child.
+Note that modifying this array directly modifies that of the parent."
   (children (parent child)))
 
 (defun child-position (child)
@@ -270,19 +272,18 @@ the given tag."
     finds))
 
 (defun get-element-by-id (node id)
-  "Searches the given node and returns an unordered
-list of child nodes at arbitrary depth that match
-the given ID attribute."
-  (let ((finds ()))
-    (labels ((scan-children (node)
-               (loop for child across (children node)
-                     do (when (element-p child)
-                          (let ((cid (attribute child "id")))
-                            (when (string-equal id cid)
-                              (push child finds)))
-                          (scan-children child)))))
-      (scan-children node))
-    finds))
+  "Searches the given node and returns the first
+node at arbitrary depth that matches the given ID
+attribute."
+  (labels ((scan-children (node)
+             (loop for child across (children node)
+                   do (when (element-p child)
+                        (let ((cid (attribute child "id")))
+                          (when (string-equal id cid)
+                            (return-from get-element-by-id child)))
+                        (scan-children child)))))
+    (scan-children node))
+  NIL)
 
 
 (defun node-p (object)
