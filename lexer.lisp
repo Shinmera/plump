@@ -53,73 +53,65 @@
 
 (defun consume-until (matcher) 
   (loop with output = (make-string-output-stream)
-        until (funcall matcher)
+        for (match . string) = (funcall matcher)
+        until match
         for char = (consume)
         while char
         do (write-char char output)
         finally (return (get-output-stream-string output))))
 
-;; 2.0
-;; Each matcher can return three values: NIL :FAIL :PASS.
-;; NIL indicates that the matcher is not complete yet and
-;; needs more tokens to be sure. When the matcher is done,
-;; he continues to return his result for any subsequent
-;; index.
+(defun matcher-string (string)
+  #'(lambda ()
+      (cons
+       (let ((read 0))
+         (unwind-protect
+              (loop for curr across string
+                    for curs = (consume) 
+                    always curs
+                    do (incf read)
+                    always (char= curs curr))
+           (unread-n read)))
+       string)))
 
-(defun matcher-is (i string)
-  (let ((gens (gensym "STRING")))
-    (etypecase string
-      (symbol
-       `(let ((,gens ,string))
-          (when (<= (length ,gens) ,i)
-            (if (string= ,gens *string* :start2 *index* :end2 (+ *index* (length ,gens)))
-                :PASS :FAIL))))
-      (string
-       `(when (<= ,(length string) ,i)
-          (if (string= ,string *string* :start2 *index* :end2 (+ *index* ,(length string)))
-              :PASS :FAIL))))))
+(defun matcher-or (&rest matchers)
+  #'(lambda () 
+      (loop for matcher in matchers
+            for (match . string) = (funcall matcher)
+            do (when match
+                 (return (cons match string)))
+            finally (return (cons NIL "")))))
 
-(defun matcher-or (forms)
-  (let ((results (gensym "RESULTS")) (result (gensym "RESULT")))
-    `(let ((,results (list ,@forms)))
-       (loop for ,result in ,results
-             if (eq ,result :PASS)
-               do (return :PASS)
-             if (not ,result)
-               do (return NIL)
-             finally (return :FAIL)))))
+(defun matcher-and (&rest matchers)
+  #'(lambda ()
+      (let ((consumed (make-string-output-stream)))
+        (loop for matcher in matchers
+              for (match . string) = (funcall matcher)
+              do (if match
+                     (progn
+                       (consume-n (length string))
+                       (write-string string consumed))
+                     (progn
+                       (unread-n (length (get-output-stream-string consumed)))
+                       (return (cons NIL ""))))
+              finally (let ((consumed (get-output-stream-string consumed)))
+                        (unread-n (length consumed))
+                        (return (cons T consumed)))))))
 
-(defun matcher-and (forms)
-  (let ((results (gensym "RESULTS")) (result (gensym "RESULT")))
-    `(let ((,results (list ,@forms)))
-       (loop for ,result in ,results
-             if (eq ,result :FAIL)
-               do (return :FAIL)
-             if (not ,result)
-               do (return NIL)
-             finally (return :PASS)))))
-
-(defun matcher-not (form)
-  (let ((result (gensym "RESULT")))
-    `(let ((,result ,form))
-       (when ,result
-         (if (eq ,result :PASS) :FAIL :PASS)))))
+(defun matcher-not (matcher)
+  #'(lambda ()
+       (let ((result (funcall matcher)))
+        (cons (not (car result)) (cdr result)))))
 
 (defmacro make-matcher (form)
-  (let ((i (gensym "I")) (j (gensym "J")))
-    (labels ((expand (form)
-               (etypecase form
-                 (atom form)
-                 (cons (let ((subforms (mapcar #'expand (cdr form))))
-                         (case (car form)
-                           (is (matcher-is i (car subforms)))
-                           (or (matcher-or subforms))
-                           (and (matcher-and subforms))
-                           (not (matcher-not (car subforms)))
-                           (T (cons (car form) subforms))))))))
-      `#'(lambda ()
-           (loop for ,i from 0
-                 for ,j from *index* below *length*
-                 for result = ,(expand form)
-                 until result
-                 finally (return (eq result :PASS)))))))
+  (labels ((transform (form)
+             (etypecase form
+               (atom form)
+               (T
+                (cons (case (car form)
+                        (not 'matcher-not)
+                        (and 'matcher-and)
+                        (or 'matcher-or)
+                        (is 'matcher-string)
+                        (T (car form)))
+                      (mapcar #'transform (cdr form)))))))
+    (transform form)))

@@ -29,7 +29,7 @@
   (make-text-node
    *root*
    (decode-entities
-    (consume-until (make-matcher (and (is "<") (not (is "< "))))))))
+    (consume-until (make-matcher (and (is "<") (not (is " "))))))))
 
 ;; Robustify against strings inside containing >
 (defun read-tag-contents ()
@@ -40,11 +40,11 @@
   (let ((close-tag (format NIL "</~a>" (tag-name *root*))))
     (loop with children = (make-child-array)
           while (peek)
-          for match = (funcall (make-matcher (is close-tag)))
+          for (match . string) = (funcall (make-matcher (is close-tag)))
           until match
           do (vector-push-extend (or (read-tag) (read-text)) children)
           finally (progn (when match
-                           (consume-n (length close-tag)))
+                           (consume-n (length string)))
                          (return children)))))
 
 (defun read-attribute-value ()
