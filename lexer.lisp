@@ -10,85 +10,112 @@
   (defvar *whitespace* '(#\Tab #\Newline #\Linefeed #\Page #\Return #\Space)))
 (defvar *root* NIL)
 (defvar *tag-dispatchers* ())
+(defvar *string* NIL)
+(defvar *length* 0)
+(defvar *index* 0)
 
-(defmacro define-tag-dispatcher (name (tagvar streamvar) test-form &body body)
+(defmacro with-lexer-environment ((string) &body body)
+  `(let* ((*string* ,string)
+          (*length* (length *string*))
+          (*index* 0))
+     ,@body))
+
+(defmacro define-tag-dispatcher (name (tagvar) test-form &body body)
   (let ((namegens (gensym "NAME")) (posgens (gensym "POSITION")) (valgens (gensym "VALUE")))
     `(let* ((,namegens ',name)
             (,valgens (list ,namegens
                             #'(lambda (,tagvar) ,test-form)
-                            #'(lambda (,streamvar ,tagvar) (declare (ignorable ,tagvar)) ,@body)))
+                            #'(lambda (,tagvar) (declare (ignorable ,tagvar)) ,@body)))
             (,posgens (position ,namegens *tag-dispatchers* :key #'first)))
        (if ,posgens
            (setf (nth ,posgens *tag-dispatchers*) ,valgens)
            (push ,valgens *tag-dispatchers*)))))
 
-(declaim (inline peek-char-n))
-(defun peek-char-n (n stream)
-  (let ((result (loop repeat n collect (read-char stream NIL NIL))))
-    (loop for char in (reverse result)
-          repeat n do (unread-char char stream))
-    result))
+;; Fix to use smarter scheme that doesn't rely on a check every time.
+(defun unread ()
+  (format T "-")
+  (when (< 0 *index*)
+    (decf *index*)))
 
-(declaim (inline consume))
-(defun consume (stream)
-  (read-char stream))
+(defun peek ()
+  (format T "?")
+  (when (< *index* *length*)
+    (elt *string* *index*)))
 
-(declaim (inline consume-n))
-(defun consume-n (n stream)
-  (loop repeat n do (read-char stream NIL NIL)))
+(defun consume ()
+  (format T "+")
+  (when (< *index* *length*)
+    (prog1 (elt *string* *index*)
+      (incf *index*))))
 
-(defun consume-until (matcher stream) 
+(defun peek-n (n)
+  (loop for i from *index*
+        while (< i *length*)
+        repeat n
+        do (format T "?")
+        collect (elt *string* i)))
+
+(defun consume-n (n)
+  (format T "~a" (make-string n :initial-element #\+))
+  (incf *index* n)
+  (when (<= *length* *index*)
+    (setf *index* (1- *length*))))
+
+(defun unread-n (n)
+  (format T "~a" (make-string n :initial-element #\-))
+  (decf *index* n)
+  (when (< *index* 0)
+    (setf *index* 0)))
+
+(defun consume-until (matcher) 
   (loop with output = (make-string-output-stream)
-        for (match . string) = (funcall matcher stream)
+        for (match . string) = (funcall matcher)
         until match
-        for char = (read-char stream NIL NIL)
+        for char = (consume)
         while char
         do (write-char char output)
         finally (return (get-output-stream-string output))))
 
 (defun matcher-string (string)
-  #'(lambda (stream)
+  #'(lambda ()
       (cons
-       (let ((read ()))
+       (let ((read 0))
          (unwind-protect
               (loop for curr across string
-                    for curs = (read-char stream NIL NIL) 
+                    for curs = (consume) 
                     always curs
-                    do (push curs read)
+                    do (incf read)
                     always (char= curs curr))
-           (loop for char in read
-                 do (unread-char char stream))))
+           (unread-n read)))
        string)))
 
 (defun matcher-or (&rest matchers)
-  #'(lambda (stream) 
+  #'(lambda () 
       (loop for matcher in matchers
-            for (match . string) = (funcall matcher stream)
+            for (match . string) = (funcall matcher)
             do (when match
                  (return (cons match string)))
             finally (return (cons NIL "")))))
 
 (defun matcher-and (&rest matchers)
-  #'(lambda (stream)
+  #'(lambda ()
       (let ((consumed (make-string-output-stream)))
         (loop for matcher in matchers
-              for (match . string) = (funcall matcher stream)
+              for (match . string) = (funcall matcher)
               do (if match
                      (progn
-                       (consume-n (length string) stream)
+                       (consume-n (length string))
                        (write-string string consumed))
                      (progn
-                       (loop for char across (get-output-stream-string consumed)
-                             do (unread-char char stream))
+                       (unread-n (length (get-output-stream-string consumed)))
                        (return (cons NIL ""))))
               finally (let ((consumed (get-output-stream-string consumed)))
-                        (loop for char across consumed
-                              do (unread-char char stream))
+                        (unread-n (length consumed))
                         (return (cons T consumed)))))))
 
 (defun matcher-not (matcher)
-  #'(lambda (stream)
-       (let ((result (funcall matcher stream)))
+  #'(lambda ()
+       (let ((result (funcall matcher)))
         (cons (not (car result)) (cdr result)))))
 
 (defmacro make-matcher (form)
@@ -105,107 +132,111 @@
                       (mapcar #'transform (cdr form)))))))
     (transform form)))
 
-(defun read-name (stream)
-  (consume-until (make-matcher (or (is " ") (is "/>") (is ">"))) stream))
+(defun read-name ()
+  (consume-until (make-matcher (or (is " ") (is "/>") (is ">")))))
 
-(defun read-text (stream)
+(defun read-text ()
   (make-text-node
    *root*
    (decode-entities
-    (consume-until (make-matcher (and (is "<") (not (is " ")))) stream))))
+    (consume-until (make-matcher (and (is "<") (not (is " "))))))))
 
 ;; Robustify
-(defun read-tag-contents (stream)
+(defun read-tag-contents ()
   (decode-entities
-   (consume-until (make-matcher (or (is "/>") (is ">"))) stream)))
+   (consume-until (make-matcher (or (is "/>") (is ">"))))))
 
-(defun read-children (stream)
+(defun read-children ()
   (let ((close-tag (format NIL "</~a>" (tag-name *root*))))
     (loop with children = (make-child-array)
-          while (peek-char NIL stream NIL NIL)
-          for (match . string) = (funcall (make-matcher (is close-tag)) stream)
+          while (peek)
+          for (match . string) = (funcall (make-matcher (is close-tag)))
           until match
-          do (vector-push-extend (or (read-tag stream)
-                                     (read-text stream)) children)
+          do (vector-push-extend (or (read-tag) (read-text)) children)
           finally (progn (when match
-                           (consume-n (length string) stream))
+                           (consume-n (length string)))
                          (return children)))))
 
-(defun read-attribute-value (stream)
+(defun read-attribute-value ()
   (decode-entities
-   (let ((first (peek-char NIL stream NIL NIL)))
+   (let ((first (peek)))
      (if (and first (char= first #\"))
-         (prog2 (consume stream)
-             (consume-until (make-matcher (is "\"")) stream)
-           (consume stream))
-         (consume-until (make-matcher (or (is " ") (is "/>") (is ">"))) stream)))))
+         (prog2 (consume)
+             (consume-until (make-matcher (is "\"")))
+           (consume))
+         (consume-until (make-matcher (or (is " ") (is "/>") (is ">"))))))))
 
-(defun read-attribute-name (stream)
-  (consume-until (make-matcher (or (is "=") (is " ") (is "/>") (is ">"))) stream))
+(defun read-attribute-name ()
+  (consume-until (make-matcher (or (is "=") (is " ") (is "/>") (is ">")))))
 
-(defun read-attribute (stream)
-  (let ((name (read-attribute-name stream))
-        (next (peek-char NIL stream NIL NIL))
+(defun read-attribute ()
+  (let ((name (read-attribute-name))
+        (next (consume))
         (value ""))
-    (when (and next (char= next #\=))
-      (consume stream)
-      (setf value (read-attribute-value stream)))
+    (if (and next (char= next #\=))
+        (setf value (read-attribute-value))
+        (unread))
     (cons name value)))
 
-(defun read-attributes (stream)
+(defun read-attributes ()
   (loop with table = (make-attribute-map)
-        for char = (peek-char NIL stream NIL NIL)
+        for char = (peek)
         do (case char
              ((#\/ #\> NIL)
               (return table))
              (#.*whitespace*
-              (consume stream))
+              (consume))
              (T
-              (let ((entry (read-attribute stream)))
+              (let ((entry (read-attribute)))
                 (setf (gethash (car entry) table) (cdr entry)))))))
 
-(defun read-standard-tag (stream name)
-  (let* ((closing (read-char stream))
+(defun read-standard-tag (name)
+  (let* ((closing (consume))
          (attrs (if (char= closing #\Space)
-                    (prog1 (read-attributes stream)
-                      (setf closing (read-char stream)))
+                    (prog1 (read-attributes)
+                      (setf closing (consume)))
                     (make-attribute-map))))
     (case closing
       (#\/
-       (consume-n 2 stream)
+       (consume-n 2)
        (make-element *root* name :attributes attrs))
       (#\>
        (let ((*root* (make-element *root* name :attributes attrs)))
          (setf (children *root*)
-               (read-children stream))
+               (read-children))
          *root*)))))
 
-(defun read-tag (stream)
-  (let ((next-2 (peek-char-n 2 stream)))
-    (when (and (char= #\< (first next-2))
-               (not (member (second next-2) *whitespace* :test #'char=)))
-      (consume stream)
-      (let ((name (read-name stream)))
-        (loop for (d test func) in *tag-dispatchers*
-              when (funcall test name)
-                do (return (funcall func stream name))
-              finally (return (read-standard-tag stream name)))))))
+(defun read-tag ()
+  (if (and (char= #\< (consume))
+           (not (member (peek) *whitespace* :test #'char=)))     
+    (let ((name (read-name)))
+      (loop for (d test func) in *tag-dispatchers*
+            when (funcall test name)
+              do (return (funcall func name))
+            finally (return (read-standard-tag name))))
+    (progn (unread) NIL)))
 
-(defun read-root (stream &optional (root (make-root)))
+(defun read-root (&optional (root (make-root)))
   (let ((*root* root))
-    (loop while (peek-char NIL stream NIL NIL)
-          do (append-child *root* (or (read-tag stream)
-                                      (read-text stream))))
+    (loop while (peek)
+          do (append-child *root* (or (read-tag)
+                                      (read-text))))
     *root*))
+
+(defun slurp-stream (stream)
+  (let ((seq (make-array (file-length stream) :element-type 'character :fill-pointer t)))
+    (setf (fill-pointer seq) (read-sequence seq stream))
+    seq))
 
 (defgeneric parse (input &key root)
   (:documentation "")
   (:method ((input string) &key root)
-    (parse (make-string-input-stream input) :root root))
+    (with-lexer-environment (input)
+      (if root
+          (read-root root)
+          (read-root))))
   (:method ((input pathname) &key root)
     (with-open-file (stream input :direction :input)
       (parse stream :root root)))
   (:method ((input stream) &key root)
-    (if root
-        (read-root input root)
-        (read-root input))))
+    (parse (slurp-stream input) :root root)))

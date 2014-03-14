@@ -6,13 +6,13 @@
 
 (in-package #:org.tymoonnext.plump)
 
-(define-tag-dispatcher invalid-closing-tag (name stream)
+(define-tag-dispatcher invalid-closing-tag (name)
                        (char= (elt name 0) #\/)
-  (consume-until (make-matcher (is ">")) stream)
-  (consume stream)
+  (consume-until (make-matcher (is ">")))
+  (consume)
   NIL)
 
-(define-tag-dispatcher comment (name stream)
+(define-tag-dispatcher comment (name)
                        (and (<= 3 (length name))
                             (string= name "!--" :end1 3))
   (prog1 (make-comment
@@ -20,22 +20,22 @@
           (decode-entities
            (concatenate
             'string (subseq name 3)
-            (consume-until (make-matcher (is "-->")) stream))))
-    (consume-n 3 stream)))
+            (consume-until (make-matcher (is "-->"))))))
+    (consume-n 3)))
 
-(define-tag-dispatcher doctype (name stream)
+(define-tag-dispatcher doctype (name)
                        (string-equal name "!DOCTYPE")
-  (let ((declaration (read-tag-contents stream)))
-    (when (char= (consume stream) #\/)
-      (consume stream)) ;; Consume closing
+  (let ((declaration (read-tag-contents)))
+    (when (char= (consume) #\/)
+      (consume)) ;; Consume closing
     (make-instance 'doctype :parent *root* :doctype (string-trim " " declaration))))
 
 (defmacro define-self-closing-element (tag &optional (class 'element))
-  `(define-tag-dispatcher ,tag (name stream)
+  `(define-tag-dispatcher ,tag (name)
                           (string-equal name ,(string tag))
-     (let ((attrs (read-attributes stream)))
-       (when (char= (consume stream) #\/)
-         (consume stream)) ;; Consume closing
+     (let ((attrs (read-attributes)))
+       (when (char= (consume) #\/)
+         (consume)) ;; Consume closing
        (make-instance ',class :parent *root* :tag-name ,(string-downcase tag) :attributes attrs))))
 
 ;; According to http://www.w3.org/html/wg/drafts/html/master/syntax.html#void-elements
