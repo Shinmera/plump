@@ -23,7 +23,7 @@
 ;; Comments are special nodes. We try to handle them
 ;; with a bit of grace, but having the inner content
 ;; be read in the best way possible is hard to get
-;; right.
+;; right due to various commenting styles.
 (define-tag-dispatcher comment (name)
                        (and (<= 3 (length name))
                             (string= name "!--" :end1 3))
