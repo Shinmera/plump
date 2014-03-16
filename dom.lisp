@@ -314,7 +314,7 @@ attribute."
 (defgeneric serialize (node stream)
   (:documentation "Serialize the given node and print it to the stream.")
   (:method ((node text-node) stream)
-    (format stream "`~a`" (text node)))
+    (format stream "~a" (encode-entities (text node))))
   (:method ((node doctype) stream)
     (format stream "<!DOCTYPE ~a>" (doctype node)))
   (:method ((node comment) stream)
@@ -332,7 +332,7 @@ attribute."
   (:method ((table hash-table) stream)
     (loop for key being the hash-keys of table
           for val being the hash-values of table
-          do (format stream " ~a~@[=~s~]" key val)))
+          do (format stream " ~a~@[=~s~]" key (when val (encode-entities val)))))
   (:method ((node nesting-node) stream)
     (loop for child across (children node)
           do (serialize child stream))))

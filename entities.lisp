@@ -293,3 +293,12 @@ If an entity does not match, it is left in place unless REMOVE-INVALID is non-NI
            (char char)
            (remove-invalid "")
            (t (format NIL "&~a;" entity)))))))
+
+(defun encode-entities (text)
+  "Encodes the characters < > & \" with their XML entity equivalents."
+  (flet ((r (find replace text)
+           (cl-ppcre:regex-replace-all find text replace)))
+    (r "<" "&lt;"
+       (r ">" "&gt;"
+          (r "&" "&amp;"
+             (r "\"" "&quot;" text))))))
