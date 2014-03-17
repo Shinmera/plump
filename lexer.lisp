@@ -43,7 +43,7 @@ Returns the new *INDEX*."
   (declare (fixnum n))
   (incf *index* n)
   (when (<= *length* *index*)
-    (setf *index* (1- *length*)))
+    (setf *index* *length*))
   *index*)
 
 (defun unread-n (n)
