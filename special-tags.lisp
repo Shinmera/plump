@@ -15,7 +15,7 @@
 ;; That way the order of the closing tags is
 ;; restored naturally by the reading algorithm.
 (define-tag-dispatcher invalid-closing-tag (name)
-                       (char= (elt name 0) #\/)
+      (char= (elt name 0) #\/)
   (consume-until (make-matcher (is ">")))
   (consume)
   NIL)
@@ -25,8 +25,8 @@
 ;; be read in the best way possible is hard to get
 ;; right due to various commenting styles.
 (define-tag-dispatcher comment (name)
-                       (and (<= 3 (length name))
-                            (string= name "!--" :end1 3))
+      (and (<= 3 (length name))
+           (string= name "!--" :end1 3))
   (prog1 (make-comment
           *root*
           (decode-entities
@@ -37,7 +37,7 @@
 
 ;; Special handling for the doctype tag
 (define-tag-dispatcher doctype (name)
-                       (string-equal name "!DOCTYPE")
+      (string-equal name "!DOCTYPE")
   (let ((declaration (read-tag-contents)))
     (when (char= (consume) #\/)
       (consume)) ;; Consume closing
@@ -46,7 +46,7 @@
 ;; Shorthand macro to define self-closing elements
 (defmacro define-self-closing-element (tag &optional (class 'element))
   `(define-tag-dispatcher ,tag (name)
-                          (string-equal name ,(string tag))
+         (string-equal name ,(string tag))
      (let ((attrs (read-attributes)))
        (when (char= (consume) #\/)
          (consume)) ;; Consume closing
