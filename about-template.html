@@ -1,0 +1,101 @@
+<!--
+  This file is a part of Plump
+  (c) 2014 TymoonNET/NexT http://tymoon.eu (shinmera@tymoon.eu)
+  Author: Nicolas Hafner <shinmera@tymoon.eu>
+  !-->
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Plump - About</title>
+    <style type="text/css">
+      code{font-family: Consolas, Inconsolata, monospace;}
+      code.line{margin-left: 20px;}
+      code a{text-decoration: none; color: blue;}
+      h3{display: inline-block;margin:0;padding:0;}
+      .docs{list-style: none;}
+      .docs li{margin-bottom: 20px;}
+      .docs pre{margin: 0 0 0 10px; white-space: pre-wrap;}
+    </style>
+  </head>
+  <body>
+    <header>
+      <img src="plump-logo.png" alt="Plump"/>
+      <h1>v0.1.5</h1>
+    </header>
+    <div id="content">
+      <article>
+        <header><h2>What is Plump?</h2></header>
+        <p>
+          Plump is a parser for HTML/XML like documents, focusing on being lenient towards invalid markup. It can handle things like invalid attributes, bad closing tag order, unencoded entities, inexistent tag types, self-closing tags and so on. It parses documents to a class representation and offers a small set of DOM functions to manipulate it. You are free to change it to parse to your own classes though.
+        </p>
+      </article>
+      <article>
+        <header><h2>How To</h2></header>
+        <p>Load Plump through Quicklisp or ASDF:</p>
+        <code class="line">(ql:quickload :plump)</code>
+        <p>
+          Using the <code>PARSE</code> function, plump will transform a string, pathname or file into a document:
+        </p>
+        <code class="line">(<a href="#PARSE">plump:parse</a> "&lt;foo&gt;&lt;bar this is=\"a thing\"&gt;baz&lt;/bar&gt;&lt;span id=\"test\"&gt;oh my")</code>
+        <p>
+          This returns a root node. If you want to append a document to a root node (or any other node that accepts children) that you've made, you can pass it into the parse function. To return the document into a readable form, you can call <code>SERIALIZE</code>:
+        </p>
+        <code class="line">(<a href="#SERIALIZE">plump:serialize</a> *)</code>
+        <p>
+          Using the DOM you can easily traverse the document and change it:
+        </p>
+        <code class="line">(<a href="#REMOVE-CHILD">plump:remove-child</a> (<a href="#GET-ELEMENT-BY-ID">plump:get-element-by-id</a> ** "test"))</code><br />
+        <code class="line">(<a href="#SERIALIZE">plump:serialize</a> ***)</code>
+      </article>
+      <article>
+        <header><h2>Extending Plump</h2></header>
+        <p>
+          If you want to handle a certain tag in a special way, you can write your own tag-dispatcher. For example comments, the doctype and self-closing tags are handled in this fashion by default. 
+        </p>
+        <pre><code class="line">(<a href="#DEFINE-TAG-DISPATCHER">plump:define-tag-dispatcher</a> my-dispatcher (name)
+        (string-equal name "my-tag")
+    (let ((attrs (<a href="#READ-ATTRIBUTES">plump:read-attributes</a>)))
+      (when (char= (<a href="#CONSUME">plump:consume</a>) #\/)
+        (<a href="#CONSUME">plump:consume</a>)) <span style="color:gray">;; Consume closing</span>
+      (make-instance 'my-tag :parent <a href="#*ROOT*">plump:*root*</a> :attributes attrs)))</code></pre>
+        <p>
+          During parsing, all elements are created through the functions <code><a href="#MAKE-ROOT">MAKE-ROOT</a></code>, <code><a href="#MAKE-ELEMENT">MAKE-ELEMENT</a></code>, <code><a href="#MAKE-TEXT-NODE">MAKE-TEXT-NODE</a></code>, and <code><a href="#MAKE-COMMENT">MAKE-COMMENT</a></code>. By overriding these functions you can instead delegate the parsing to your own DOM.
+        </p>
+      </article>
+      <article>
+        <header><h2>Other Guff</h2></header>
+        <p>
+          Plump is licensed under the <a href="http://opensource.org/licenses/Artistic-2.0">Artistic License 2.0</a> and &#169;2014 TymoonNET/NexT, <a href="http://shinmera.com">Nicolas Hafner</a>.<br />
+          This library can be obtained via git on <a href="https://github.com/Shinmera/plump.git">https://github.com/Shinmera/plump.git</a>. For questions, patches or suggestions, please contact me via <a href="mailto:shinmera@tymoon.eu">email</a> or open a <a href="https://github.com/Shinmera/plump/issues">github issue</a>.
+        </p>
+      </article>
+      <article>
+        <header><h2>Plump-Parser Package Index</h2></header>
+        <ul id="parser-docs" class="docs">
+          <li id="template">
+            <a name="" class="anchor"></a>
+            <article>
+              <header>
+                <span class="functype">test</span>
+                <code>
+                  <h3><a href="" class="funcname">Foo</a></h3>
+                  <span class="funcargs">()</span>
+                </code>
+              </header>
+              <pre class="funcdesc">
+                Foobar
+              </pre>
+            </article>
+          </li>
+        </ul>
+      </article>
+      <article>
+        <header><h2>Plump-DOM Package Index</h2></header>
+        <ul id="dom-docs" class="docs">
+          
+        </ul>
+      </article>
+    </div>
+  </body>
+</html>
