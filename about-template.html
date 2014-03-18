@@ -11,6 +11,8 @@
     <style type="text/css">
       code{font-family: Consolas, Inconsolata, monospace;}
       code.line{margin-left: 20px;}
+      code.output{color: #882222;}
+      code.output:before{content:"=> ";}
       code a{text-decoration: none; color: blue;}
       h3{display: inline-block;margin:0;padding:0;}
       .docs{list-style: none;}
@@ -38,16 +40,20 @@
         <p>
           Using the <code>PARSE</code> function, plump will transform a string, pathname or file into a document:
         </p>
-        <code class="line">(<a href="#PARSE">plump:parse</a> "&lt;foo&gt;&lt;bar this is=\"a thing\"&gt;baz&lt;/bar&gt;&lt;span id=\"test\"&gt;oh my")</code>
+        <code class="line">(<a href="#PARSE">plump:parse</a> "&lt;foo&gt;&lt;bar this is=\"a thing\"&gt;baz&lt;/bar&gt;&lt;span id=\"test\"&gt;oh my")</code><br />
+        <code class="line output">#&lt;PLUMP-DOM:ROOT {1004F3FCC3}&gt;</code>
         <p>
           This returns a root node. If you want to append a document to a root node (or any other node that accepts children) that you've made, you can pass it into the parse function. To return the document into a readable form, you can call <code>SERIALIZE</code>:
         </p>
-        <code class="line">(<a href="#SERIALIZE">plump:serialize</a> *)</code>
+        <code class="line">(<a href="#SERIALIZE">plump:serialize</a> *)</code><br />
+        <code class="line output">&lt;foo&gt;&lt;bar this="" is="a thing"&gt;baz&lt;/bar&gt;&lt;span id="test"&gt;oh my&lt;/span&gt;&lt;/foo&gt;</code>
         <p>
           Using the DOM you can easily traverse the document and change it:
         </p>
         <code class="line">(<a href="#REMOVE-CHILD">plump:remove-child</a> (<a href="#GET-ELEMENT-BY-ID">plump:get-element-by-id</a> ** "test"))</code><br />
-        <code class="line">(<a href="#SERIALIZE">plump:serialize</a> ***)</code>
+        <code class="line output">#&lt;PLUMP-DOM:ELEMENT span {100517D8F3}&gt;</code><br />
+        <code class="line">(<a href="#SERIALIZE">plump:serialize</a> ***)</code><br />
+        <code class="line output">&lt;foo&gt;&lt;bar this="" is="a thing"&gt;baz&lt;/bar&gt;&lt;/foo&gt;</code>
       </article>
       <article>
         <header><h2>Extending Plump</h2></header>
