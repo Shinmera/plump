@@ -7,3 +7,5 @@ This is an XML/HTML parser aiming to be simple and lenient. It should be able to
 
 To parse a file, stream or string, simply invoke: ```PLUMP:PARSE```.
 To see the results, you can invoke ```PLUMP:SERIALIZE``` on any node (as well as the ```ROOT``` returned by ```PARSE```).
+
+See [about.html](http://shinmera.github.io/plump/) for more information and a complete symbol documentation index.
