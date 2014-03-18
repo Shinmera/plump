@@ -118,10 +118,10 @@ Returns the child.
 
 Note that this operation is potentially very costly.
 See VECTOR-POP-POSITION"
-  (setf (parent child) NIL)
   (vector-pop-position
    (family child)
    (child-position child))
+  (setf (parent child) NIL)
   child)
 
 (defun replace-child (old-child new-child)
@@ -311,15 +311,15 @@ attribute."
 (defun indent ()
   (make-string (* *indent-level* *indent-step*) :initial-element #\Space))
 
-(defgeneric serialize (node stream)
+(defgeneric serialize (node &optional stream)
   (:documentation "Serialize the given node and print it to the stream.")
-  (:method ((node text-node) stream)
+  (:method ((node text-node) &optional (stream *standard-output*))
     (format stream "~a" (encode-entities (text node))))
-  (:method ((node doctype) stream)
+  (:method ((node doctype) &optional (stream *standard-output*))
     (format stream "<!DOCTYPE ~a>" (doctype node)))
-  (:method ((node comment) stream)
+  (:method ((node comment) &optional (stream *standard-output*))
     (format stream "<!--~a-->" (text node)))
-  (:method ((node element) stream)
+  (:method ((node element) &optional (stream *standard-output*))
     (format stream "<~a" (tag-name node))
     (serialize (attributes node) stream)
     (if (< 0 (length (children node)))
@@ -329,10 +329,10 @@ attribute."
                 do (serialize child stream))
           (format stream "</~a>" (tag-name node)))
         (format stream "/>")))
-  (:method ((table hash-table) stream)
+  (:method ((table hash-table) &optional (stream *standard-output*))
     (loop for key being the hash-keys of table
           for val being the hash-values of table
           do (format stream " ~a~@[=~s~]" key (when val (encode-entities val)))))
-  (:method ((node nesting-node) stream)
+  (:method ((node nesting-node) &optional (stream *standard-output*))
     (loop for child across (children node)
           do (serialize child stream))))
