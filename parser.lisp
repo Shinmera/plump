@@ -136,7 +136,7 @@ Returns the root."
 (defgeneric parse (input &key root)
   (:documentation "Parses the given input into a DOM representation.
 By default, methods for STRING, PATHNAME and STREAM are defined.
-If supplied, the given root is used to append chilren to as per READ-ROOT.
+If supplied, the given root is used to append children to as per READ-ROOT.
 Returns the root.")
   (:method ((input string) &key root)
     (with-lexer-environment (input)
