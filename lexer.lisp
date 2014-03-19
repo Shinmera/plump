@@ -78,6 +78,12 @@ Returns the substring that was consumed."
         do (write-char char output)
         finally (return (get-output-stream-string output))))
 
+(declaim (ftype (function (character) function) matcher-character))
+(defun matcher-character (character)
+  "Creates a matcher function that attempts to match the given character."
+  #'(lambda ()
+      (cons (char= (peek) character) (string character))))
+
 (declaim (ftype (function (simple-string) function) matcher-string))
 (defun matcher-string (string)
   "Creates a matcher function that attempts to match the given string."
@@ -136,7 +142,10 @@ return successfully. The last match is returned, if all."
                         (not 'matcher-not)
                         (and 'matcher-and)
                         (or 'matcher-or)
-                        (is 'matcher-string)
+                        (is (typecase (second form)
+                              (string 'matcher-string)
+                              (character 'matcher-character)
+                              (T 'matcher-string)))
                         (T (car form)))
                       (mapcar #'transform (cdr form)))))))
     (transform form)))
