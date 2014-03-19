@@ -27,21 +27,21 @@ TAGVAR is bound to the matched name of the tag."
 
 (defun read-name ()
   "Reads and returns a tag name."
-  (consume-until (make-matcher (or (is " ") (is "/>") (is ">")))))
+  (consume-until (make-matcher (or (is #\Space) (is "/>") (is #\>)))))
 
 (defun read-text ()
   "Reads and returns a text-node."
   (make-text-node
    *root*
    (decode-entities
-    (consume-until (make-matcher (and (is "<") (not (is "< "))))))))
+    (consume-until (make-matcher (and (is #\<) (not (is "< "))))))))
 
 ;; Robustify against strings inside containing >
 (defun read-tag-contents ()
   "Reads and reuturns all tag contents. 
 E.g. <foo bar baz> => bar baz"
   (decode-entities
-   (consume-until (make-matcher (or (is "/>") (is ">"))))))
+   (consume-until (make-matcher (or (is "/>") (is #\>))))))
 
 (defun read-children ()
   (let ((close-tag (format NIL "</~a>" (tag-name *root*))))
@@ -58,13 +58,13 @@ E.g. <foo bar baz> => bar baz"
    (let ((first (peek)))
      (if (and first (char= first #\"))
          (prog2 (consume)
-             (consume-until (make-matcher (is "\"")))
+             (consume-until (make-matcher (is #\")))
            (consume))
-         (consume-until (make-matcher (or (is " ") (is "/>") (is ">"))))))))
+         (consume-until (make-matcher (or (is #\Space) (is "/>") (is #\>))))))))
 
 (defun read-attribute-name ()
   "Reads an attribute name."
-  (consume-until (make-matcher (or (is "=") (is " ") (is "/>") (is ">")))))
+  (consume-until (make-matcher (or (is #\=) (is #\Space) (is "/>") (is #\>)))))
 
 (defun read-attribute ()
   "Reads an attribute and returns it as a key value cons."

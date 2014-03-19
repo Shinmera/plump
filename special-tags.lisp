@@ -16,7 +16,7 @@
 ;; restored naturally by the reading algorithm.
 (define-tag-dispatcher invalid-closing-tag (name)
       (char= (elt name 0) #\/)
-  (consume-until (make-matcher (is ">")))
+  (consume-until (make-matcher (is #\>)))
   (consume)
   NIL)
 
