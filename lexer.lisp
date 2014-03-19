@@ -82,7 +82,10 @@ Returns the substring that was consumed."
 (defun matcher-character (character)
   "Creates a matcher function that attempts to match the given character."
   #'(lambda ()
-      (cons (char= (peek) character) (string character))))
+      (cons (let ((char (peek)))
+              (when char
+                (char= char character)))
+            (string character))))
 
 (declaim (ftype (function (simple-string) function) matcher-string))
 (defun matcher-string (string)
