@@ -9,7 +9,7 @@
 (defvar *length* 0 "Set to the length of the string for bounds checking.")
 (defvar *index* 0 "Set to the current reading index.")
 (declaim (fixnum *length* *index*)
-         (simple-string *string*))
+         (string *string*))
 
 (defmacro with-lexer-environment ((string) &body body)
   "Sets up the required lexing environment for the given string."
