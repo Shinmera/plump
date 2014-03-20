@@ -148,7 +148,14 @@ return successfully. The last match is returned, if all."
   (declare (function matcher))
   #'(lambda ()
        (let ((result (funcall matcher)))
-        (cons (not (car result)) (cdr result)))))
+         (cons (not (car result)) (cdr result)))))
+
+(declaim (ftype (function (function) function) matcher-next))
+(defun matcher-next (matcher)
+  "Creates a matcher environment that peeks ahead one farther."
+  #'(lambda ()
+      (let ((*index* (1+ *index*)))
+        (funcall matcher))))
 
 (defmacro make-matcher (form)
   "Macro to create a matcher chain."
@@ -166,6 +173,7 @@ return successfully. The last match is returned, if all."
                          (character 'matcher-character)
                          (T 'matcher-string)))
                    (in 'matcher-range)
+                   (next 'matcher-next)
                    (T (car form)))
                  (mapcar #'transform (cdr form)))))))
     (transform form)))
