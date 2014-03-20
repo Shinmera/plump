@@ -27,21 +27,22 @@ TAGVAR is bound to the matched name of the tag."
 
 (defun read-name ()
   "Reads and returns a tag name."
-  (consume-until (make-matcher (or (is #\Space) (is "/>") (is #\>)))))
+  (consume-until (make-matcher (not (or (in #\a #\z) (in #\? #\Z) (in #\0 #\:) (is #\-) (is #\_))))))
 
+;; FIXME: Update anything related to tag name reading to exclude anything that is not alphanumeric or -_
 (defun read-text ()
   "Reads and returns a text-node."
   (make-text-node
    *root*
    (decode-entities
-    (consume-until (make-matcher (and (is #\<) (not (is "< "))))))))
+    (consume-until (make-matcher (and (is #\<) (next (or (in #\a #\z) (in #\? #\Z) (in #\0 #\:) (is #\-) (is #\_)))))))))
 
 ;; Robustify against strings inside containing >
 (defun read-tag-contents ()
   "Reads and reuturns all tag contents. 
 E.g. <foo bar baz> => bar baz"
   (decode-entities
-   (consume-until (make-matcher (or (is "/>") (is #\>))))))
+   (consume-until (make-matcher (or (and (is #\/) (next (is #\>))) (is #\>))))))
 
 (defun read-children ()
   (let ((close-tag (format NIL "</~a>" (tag-name *root*))))
@@ -60,11 +61,11 @@ E.g. <foo bar baz> => bar baz"
          (prog2 (consume)
              (consume-until (make-matcher (is #\")))
            (consume))
-         (consume-until (make-matcher (or (is #\Space) (is "/>") (is #\>))))))))
+         (consume-until (make-matcher (or (is #\Space) (and (is #\/) (next (is #\>))) (is #\>))))))))
 
 (defun read-attribute-name ()
   "Reads an attribute name."
-  (consume-until (make-matcher (or (is #\=) (is #\Space) (is "/>") (is #\>)))))
+  (consume-until (make-matcher (or (is #\=) (is #\Space) (and (is #\/) (next (is #\>))) (is #\>)))))
 
 (defun read-attribute ()
   "Reads an attribute and returns it as a key value cons."
