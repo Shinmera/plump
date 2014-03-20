@@ -8,6 +8,7 @@
 (defvar *string* "Contains the current string to lex.")
 (defvar *length* 0 "Set to the length of the string for bounds checking.")
 (defvar *index* 0 "Set to the current reading index.")
+(defvar *rules* (make-hash-table) "Hash table containing matching rules.")
 (declaim (fixnum *length* *index*)
          (string *string*))
 
@@ -92,16 +93,11 @@ Returns the substring that was consumed."
 (defun matcher-string (string)
   "Creates a matcher function that attempts to match the given string."
   (declare (simple-string string))
-  #'(lambda ()
-      (let ((read 0))
-        (declare (fixnum read))
-        (unwind-protect
-             (loop for curr across string
-                   for curs = (consume) 
-                   always curs
-                   do (incf read)
-                   always (char= curs curr))
-          (unread-n read)))))
+  (let ((len (length string)))
+    #'(lambda ()
+        (let ((len (+ *index* len)))
+          (and (<= len *length*)
+               (string= string *string* :start2 *index* :end2 len))))))
 
 (declaim (ftype (function ((or fixnum character string) (or fixnum character string)) function) matcher-range))
 (defun matcher-range (from to)
@@ -151,6 +147,8 @@ return successfully. The last match is returned, if all."
   "Macro to create a matcher chain."
   (labels ((transform (form)
              (etypecase form
+               (symbol form
+                `(gethash ',form *rules*))
                (atom form)
                (T
                 (cons
@@ -167,3 +165,6 @@ return successfully. The last match is returned, if all."
                    (T (car form)))
                  (mapcar #'transform (cdr form)))))))
     (transform form)))
+
+(defmacro define-rule (name form)
+  `(setf (gethash ',name *rules*) (make-matcher ,form)))
