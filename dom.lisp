@@ -82,6 +82,12 @@ Note that the node is automatically appended to the parent's child list."
 Note that the node is automatically appended to the parent's child list."
   (append-child parent (make-instance 'comment :text text :parent parent)))
 
+(defun make-doctype (parent doctype)
+  "Creates a new doctype node under the parent.
+
+Note that the node is automatically appended to the parent's child list."
+  (append-child parent (make-instance 'doctype :doctype doctype :parent parent)))
+
 (defun siblings (child)
   "Returns the array of siblings of the given child.
 Note that this is a copy of the array, modifying it is safe."

@@ -31,6 +31,7 @@
    #:make-element
    #:make-text-node
    #:make-comment
+   #:make-doctype
    #:siblings
    #:family
    #:child-position
