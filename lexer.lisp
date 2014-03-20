@@ -73,13 +73,12 @@ peek ahead farther."
   "Consumes until the provided matcher function returns positively.
 Returns the substring that was consumed."
   (declare (function matcher))
-  (loop with output = (make-string-output-stream)
+  (loop with start = *index*
         for match = (funcall matcher)
         until match
         for char = (consume)
         while char
-        do (write-char char output)
-        finally (return (get-output-stream-string output))))
+        finally (return (subseq *string* start *index*))))
 
 (declaim (ftype (function (character) function) matcher-character))
 (defun matcher-character (character)
@@ -122,12 +121,9 @@ Returns the substring that was consumed."
 (defun matcher-or (&rest matchers)
   "Creates a matcher function that returns successfully if any of the
 sub-expressions return successfully. The first match is returned, if any."
-  #'(lambda () 
+  #'(lambda ()
       (loop for matcher of-type function in matchers
-            for match = (funcall matcher)
-            do (when match
-                 (return T))
-            finally (return NIL))))
+            thereis (funcall matcher))))
 
 (declaim (ftype (function (&rest function) function) matcher-and))
 (defun matcher-and (&rest matchers)
@@ -135,10 +131,7 @@ sub-expressions return successfully. The first match is returned, if any."
 return successfully. The last match is returned, if all."
   #'(lambda ()
       (loop for matcher of-type function in matchers
-            for match = (funcall matcher)
-            do (unless match
-                 (return NIL))
-            finally (return T))))
+            always (funcall matcher))))
 
 (declaim (ftype (function (function) function) matcher-not))
 (defun matcher-not (matcher)
