@@ -105,6 +105,21 @@ Returns the substring that was consumed."
                 (unread-n read))))
        (the simple-string string))))
 
+(declaim (ftype (function ((or fixnum character string) (or fixnum character string)) function) matcher-range))
+(defun matcher-range (from to)
+  "Creates a matcher that checks a range according to the next character's CHAR-CODE."
+  (flet ((normalize (in) (etypecase in
+                         (fixnum in)
+                         (character (char-code in))
+                         (string (char-code (aref in 0))))))
+    (let ((from (normalize from))
+          (to (normalize to)))
+      #'(lambda ()
+          (cons (let ((char (peek)))
+                  (when char
+                    (<= from (char-code char) to)))
+                "*")))))
+
 (declaim (ftype (function (&rest function) function) matcher-or))
 (defun matcher-or (&rest matchers)
   "Creates a matcher function that returns successfully if any of the
@@ -141,14 +156,17 @@ return successfully. The last match is returned, if all."
              (etypecase form
                (atom form)
                (T
-                (cons (case (car form)
-                        (not 'matcher-not)
-                        (and 'matcher-and)
-                        (or 'matcher-or)
-                        (is (typecase (second form)
-                              (string 'matcher-string)
-                              (character 'matcher-character)
-                              (T 'matcher-string)))
-                        (T (car form)))
-                      (mapcar #'transform (cdr form)))))))
+                (let ((cdr (mapcar #'transform (cdr form))))
+                  (apply
+                   (case (car form)
+                     (not #'matcher-not)
+                     (and #'matcher-and)
+                     (or #'matcher-or)
+                     (is (typecase (second form)
+                           (string #'matcher-string)
+                           (character #'matcher-character)
+                           (T #'matcher-string)))
+                     (in #'matcher-range)
+                     (T (return-from transform form)))
+                   cdr))))))
     (transform form)))
