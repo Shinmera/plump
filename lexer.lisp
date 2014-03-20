@@ -16,7 +16,10 @@
   `(let* ((*string* ,string)
           (*length* (length *string*))
           (*index* 0))
-     ,@body))
+     (handler-bind ((error #'(lambda (err)
+                               (declare (ignore err))
+                               (format T "Error during lexing at index ~a~%" *index*))))
+       ,@body)))
 
 (defun consume ()
   "Consumes a single character if possible and returns it.
