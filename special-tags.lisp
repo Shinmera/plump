@@ -41,7 +41,7 @@
   (let ((declaration (read-tag-contents)))
     (when (char= (consume) #\/)
       (consume)) ;; Consume closing
-    (make-instance 'doctype :parent *root* :doctype (string-trim " " declaration))))
+    (make-doctype *root* (string-trim " " declaration))))
 
 ;; Shorthand macro to define self-closing elements
 (defmacro define-self-closing-element (tag &optional (class 'element))
