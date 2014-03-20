@@ -26,6 +26,7 @@ TAGVAR is bound to the matched name of the tag."
            (push ,valgens *tag-dispatchers*)))))
 
 (define-rule name (or (in #\a #\z) (in #\? #\Z) (in #\- #\:) (is #\\) (is #\_) (is #\!) (is #\#)))
+(define-rule tag-end (or (and (is #\/) (next (is #\>))) (is #\>)))
 
 (defun read-name ()
   "Reads and returns a tag name."
@@ -43,7 +44,7 @@ TAGVAR is bound to the matched name of the tag."
   "Reads and reuturns all tag contents. 
 E.g. <foo bar baz> => bar baz"
   (decode-entities
-   (consume-until (make-matcher (or (and (is #\/) (next (is #\>))) (is #\>))))))
+   (consume-until (make-matcher tag-end))))
 
 (defun read-children ()
   (let ((close-tag (format NIL "</~a>" (tag-name *root*))))
@@ -62,11 +63,11 @@ E.g. <foo bar baz> => bar baz"
          (prog2 (consume)
              (consume-until (make-matcher (is #\")))
            (consume))
-         (consume-until (make-matcher (or (is #\Space) (and (is #\/) (next (is #\>))) (is #\>))))))))
+         (consume-until (make-matcher (or (is #\Space) tag-end)))))))
 
 (defun read-attribute-name ()
   "Reads an attribute name."
-  (consume-until (make-matcher (or (is #\=) (is #\Space) (and (is #\/) (next (is #\>))) (is #\>)))))
+  (consume-until (make-matcher (or (is #\=) (is #\Space) tag-end))))
 
 (defun read-attribute ()
   "Reads an attribute and returns it as a key value cons."
@@ -112,7 +113,7 @@ This recurses with READ-CHILDREN."
   "Attempts to read a tag and dispatches or defaults to READ-STANDARD-TAG.
 Returns the completed node if one can be read."
   (if (and (char= #\< (consume))
-           (not (member (peek) *whitespace* :test #'char=)))     
+           (funcall (make-matcher name)))     
       (let ((name (read-name)))
         (loop for (d test func) in *tag-dispatchers*
               when (funcall (the function test) name)
