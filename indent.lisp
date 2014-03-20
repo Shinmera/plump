@@ -22,4 +22,4 @@
 
 (initialize-slime)
 
-(define-indentation 'define-tag-dispatcher '(4 4 6 &body 2))
+(define-indentation 'define-tag-dispatcher '(4 4 6 &body))
