@@ -25,17 +25,19 @@ TAGVAR is bound to the matched name of the tag."
            (setf (nth ,posgens *tag-dispatchers*) ,valgens)
            (push ,valgens *tag-dispatchers*)))))
 
+(defparameter *name-matcher*
+  (make-matcher (or (in #\a #\z) (in #\? #\Z) (in #\- #\:) (is #\\) (is #\_) (is #\!) (is #\#))))
+
 (defun read-name ()
   "Reads and returns a tag name."
-  (consume-until (make-matcher (not (or (in #\a #\z) (in #\? #\Z) (in #\0 #\:) (is #\-) (is #\_))))))
+  (consume-until (make-matcher (not *name-matcher*))))
 
-;; FIXME: Update anything related to tag name reading to exclude anything that is not alphanumeric or -_
 (defun read-text ()
   "Reads and returns a text-node."
   (make-text-node
    *root*
    (decode-entities
-    (consume-until (make-matcher (and (is #\<) (next (or (in #\a #\z) (in #\? #\Z) (in #\0 #\:) (is #\-) (is #\_)))))))))
+    (consume-until (make-matcher (and (is #\<) (next *name-matcher*)))))))
 
 ;; Robustify against strings inside containing >
 (defun read-tag-contents ()
