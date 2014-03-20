@@ -49,11 +49,11 @@ E.g. <foo bar baz> => bar baz"
 (defun read-children ()
   (let ((close-tag (format NIL "</~a>" (tag-name *root*))))
     (loop while (peek)
-          for (match . string) = (funcall (make-matcher (is close-tag)))
+          for match = (funcall (make-matcher (is close-tag)))
           until match
           do (or (read-tag) (read-text))
           finally (when match
-                    (consume-n (length (the simple-string string)))))))
+                    (consume-n (length close-tag))))))
 
 (defun read-attribute-value ()
   "Reads an attribute value, either enclosed in quotation marks or until a space or tag end."

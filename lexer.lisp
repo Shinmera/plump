@@ -74,7 +74,7 @@ peek ahead farther."
 Returns the substring that was consumed."
   (declare (function matcher))
   (loop with output = (make-string-output-stream)
-        for (match . string) = (funcall matcher)
+        for match = (funcall matcher)
         until match
         for char = (consume)
         while char
@@ -85,43 +85,38 @@ Returns the substring that was consumed."
 (defun matcher-character (character)
   "Creates a matcher function that attempts to match the given character."
   #'(lambda ()
-      (cons (let ((char (peek)))
-              (when char
-                (char= char character)))
-            (string character))))
+      (let ((char (peek)))
+        (when char
+          (char= char character)))))
 
 (declaim (ftype (function (simple-string) function) matcher-string))
 (defun matcher-string (string)
   "Creates a matcher function that attempts to match the given string."
   (declare (simple-string string))
   #'(lambda ()
-      (cons
-       (the boolean
-            (let ((read 0))
-              (declare (fixnum read))
-              (unwind-protect
-                   (loop for curr across string
-                         for curs = (consume) 
-                         always curs
-                         do (incf read)
-                         always (char= curs curr))
-                (unread-n read))))
-       (the simple-string string))))
+      (let ((read 0))
+        (declare (fixnum read))
+        (unwind-protect
+             (loop for curr across string
+                   for curs = (consume) 
+                   always curs
+                   do (incf read)
+                   always (char= curs curr))
+          (unread-n read)))))
 
 (declaim (ftype (function ((or fixnum character string) (or fixnum character string)) function) matcher-range))
 (defun matcher-range (from to)
   "Creates a matcher that checks a range according to the next character's CHAR-CODE."
   (flet ((normalize (in) (etypecase in
-                         (fixnum in)
-                         (character (char-code in))
-                         (string (char-code (aref in 0))))))
+                           (fixnum in)
+                           (character (char-code in))
+                           (string (char-code (aref in 0))))))
     (let ((from (normalize from))
           (to (normalize to)))
       #'(lambda ()
-          (cons (let ((char (peek)))
-                  (when char
-                    (<= from (char-code char) to)))
-                "*")))))
+          (let ((char (peek)))
+            (when char
+              (<= from (char-code char) to)))))))
 
 (declaim (ftype (function (&rest function) function) matcher-or))
 (defun matcher-or (&rest matchers)
@@ -129,10 +124,10 @@ Returns the substring that was consumed."
 sub-expressions return successfully. The first match is returned, if any."
   #'(lambda () 
       (loop for matcher of-type function in matchers
-            for (match . string) = (funcall matcher)
+            for match = (funcall matcher)
             do (when match
-                 (return (cons (the boolean match) (the simple-string string))))
-            finally (return (cons NIL "")))))
+                 (return T))
+            finally (return NIL))))
 
 (declaim (ftype (function (&rest function) function) matcher-and))
 (defun matcher-and (&rest matchers)
@@ -140,18 +135,17 @@ sub-expressions return successfully. The first match is returned, if any."
 return successfully. The last match is returned, if all."
   #'(lambda ()
       (loop for matcher of-type function in matchers
-            for (match . string) = (funcall matcher)
+            for match = (funcall matcher)
             do (unless match
-                   (return (cons NIL "")))
-            finally (return (cons T string)))))
+                 (return NIL))
+            finally (return T))))
 
 (declaim (ftype (function (function) function) matcher-not))
 (defun matcher-not (matcher)
   "Creates a matcher function that inverts the result of the sub-expression."
   (declare (function matcher))
   #'(lambda ()
-       (let ((result (funcall matcher)))
-         (cons (not (car result)) (cdr result)))))
+      (not (funcall matcher))))
 
 (declaim (ftype (function (function) function) matcher-next))
 (defun matcher-next (matcher)
