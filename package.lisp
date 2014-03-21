@@ -84,7 +84,8 @@
    #:matcher-or
    #:matcher-and
    #:matcher-not
-   #:make-matcher)
+   #:make-matcher
+   #:define-matcher)
   ;; parser.lisp
   (:export
    #:*root*

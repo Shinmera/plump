@@ -25,8 +25,8 @@ TAGVAR is bound to the matched name of the tag."
            (setf (nth ,posgens *tag-dispatchers*) ,valgens)
            (push ,valgens *tag-dispatchers*)))))
 
-(define-rule name (or (in #\a #\z) (in #\? #\Z) (in #\- #\:) (is #\\) (is #\_) (is #\!) (is #\#)))
-(define-rule tag-end (or (and (is #\/) (next (is #\>))) (is #\>)))
+(define-matcher name (or (in #\a #\z) (in #\? #\Z) (in #\- #\:) (is #\\) (is #\_) (is #\!) (is #\#)))
+(define-matcher tag-end (or (and (is #\/) (next (is #\>))) (is #\>)))
 
 (defun read-name ()
   "Reads and returns a tag name."

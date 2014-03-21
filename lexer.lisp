@@ -8,7 +8,7 @@
 (defvar *string* "Contains the current string to lex.")
 (defvar *length* 0 "Set to the length of the string for bounds checking.")
 (defvar *index* 0 "Set to the current reading index.")
-(defvar *rules* (make-hash-table) "Hash table containing matching rules.")
+(defvar *matchers* (make-hash-table) "Hash table containing matching rules.")
 (declaim (fixnum *length* *index*)
          (string *string*))
 
@@ -143,16 +143,24 @@ return successfully. The last match is returned, if all."
       (let ((*index* (1+ *index*)))
         (funcall matcher))))
 
+(defmacro matcher-any (&rest is)
+  "Shorthand for (or (is a) (is b)..)"
+  `(matcher-or ,@(loop for i in is
+                       collect `(,(typecase i
+                                    (string 'matcher-string)
+                                    (character 'matcher-character)
+                                    (T 'matcher-string)) ,i))))
+
 (defmacro make-matcher (form)
   "Macro to create a matcher chain."
   (labels ((transform (form)
              (etypecase form
                (symbol form
-                `(gethash ',form *rules*))
+                `(gethash ',form *matchers*))
                (atom form)
                (T
                 (cons
-                 (case (car form)
+                 (case (find-symbol (string (car form)) "PLUMP")
                    (not 'matcher-not)
                    (and 'matcher-and)
                    (or 'matcher-or)
@@ -162,9 +170,10 @@ return successfully. The last match is returned, if all."
                          (T 'matcher-string)))
                    (in 'matcher-range)
                    (next 'matcher-next)
+                   (any 'matcher-any)
                    (T (car form)))
                  (mapcar #'transform (cdr form)))))))
     (transform form)))
 
-(defmacro define-rule (name form)
-  `(setf (gethash ',name *rules*) (make-matcher ,form)))
+(defmacro define-matcher (name form)
+  `(setf (gethash ',name *matchers*) (make-matcher ,form)))
