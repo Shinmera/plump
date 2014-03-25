@@ -29,6 +29,12 @@ Otherwise returns NIL."
     (prog1 (elt *string* *index*)
       (incf *index*))))
 
+(defun advance ()
+  "Skips a chracter if possible.
+Returns the new index or NIL."
+  (when (< *index* *length*)
+    (incf *index*)))
+
 (defun unread ()
   "Steps back a single character if possible.
 Returns the new *INDEX*."
@@ -41,7 +47,7 @@ Returns the new *INDEX*."
   (when (< *index* *length*)
     (elt *string* *index*)))
 
-(defun consume-n (n)
+(defun advance-n (n)
   "Advances by N characters if possible.
 Returns the new *INDEX*."
   (declare (fixnum n))
@@ -75,10 +81,8 @@ peek ahead farther."
 Returns the substring that was consumed."
   (declare (function matcher))
   (loop with start = *index*
-        for match = (funcall matcher)
-        until match
-        for char = (consume)
-        while char
+        until (funcall matcher)
+        while (advance)
         finally (return (subseq *string* start *index*))))
 
 (declaim (ftype (function (character) function) matcher-character))
@@ -155,7 +159,7 @@ return successfully. The last match is returned, if all."
   "Macro to create a matcher chain."
   (labels ((transform (form)
              (etypecase form
-               (symbol form
+               (keyword
                 `(gethash ',form *matchers*))
                (atom form)
                (T
@@ -176,4 +180,4 @@ return successfully. The last match is returned, if all."
     (transform form)))
 
 (defmacro define-matcher (name form)
-  `(setf (gethash ',name *matchers*) (make-matcher ,form)))
+  `(setf (gethash ,(intern (string name) "KEYWORD") *matchers*) (make-matcher ,form)))

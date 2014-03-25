@@ -17,7 +17,7 @@
 (define-tag-dispatcher invalid-closing-tag (name)
       (char= (elt name 0) #\/)
   (consume-until (make-matcher (is #\>)))
-  (consume)
+  (advance)
   NIL)
 
 ;; Comments are special nodes. We try to handle them
@@ -33,14 +33,14 @@
            (concatenate
             'string (subseq name 3)
             (consume-until (make-matcher (is "-->"))))))
-    (consume-n 3)))
+    (advance-n 3)))
 
 ;; Special handling for the doctype tag
 (define-tag-dispatcher doctype (name)
       (string-equal name "!DOCTYPE")
   (let ((declaration (read-tag-contents)))
     (when (char= (consume) #\/)
-      (consume)) ;; Consume closing
+      (advance)) ;; Consume closing
     (make-doctype *root* (string-trim " " declaration))))
 
 ;; Shorthand macro to define self-closing elements
@@ -49,7 +49,7 @@
          (string-equal name ,(string tag))
      (let ((attrs (read-attributes)))
        (when (char= (consume) #\/)
-         (consume)) ;; Consume closing
+         (advance)) ;; Consume closing
        (make-instance ',class :parent *root* :tag-name ,(string-downcase tag) :attributes attrs))))
 
 ;; According to http://www.w3.org/html/wg/drafts/html/master/syntax.html#void-elements

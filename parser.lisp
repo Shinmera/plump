@@ -30,21 +30,21 @@ TAGVAR is bound to the matched name of the tag."
 
 (defun read-name ()
   "Reads and returns a tag name."
-  (consume-until (make-matcher (not name))))
+  (consume-until (make-matcher (not :name))))
 
 (defun read-text ()
   "Reads and returns a text-node."
   (make-text-node
    *root*
    (decode-entities
-    (consume-until (make-matcher (and (is #\<) (next name)))))))
+    (consume-until (make-matcher (and (is #\<) (next :name)))))))
 
 ;; Robustify against strings inside containing >
 (defun read-tag-contents ()
   "Reads and reuturns all tag contents. 
 E.g. <foo bar baz> => bar baz"
   (decode-entities
-   (consume-until (make-matcher tag-end))))
+   (consume-until (make-matcher :tag-end))))
 
 (defun read-children ()
   (let ((close-tag (format NIL "</~a>" (tag-name *root*))))
@@ -53,21 +53,21 @@ E.g. <foo bar baz> => bar baz"
           until match
           do (or (read-tag) (read-text))
           finally (when match
-                    (consume-n (length close-tag))))))
+                    (advance-n (length close-tag))))))
 
 (defun read-attribute-value ()
   "Reads an attribute value, either enclosed in quotation marks or until a space or tag end."
   (decode-entities
    (let ((first (peek)))
      (if (and first (char= first #\"))
-         (prog2 (consume)
+         (prog2 (advance)
              (consume-until (make-matcher (is #\")))
-           (consume))
-         (consume-until (make-matcher (or (is #\Space) tag-end)))))))
+           (advance))
+         (consume-until (make-matcher (or (is #\Space) :tag-end)))))))
 
 (defun read-attribute-name ()
   "Reads an attribute name."
-  (consume-until (make-matcher (or (is #\=) (is #\Space) tag-end))))
+  (consume-until (make-matcher (or (is #\=) (is #\Space) :tag-end))))
 
 (defun read-attribute ()
   "Reads an attribute and returns it as a key value cons."
@@ -87,7 +87,7 @@ E.g. <foo bar baz> => bar baz"
              ((#\/ #\> NIL)
               (return table))
              (#.*whitespace*
-              (consume))
+              (advance))
              (T
               (let ((entry (read-attribute)))
                 (setf (gethash (car entry) table) (cdr entry)))))))
@@ -102,7 +102,7 @@ This recurses with READ-CHILDREN."
                     (make-attribute-map))))
     (case closing
       (#\/
-       (consume-n 2)
+       (advance-n 2)
        (make-element *root* name :attributes attrs))
       (#\>
        (let ((*root* (make-element *root* name :attributes attrs)))
@@ -113,7 +113,7 @@ This recurses with READ-CHILDREN."
   "Attempts to read a tag and dispatches or defaults to READ-STANDARD-TAG.
 Returns the completed node if one can be read."
   (if (and (char= #\< (consume))
-           (funcall (make-matcher name)))     
+           (funcall (make-matcher :name)))     
       (let ((name (read-name)))
         (loop for (d test func) in *tag-dispatchers*
               when (funcall (the function test) name)

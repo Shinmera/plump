@@ -74,9 +74,10 @@
   (:export
    #:with-lexer-environment
    #:consume
+   #:advance
    #:unread
    #:peek
-   #:consume-n
+   #:advance-n
    #:unread-n
    #:peek-n
    #:consume-until
