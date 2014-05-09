@@ -30,7 +30,7 @@ TAGVAR is bound to the matched name of the tag."
 
 (defun read-name ()
   "Reads and returns a tag name."
-  (consume-until (make-matcher (not :name))))
+  (consume-until (make-matcher (or (not :name) :tag-end))))
 
 (defun read-text ()
   "Reads and returns a text-node."
