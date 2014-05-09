@@ -261,7 +261,7 @@ if the parent is empty. This excludes comments, text-nodes and the like."
     (let ((first (elt (children element) 0)))
       (if (element-p first)
           first
-          (next-sibling-element first)))))
+          (next-element first)))))
 
 (defun last-element (element)
   "Returns the last child element within the parent or NIL
@@ -270,7 +270,7 @@ if the parent is empty. This excludes comments, text-nodes and the like."
     (let ((last (elt (children element) (1- (fill-pointer (children element))))))
       (if (element-p last)
           last
-          (previous-sibling-element last)))))
+          (previous-element last)))))
 
 (defun previous-element (child)
   "Returns the sibling element next to this one or NIL if
