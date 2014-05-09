@@ -27,30 +27,35 @@
 Otherwise returns NIL."
   (when (< *index* *length*)
     (prog1 (elt *string* *index*)
+      ;;(format T "~a +~%" *index*)
       (incf *index*))))
 
 (defun advance ()
   "Skips a chracter if possible.
 Returns the new index or NIL."
   (when (< *index* *length*)
+    ;;(format T "~a +~%" *index*)
     (incf *index*)))
 
 (defun unread ()
   "Steps back a single character if possible.
 Returns the new *INDEX*."
   (when (< 0 *index*)
+    ;;(format T "~a -~%" *index*)
     (decf *index*))
   *index*)
 
 (defun peek ()
   "Returns the next character, if any."
   (when (< *index* *length*)
+    ;;(format T "~a ?~%" *index*)
     (elt *string* *index*)))
 
 (defun advance-n (n)
   "Advances by N characters if possible.
 Returns the new *INDEX*."
   (declare (fixnum n))
+  ;;(format T "~a +~d~%" *index* n)
   (incf *index* n)
   (when (<= *length* *index*)
     (setf *index* *length*))
@@ -60,6 +65,7 @@ Returns the new *INDEX*."
   "Steps back by N characters if possible.
 Returns the new *INDEX*."
   (declare (fixnum n))
+  ;;(format T "~a -~d~%" *index* n)
   (decf *index* n)
   (when (< *index* 0)
     (setf *index* 0))
@@ -70,6 +76,7 @@ Returns the new *INDEX*."
 This list is cut short if it is not possible to
 peek ahead farther."
   (declare (fixnum n))
+  ;;(format T "~a ?~d~%" *index* n)
   (loop for i from *index*
         while (< i *length*)
         repeat n

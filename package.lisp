@@ -61,6 +61,7 @@
    #:text-node-p
    #:comment-p
    #:root-p
+   #:nesting-node-p
    #:serialize))
 
 (defpackage #:plump-parser

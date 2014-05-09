@@ -291,7 +291,7 @@ attribute."
     (scan-children node))
   NIL)
 
-
+(declaim (inline node-p element-p text-node-p comment-p root-p nesting-node-p))
 (defun node-p (object)
   "Returns T if the given object is a NODE."
   (typep object 'node))
@@ -311,6 +311,10 @@ attribute."
 (defun root-p (object)
   "Returns T if the given object is a ROOT."
   (typep object 'root))
+
+(defun nesting-node-p (object)
+  "Returns T if the givne object is a NESTING-NODE."
+  (typep object 'nesting-node))
 
 (defvar *indent-step* 2)
 (defvar *indent-level* 0)
