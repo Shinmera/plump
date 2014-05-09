@@ -48,6 +48,7 @@
    #:last-child
    #:previous-sibling
    #:next-sibling
+   #:element-position
    #:sibling-elements
    #:family-elements
    #:first-element

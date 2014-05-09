@@ -229,9 +229,20 @@ it is already the last."
     (when (< pos (fill-pointer family))
       (elt family pos))))
 
+(defun element-position (child)
+  "Returns the index of the child within its parent, counting only elements.
+This excludes comments, text-nodes and the like."
+  (loop with position = 0
+        for sibling across (family child)
+        until (eq sibling child)
+        when (element-p sibling)
+          do (incf position)
+        finally (return position)))
+
 (defun sibling-elements (child)
   "Returns the array of sibling elements of the given child.
-Note that this is a copy of the array, modifying it is safe."
+Note that this is a copy of the array, modifying it is safe.
+This excludes comments, text-nodes and the like."
   (remove-if #'(lambda (sibling)
                  (or (eq sibling child)
                      (not (element-p sibling))))
@@ -239,7 +250,8 @@ Note that this is a copy of the array, modifying it is safe."
 
 (defun family-elements (child)
   "Returns the direct array of children elements of the parent of the given child.
-Note that this is a copy of the array, modifying it is safe."
+Note that this is a copy of the array, modifying it is safe.
+This excludes comments, text-nodes and the like."
   (remove-if-not #'element-p (children (parent child))))
 
 (defun first-element (element)
