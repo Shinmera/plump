@@ -1,6 +1,6 @@
 #|
-  This file is a part of Colleen
-  (c) 2013 TymoonNET/NexT http://tymoon.eu (shinmera@tymoon.eu)
+  This file is a part of Plump
+  (c) 2014 TymoonNET/NexT http://tymoon.eu (shinmera@tymoon.eu)
   Author: Nicolas Hafner <shinmera@tymoon.eu>
 |#
 

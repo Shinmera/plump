@@ -10,7 +10,7 @@
       code{font-family: Consolas, Inconsolata, monospace;}
       code.line{margin-left: 20px;}
       code.output{color: #882222;}
-      code.output:before{content:"=> ";}
+      code.output:before{content:"=&gt; ";}
       code a{text-decoration: none; color: blue;}
       h3{display: inline-block;margin:0;padding:0;}
       .docs{list-style: none;}
@@ -22,7 +22,7 @@
     <header>
       <img src="plump-logo.png" alt="Plump"/><br/>
       Practically Lenient and Unimpressive Markup Parser
-      <h1>v0.1.5</h1>
+      <h1>v0.1.7</h1>
     </header>
     <div id="content">
       <article>
@@ -102,6 +102,32 @@
               <pre class="funcdesc"></pre>
             </article>
           </li><li id="template">
+            <a class="anchor" name="ADVANCE"/>
+            <article>
+              <header>
+                <span class="functype">EXTERNAL FUNCTION</span>
+                <code>
+                  <h3><a class="funcname" href="#ADVANCE">ADVANCE</a></h3>
+                  <span class="funcargs">()</span>
+                </code>
+              </header>
+              <pre class="funcdesc">Skips a chracter if possible.
+Returns the new index or NIL.</pre>
+            </article>
+          </li><li id="template">
+            <a class="anchor" name="ADVANCE-N"/>
+            <article>
+              <header>
+                <span class="functype">EXTERNAL FUNCTION</span>
+                <code>
+                  <h3><a class="funcname" href="#ADVANCE-N">ADVANCE-N</a></h3>
+                  <span class="funcargs">(N)</span>
+                </code>
+              </header>
+              <pre class="funcdesc">Advances by N characters if possible.
+Returns the new *INDEX*.</pre>
+            </article>
+          </li><li id="template">
             <a class="anchor" name="CONSUME"/>
             <article>
               <header>
@@ -113,19 +139,6 @@
               </header>
               <pre class="funcdesc">Consumes a single character if possible and returns it.
 Otherwise returns NIL.</pre>
-            </article>
-          </li><li id="template">
-            <a class="anchor" name="CONSUME-N"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a class="funcname" href="#CONSUME-N">CONSUME-N</a></h3>
-                  <span class="funcargs">(N)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Advances by N characters if possible.
-Returns the new *INDEX*.</pre>
             </article>
           </li><li id="template">
             <a class="anchor" name="CONSUME-UNTIL"/>
@@ -154,13 +167,25 @@ Returns the substring that was consumed.</pre>
 If an entity does not match, it is left in place unless REMOVE-INVALID is non-NIL.</pre>
             </article>
           </li><li id="template">
+            <a class="anchor" name="DEFINE-MATCHER"/>
+            <article>
+              <header>
+                <span class="functype">EXTERNAL MACRO</span>
+                <code>
+                  <h3><a class="funcname" href="#DEFINE-MATCHER">DEFINE-MATCHER</a></h3>
+                  <span class="funcargs">(NAME FORM)</span>
+                </code>
+              </header>
+              <pre class="funcdesc"></pre>
+            </article>
+          </li><li id="template">
             <a class="anchor" name="DEFINE-SELF-CLOSING-ELEMENT"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL MACRO</span>
                 <code>
                   <h3><a class="funcname" href="#DEFINE-SELF-CLOSING-ELEMENT">DEFINE-SELF-CLOSING-ELEMENT</a></h3>
-                  <span class="funcargs">(TAG &amp;OPTIONAL (CLASS 'ELEMENT))</span>
+                  <span class="funcargs">(TAG)</span>
                 </code>
               </header>
               <pre class="funcdesc"></pre>
@@ -252,7 +277,7 @@ sub-expressions return successfully. The first match is returned, if any.</pre>
               </header>
               <pre class="funcdesc">Parses the given input into a DOM representation.
 By default, methods for STRING, PATHNAME and STREAM are defined.
-If supplied, the given root is used to append chilren to as per READ-ROOT.
+If supplied, the given root is used to append children to as per READ-ROOT.
 Returns the root.</pre>
             </article>
           </li><li id="template">
@@ -663,6 +688,19 @@ The children of NESTING-NODEs are copied as per (CLONE-CHILDREN :DEEP T)</pre>
               <pre class="funcdesc">Returns T if the given object is an ELEMENT.</pre>
             </article>
           </li><li id="template">
+            <a class="anchor" name="ELEMENT-POSITION"/>
+            <article>
+              <header>
+                <span class="functype">EXTERNAL FUNCTION</span>
+                <code>
+                  <h3><a class="funcname" href="#ELEMENT-POSITION">ELEMENT-POSITION</a></h3>
+                  <span class="funcargs">(CHILD)</span>
+                </code>
+              </header>
+              <pre class="funcdesc">Returns the index of the child within its parent, counting only elements.
+This excludes comments, text-nodes and the like.</pre>
+            </article>
+          </li><li id="template">
             <a class="anchor" name="FAMILY"/>
             <article>
               <header>
@@ -676,6 +714,20 @@ The children of NESTING-NODEs are copied as per (CLONE-CHILDREN :DEEP T)</pre>
 Note that modifying this array directly modifies that of the parent.</pre>
             </article>
           </li><li id="template">
+            <a class="anchor" name="FAMILY-ELEMENTS"/>
+            <article>
+              <header>
+                <span class="functype">EXTERNAL FUNCTION</span>
+                <code>
+                  <h3><a class="funcname" href="#FAMILY-ELEMENTS">FAMILY-ELEMENTS</a></h3>
+                  <span class="funcargs">(CHILD)</span>
+                </code>
+              </header>
+              <pre class="funcdesc">Returns the direct array of children elements of the parent of the given child.
+Note that this is a copy of the array, modifying it is safe.
+This excludes comments, text-nodes and the like.</pre>
+            </article>
+          </li><li id="template">
             <a class="anchor" name="FIRST-CHILD"/>
             <article>
               <header>
@@ -687,6 +739,19 @@ Note that modifying this array directly modifies that of the parent.</pre>
               </header>
               <pre class="funcdesc">Returns the first child within the parent or NIL
 if the parent is empty.</pre>
+            </article>
+          </li><li id="template">
+            <a class="anchor" name="FIRST-ELEMENT"/>
+            <article>
+              <header>
+                <span class="functype">EXTERNAL FUNCTION</span>
+                <code>
+                  <h3><a class="funcname" href="#FIRST-ELEMENT">FIRST-ELEMENT</a></h3>
+                  <span class="funcargs">(ELEMENT)</span>
+                </code>
+              </header>
+              <pre class="funcdesc">Returns the first child element within the parent or NIL
+if the parent is empty. This excludes comments, text-nodes and the like.</pre>
             </article>
           </li><li id="template">
             <a class="anchor" name="GET-ATTRIBUTE"/>
@@ -725,19 +790,6 @@ attribute.</pre>
                 </code>
               </header>
               <pre class="funcdesc">Returns T if the provided attribute exists.</pre>
-            </article>
-          </li><li id="template">
-            <a class="anchor" name="HAS-CHILD-NODES"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a class="funcname" href="#HAS-CHILD-NODES">HAS-CHILD-NODES</a></h3>
-                  <span class="funcargs">(NODE)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Returns T if the node can contain children and
-the child array is not empty.</pre>
             </article>
           </li><li id="template">
             <a class="anchor" name="INSERT-AFTER"/>
@@ -785,6 +837,19 @@ See VECTOR-PUSH-EXTEND-POSITION</pre>
 if the parent is empty.</pre>
             </article>
           </li><li id="template">
+            <a class="anchor" name="LAST-ELEMENT"/>
+            <article>
+              <header>
+                <span class="functype">EXTERNAL FUNCTION</span>
+                <code>
+                  <h3><a class="funcname" href="#LAST-ELEMENT">LAST-ELEMENT</a></h3>
+                  <span class="funcargs">(ELEMENT)</span>
+                </code>
+              </header>
+              <pre class="funcdesc">Returns the last child element within the parent or NIL
+if the parent is empty. This excludes comments, text-nodes and the like.</pre>
+            </article>
+          </li><li id="template">
             <a class="anchor" name="MAKE-ATTRIBUTE-MAP"/>
             <article>
               <header>
@@ -819,6 +884,20 @@ if the parent is empty.</pre>
                 </code>
               </header>
               <pre class="funcdesc">Creates a new comment node under the parent.
+
+Note that the node is automatically appended to the parent's child list.</pre>
+            </article>
+          </li><li id="template">
+            <a class="anchor" name="MAKE-DOCTYPE"/>
+            <article>
+              <header>
+                <span class="functype">EXTERNAL FUNCTION</span>
+                <code>
+                  <h3><a class="funcname" href="#MAKE-DOCTYPE">MAKE-DOCTYPE</a></h3>
+                  <span class="funcargs">(PARENT DOCTYPE)</span>
+                </code>
+              </header>
+              <pre class="funcdesc">Creates a new doctype node under the parent.
 
 Note that the node is automatically appended to the parent's child list.</pre>
             </article>
@@ -877,6 +956,31 @@ Note that the node is automatically appended to the parent's child list.</pre>
                 </code>
               </header>
               <pre class="funcdesc">Node class that can contain child nodes.</pre>
+            </article>
+          </li><li id="template">
+            <a class="anchor" name="NESTING-NODE-P"/>
+            <article>
+              <header>
+                <span class="functype">EXTERNAL FUNCTION</span>
+                <code>
+                  <h3><a class="funcname" href="#NESTING-NODE-P">NESTING-NODE-P</a></h3>
+                  <span class="funcargs">(OBJECT)</span>
+                </code>
+              </header>
+              <pre class="funcdesc">Returns T if the givne object is a NESTING-NODE.</pre>
+            </article>
+          </li><li id="template">
+            <a class="anchor" name="NEXT-ELEMENT"/>
+            <article>
+              <header>
+                <span class="functype">EXTERNAL FUNCTION</span>
+                <code>
+                  <h3><a class="funcname" href="#NEXT-ELEMENT">NEXT-ELEMENT</a></h3>
+                  <span class="funcargs">(CHILD)</span>
+                </code>
+              </header>
+              <pre class="funcdesc">Returns the sibling element next to this one or NIL if
+it is already last. This excludes comments, text-nodes and the like.</pre>
             </article>
           </li><li id="template">
             <a class="anchor" name="NEXT-SIBLING"/>
@@ -941,6 +1045,19 @@ it is already the last.</pre>
 Returns the child.
 
 Note that this operation is costly, see VECTOR-PUSH-EXTEND-FRONT</pre>
+            </article>
+          </li><li id="template">
+            <a class="anchor" name="PREVIOUS-ELEMENT"/>
+            <article>
+              <header>
+                <span class="functype">EXTERNAL FUNCTION</span>
+                <code>
+                  <h3><a class="funcname" href="#PREVIOUS-ELEMENT">PREVIOUS-ELEMENT</a></h3>
+                  <span class="funcargs">(CHILD)</span>
+                </code>
+              </header>
+              <pre class="funcdesc">Returns the sibling element next to this one or NIL if
+it is already last. This excludes comments, text-nodes and the like.</pre>
             </article>
           </li><li id="template">
             <a class="anchor" name="PREVIOUS-SIBLING"/>
@@ -1044,6 +1161,20 @@ Returns the old child.</pre>
                 </code>
               </header>
               <pre class="funcdesc">Synonymous to (SETF (ATTIBUTE ..) ..)</pre>
+            </article>
+          </li><li id="template">
+            <a class="anchor" name="SIBLING-ELEMENTS"/>
+            <article>
+              <header>
+                <span class="functype">EXTERNAL FUNCTION</span>
+                <code>
+                  <h3><a class="funcname" href="#SIBLING-ELEMENTS">SIBLING-ELEMENTS</a></h3>
+                  <span class="funcargs">(CHILD)</span>
+                </code>
+              </header>
+              <pre class="funcdesc">Returns the array of sibling elements of the given child.
+Note that this is a copy of the array, modifying it is safe.
+This excludes comments, text-nodes and the like.</pre>
             </article>
           </li><li id="template">
             <a class="anchor" name="SIBLINGS"/>
