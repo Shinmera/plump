@@ -48,6 +48,12 @@
    #:last-child
    #:previous-sibling
    #:next-sibling
+   #:sibling-elements
+   #:family-elements
+   #:first-element
+   #:last-element
+   #:previous-element
+   #:next-element
    #:has-child-nodes
    #:attribute
    #:get-attribute

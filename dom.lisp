@@ -224,11 +224,65 @@ it is already the first."
 (defun next-sibling (child)
   "Returns the sibling next to this one or NIL if
 it is already the last."
-  (let ((pos (1+ (child-position child))))
-    (when (< pos (fill-pointer (family child)))
-      (elt (family child) pos))))
+  (let ((pos (1+ (child-position child)))
+        (family (family child)))
+    (when (< pos (fill-pointer family))
+      (elt family pos))))
 
-(defun has-child-nodes (node)
+(defun sibling-elements (child)
+  "Returns the array of sibling elements of the given child.
+Note that this is a copy of the array, modifying it is safe."
+  (remove-if #'(lambda (sibling)
+                 (or (eq sibling child)
+                     (not (element-p sibling))))
+             (children (parent child))))
+
+(defun family-elements (child)
+  "Returns the direct array of children elements of the parent of the given child.
+Note that this is a copy of the array, modifying it is safe."
+  (remove-if-not #'element-p (children (parent child))))
+
+(defun first-element (element)
+  "Returns the first child element within the parent or NIL
+if the parent is empty. This excludes comments, text-nodes and the like."
+  (when (< 0 (fill-pointer (children element)))
+    (let ((first (elt (children element) 0)))
+      (if (element-p first)
+          first
+          (next-sibling-element first)))))
+
+(defun last-element (element)
+  "Returns the last child element within the parent or NIL
+if the parent is empty. This excludes comments, text-nodes and the like."
+  (when (< 0 (fill-pointer (children element)))
+    (let ((last (elt (children element) (1- (fill-pointer (children element))))))
+      (if (element-p last)
+          last
+          (previous-sibling-element last)))))
+
+(defun previous-element (child)
+  "Returns the sibling element next to this one or NIL if
+it is already last. This excludes comments, text-nodes and the like."
+  (let ((pos (1- (child-position child)))
+        (family (family child)))
+    (loop while (< pos (fill-pointer family))
+          for current = (elt family pos)
+          do (decf pos)
+          when (element-p current)
+            do (return-from previous-element current))))
+
+(defun next-element (child)
+  "Returns the sibling element next to this one or NIL if
+it is already last. This excludes comments, text-nodes and the like."
+  (let ((pos (1+ (child-position child)))
+        (family (family child)))
+    (loop while (< pos (fill-pointer family))
+          for current = (elt family pos)
+          do (incf pos)
+          when (element-p current)
+            do (return-from next-element current))))
+
+(defun has-nodes (node)
   "Returns T if the node can contain children and
 the child array is not empty."
   (and (slot-boundp node '%children)
@@ -268,27 +322,27 @@ Returns NIL."
 list of child nodes at arbitrary depth that match
 the given tag."
   (let ((finds ()))
-    (labels ((scan-children (node)
+    (labels ((scanren (node)
                (loop for child across (children node)
                      do (when (element-p child)
                           (when (string-equal tag (tag-name child))
                             (push child finds))
-                          (scan-children child)))))
-      (scan-children node))
+                          (scanren child)))))
+      (scanren node))
     finds))
 
 (defun get-element-by-id (node id)
   "Searches the given node and returns the first
 node at arbitrary depth that matches the given ID
 attribute."
-  (labels ((scan-children (node)
+  (labels ((scanren (node)
              (loop for child across (children node)
                    do (when (element-p child)
                         (let ((cid (attribute child "id")))
                           (when (string-equal id cid)
                             (return-from get-element-by-id child)))
-                        (scan-children child)))))
-    (scan-children node))
+                        (scanren child)))))
+    (scanren node))
   NIL)
 
 (declaim (inline node-p element-p text-node-p comment-p root-p nesting-node-p))
