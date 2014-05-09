@@ -44,13 +44,13 @@
     (make-doctype *root* (string-trim " " declaration))))
 
 ;; Shorthand macro to define self-closing elements
-(defmacro define-self-closing-element (tag &optional (class 'element))
+(defmacro define-self-closing-element (tag)
   `(define-tag-dispatcher ,tag (name)
          (string-equal name ,(string tag))
      (let ((attrs (read-attributes)))
        (when (char= (consume) #\/)
          (advance)) ;; Consume closing
-       (make-instance ',class :parent *root* :tag-name ,(string-downcase tag) :attributes attrs))))
+       (make-element *root* ,(string-downcase tag) :attributes attrs))))
 
 ;; According to http://www.w3.org/html/wg/drafts/html/master/syntax.html#void-elements
 ;; area, base, br, col, embed, hr, img, input, keygen, link, menuitem, meta, param, source, track, wbr
