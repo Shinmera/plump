@@ -102,7 +102,7 @@ This recurses with READ-CHILDREN."
                     (make-attribute-map))))
     (case closing
       (#\/
-       (advance-n 2)
+       (advance)
        (make-element *root* name :attributes attrs))
       (#\>
        (let ((*root* (make-element *root* name :attributes attrs)))
