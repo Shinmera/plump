@@ -65,9 +65,28 @@ be shifted as per ARRAY-SHIFT."
     front))
 
 (defun vector-pop-position (vector position)
-  "Pops the element at the given position off the vector and returns it.
+  "Pops the element at the given position of the vector and returns it.
 This is potentially very costly as all elements after the given position
 need to be shifted back as per ARRAY-SHIFT."
   (let ((el (aref vector position)))
     (array-shift vector :n -1 :from (1+ position))
     el))
+
+(defgeneric vector-append (vector sequence &optional position)
+  (:documentation "Appends all elements of the sequence at position of the vector and returns it.
+ This is potentially very costly as all elements after the given position
+need to be shifted back as per ARRAY-SHIFT.")
+  (:method ((vector vector) (list list) &optional position)
+    (let ((position (or position (length vector))))
+      (array-shift vector :n (length list) :from position)
+      (loop for i from position
+            for item in list
+            do (setf (aref vector i) item)))
+    vector)
+  (:method ((vector vector) (array array) &optional position)
+    (let ((position (or position (length vector))))
+      (array-shift vector :n (length array) :from position)
+      (loop for i from position
+            for item across array
+            do (setf (aref vector i) item)))
+    vector))
