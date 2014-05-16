@@ -443,4 +443,7 @@ attribute."
           do (format stream " ~a~@[=~s~]" key (when val (encode-entities val)))))
   (:method ((node nesting-node) &optional (stream *standard-output*))
     (loop for child across (children node)
+          do (serialize child stream)))
+  (:method ((nodes vector) &optional (stream *standard-output*))
+    (loop for child across nodes
           do (serialize child stream))))
