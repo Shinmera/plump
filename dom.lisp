@@ -347,7 +347,7 @@ Returns NIL."
 
 (defun has-attribute (element attribute)
   "Returns T if the provided attribute exists."
-  (nth-value 1 (gethash attribute element)))
+  (nth-value 1 (gethash attribute (attributes element))))
 
 (defmethod text ((node nesting-node))
   "Compiles all text nodes within the nesting-node into one string."
