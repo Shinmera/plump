@@ -229,6 +229,17 @@ it is already the last."
     (when (< pos (fill-pointer family))
       (elt family pos))))
 
+(defun vec-remove-if (predicate sequence)
+  (loop with vector = (make-array 0 :adjustable T :fill-pointer 0)
+        for child across sequence
+        when (funcall predicate child)
+          do (vector-push-extend child vector)
+        finally (return vector)))
+
+(defun child-elements (nesting-node)
+  "Returns a new vector of children of the given node, filtered to elements."
+  (vec-remove-if #'(lambda (c) (not (element-p c))) (children nesting-node)))
+
 (defun element-position (child)
   "Returns the index of the child within its parent, counting only elements.
 This excludes comments, text-nodes and the like."
@@ -243,16 +254,16 @@ This excludes comments, text-nodes and the like."
   "Returns the array of sibling elements of the given child.
 Note that this is a copy of the array, modifying it is safe.
 This excludes comments, text-nodes and the like."
-  (remove-if #'(lambda (sibling)
-                 (or (eq sibling child)
-                     (not (element-p sibling))))
-             (children (parent child))))
+  (vec-remove-if #'(lambda (sibling)
+                     (or (eq sibling child)
+                         (not (element-p sibling))))
+                 (family child)))
 
 (defun family-elements (child)
   "Returns the direct array of children elements of the parent of the given child.
 Note that this is a copy of the array, modifying it is safe.
 This excludes comments, text-nodes and the like."
-  (remove-if-not #'element-p (children (parent child))))
+  (child-elements (parent child)))
 
 (defun first-element (element)
   "Returns the first child element within the parent or NIL

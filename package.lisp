@@ -49,6 +49,7 @@
    #:previous-sibling
    #:next-sibling
    #:element-position
+   #:child-elements
    #:sibling-elements
    #:family-elements
    #:first-element
