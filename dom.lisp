@@ -342,7 +342,7 @@ second return value is set to NIL."
 (defun remove-attribute (element attribute)
   "Remove the specified attribute if it exists.
 Returns NIL."
-  (remhash attribute element)
+  (remhash attribute (attributes element))
   NIL)
 
 (defun has-attribute (element attribute)
