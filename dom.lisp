@@ -329,7 +329,7 @@ second return value is set to NIL."
 (defgeneric (setf attribute) (value element attribute)
   (:documentation "Set an attribute on an element to the given value.")
   (:method (value (element element) attribute)
-    (setf (gethash attribute element) value)))
+    (setf (gethash attribute (attributes element)) value)))
 
 (defun get-attribute (element attribute)
   "Synonymous to ATTRIBUTE."
