@@ -88,6 +88,15 @@ Note that the node is automatically appended to the parent's child list."
 Note that the node is automatically appended to the parent's child list."
   (append-child parent (make-instance 'doctype :doctype doctype :parent parent)))
 
+(defun clear (nesting-node)
+  "Clears all children from the node.
+
+Noe that the PARENT of all child elements is set to NIL."
+  (loop for child across (children nesting-node)
+        do (setf (parent child) NIL))
+  (setf (fill-pointer (children nesting-node)) 0)
+  nesting-node)
+
 (defun siblings (child)
   "Returns the array of siblings of the given child.
 Note that this is a copy of the array, modifying it is safe."
