@@ -241,7 +241,7 @@ it is already the last."
 (defun vec-remove-if (predicate sequence)
   (loop with vector = (make-array 0 :adjustable T :fill-pointer 0)
         for child across sequence
-        when (funcall predicate child)
+        unless (funcall predicate child)
           do (vector-push-extend child vector)
         finally (return vector)))
 
