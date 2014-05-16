@@ -305,10 +305,10 @@ it is already last. This excludes comments, text-nodes and the like."
           when (element-p current)
             do (return-from next-element current))))
 
-(defun has-nodes (node)
+(defun has-child-nodes (node)
   "Returns T if the node can contain children and
 the child array is not empty."
-  (and (slot-boundp node '%children)
+  (and (nesting-node-p node)
        (< 0 (length (children node)))))
 
 (defun attribute (element attribute)
