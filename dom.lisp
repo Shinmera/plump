@@ -340,6 +340,16 @@ Returns NIL."
   "Returns T if the provided attribute exists."
   (nth-value 1 (gethash attribute element)))
 
+(defmethod text ((node nesting-node))
+  "Compiles all text nodes within the nesting-node into one string."
+  (with-output-to-string (stream)
+    (labels ((r (node)
+               (loop for child across (children node)
+                     do (typecase child
+                          (text-node (write-string (text child) stream))
+                          (nesting-node (r child))))))
+      (r node))))
+
 (defun get-elements-by-tag-name (node tag)
   "Searches the given node and returns an unordered
 list of child nodes at arbitrary depth that match
