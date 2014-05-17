@@ -1,8 +1,10 @@
-<!DOCTYPE html><!--
+<!--
   This file is a part of Plump
   (c) 2014 TymoonNET/NexT http://tymoon.eu (shinmera@tymoon.eu)
   Author: Nicolas Hafner <shinmera@tymoon.eu>
-  !--><html xmlns="http://www.w3.org/1999/xhtml">
+  !-->
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8"/>
     <title>Plump - About</title>
@@ -10,7 +12,7 @@
       code{font-family: Consolas, Inconsolata, monospace;}
       code.line{margin-left: 20px;}
       code.output{color: #882222;}
-      code.output:before{content:"=&gt; ";}
+      code.output:before{content:'=> ';}
       code a{text-decoration: none; color: blue;}
       h3{display: inline-block;margin:0;padding:0;}
       .docs{list-style: none;}
@@ -22,7 +24,7 @@
     <header>
       <img src="plump-logo.png" alt="Plump"/><br/>
       Practically Lenient and Unimpressive Markup Parser
-      <h1>v0.1.7</h1>
+      <h1>v0.1.9</h1>
     </header>
     <div id="content">
       <article>
@@ -38,20 +40,20 @@
         <p>
           Using the <code>PARSE</code> function, plump will transform a string, pathname or file into a document:
         </p>
-        <code class="line">(<a href="#PARSE">plump:parse</a> "&lt;foo&gt;&lt;bar this is=\"a thing\"&gt;baz&lt;/bar&gt;&lt;span id=\"test\"&gt;oh my")</code><br/>
+        <code class="line">(<a href="#PARSE">plump:parse</a> &quot;&lt;foo&gt;&lt;bar this is=\&quot;a thing\&quot;&gt;baz&lt;/bar&gt;&lt;span id=\&quot;test\&quot;&gt;oh my&quot;)</code><br/>
         <code class="line output">#&lt;PLUMP-DOM:ROOT {1004F3FCC3}&gt;</code>
         <p>
           This returns a root node. If you want to append a document to a root node (or any other node that accepts children) that you've made, you can pass it into the parse function. To return the document into a readable form, you can call <code>SERIALIZE</code>:
         </p>
         <code class="line">(<a href="#SERIALIZE">plump:serialize</a> *)</code><br/>
-        <code class="line output">&lt;foo&gt;&lt;bar this="" is="a thing"&gt;baz&lt;/bar&gt;&lt;span id="test"&gt;oh my&lt;/span&gt;&lt;/foo&gt;</code>
+        <code class="line output">&lt;foo&gt;&lt;bar this=&quot;&quot; is=&quot;a thing&quot;&gt;baz&lt;/bar&gt;&lt;span id=&quot;test&quot;&gt;oh my&lt;/span&gt;&lt;/foo&gt;</code>
         <p>
           Using the DOM you can easily traverse the document and change it:
         </p>
-        <code class="line">(<a href="#REMOVE-CHILD">plump:remove-child</a> (<a href="#GET-ELEMENT-BY-ID">plump:get-element-by-id</a> ** "test"))</code><br/>
+        <code class="line">(<a href="#REMOVE-CHILD">plump:remove-child</a> (<a href="#GET-ELEMENT-BY-ID">plump:get-element-by-id</a> ** &quot;test&quot;))</code><br/>
         <code class="line output">#&lt;PLUMP-DOM:ELEMENT span {100517D8F3}&gt;</code><br/>
         <code class="line">(<a href="#SERIALIZE">plump:serialize</a> ***)</code><br/>
-        <code class="line output">&lt;foo&gt;&lt;bar this="" is="a thing"&gt;baz&lt;/bar&gt;&lt;/foo&gt;</code>
+        <code class="line output">&lt;foo&gt;&lt;bar this=&quot;&quot; is=&quot;a thing&quot;&gt;baz&lt;/bar&gt;&lt;/foo&gt;</code>
       </article>
       <article>
         <header><h2>Extending Plump</h2></header>
@@ -59,7 +61,7 @@
           If you want to handle a certain tag in a special way, you can write your own tag-dispatcher. For example comments, the doctype and self-closing tags are handled in this fashion by default. 
         </p>
         <pre><code class="line">(<a href="#DEFINE-TAG-DISPATCHER">plump:define-tag-dispatcher</a> my-dispatcher (name)
-        (string-equal name "my-tag")
+        (string-equal name &quot;my-tag&quot;)
     (let ((attrs (<a href="#READ-ATTRIBUTES">plump:read-attributes</a>)))
       (when (char= (<a href="#CONSUME">plump:consume</a>) #\/)
         (<a href="#CONSUME">plump:consume</a>)) <span style="color:gray">;; Consume closing</span>
@@ -78,36 +80,36 @@
       <article>
         <header><h2>Plump-Parser Package Index</h2></header>
         <ul id="parser-docs" class="docs"><li id="template">
-            <a class="anchor" name="*ENTITY-MAP*"/>
+            <a name="*ENTITY-MAP*" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL SPECIAL</span>
                 <code>
-                  <h3><a class="funcname" href="#*ENTITY-MAP*">*ENTITY-MAP*</a></h3>
+                  <h3><a href="#*ENTITY-MAP*" class="funcname">*ENTITY-MAP*</a></h3>
                   <span class="funcargs"></span>
                 </code>
               </header>
               <pre class="funcdesc">String hash-table containing the entity names and mapping them to their respective characters.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="*ROOT*"/>
+            <a name="*ROOT*" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL SPECIAL</span>
                 <code>
-                  <h3><a class="funcname" href="#*ROOT*">*ROOT*</a></h3>
+                  <h3><a href="#*ROOT*" class="funcname">*ROOT*</a></h3>
                   <span class="funcargs"></span>
                 </code>
               </header>
               <pre class="funcdesc"></pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="ADVANCE"/>
+            <a name="ADVANCE" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#ADVANCE">ADVANCE</a></h3>
+                  <h3><a href="#ADVANCE" class="funcname">ADVANCE</a></h3>
                   <span class="funcargs">()</span>
                 </code>
               </header>
@@ -115,12 +117,12 @@
 Returns the new index or NIL.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="ADVANCE-N"/>
+            <a name="ADVANCE-N" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#ADVANCE-N">ADVANCE-N</a></h3>
+                  <h3><a href="#ADVANCE-N" class="funcname">ADVANCE-N</a></h3>
                   <span class="funcargs">(N)</span>
                 </code>
               </header>
@@ -128,12 +130,12 @@ Returns the new index or NIL.</pre>
 Returns the new *INDEX*.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="CONSUME"/>
+            <a name="CONSUME" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#CONSUME">CONSUME</a></h3>
+                  <h3><a href="#CONSUME" class="funcname">CONSUME</a></h3>
                   <span class="funcargs">()</span>
                 </code>
               </header>
@@ -141,12 +143,12 @@ Returns the new *INDEX*.</pre>
 Otherwise returns NIL.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="CONSUME-UNTIL"/>
+            <a name="CONSUME-UNTIL" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#CONSUME-UNTIL">CONSUME-UNTIL</a></h3>
+                  <h3><a href="#CONSUME-UNTIL" class="funcname">CONSUME-UNTIL</a></h3>
                   <span class="funcargs">(MATCHER)</span>
                 </code>
               </header>
@@ -154,12 +156,12 @@ Otherwise returns NIL.</pre>
 Returns the substring that was consumed.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="DECODE-ENTITIES"/>
+            <a name="DECODE-ENTITIES" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#DECODE-ENTITIES">DECODE-ENTITIES</a></h3>
+                  <h3><a href="#DECODE-ENTITIES" class="funcname">DECODE-ENTITIES</a></h3>
                   <span class="funcargs">(TEXT &amp;OPTIONAL REMOVE-INVALID)</span>
                 </code>
               </header>
@@ -167,36 +169,36 @@ Returns the substring that was consumed.</pre>
 If an entity does not match, it is left in place unless REMOVE-INVALID is non-NIL.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="DEFINE-MATCHER"/>
+            <a name="DEFINE-MATCHER" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL MACRO</span>
                 <code>
-                  <h3><a class="funcname" href="#DEFINE-MATCHER">DEFINE-MATCHER</a></h3>
+                  <h3><a href="#DEFINE-MATCHER" class="funcname">DEFINE-MATCHER</a></h3>
                   <span class="funcargs">(NAME FORM)</span>
                 </code>
               </header>
               <pre class="funcdesc"></pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="DEFINE-SELF-CLOSING-ELEMENT"/>
+            <a name="DEFINE-SELF-CLOSING-ELEMENT" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL MACRO</span>
                 <code>
-                  <h3><a class="funcname" href="#DEFINE-SELF-CLOSING-ELEMENT">DEFINE-SELF-CLOSING-ELEMENT</a></h3>
+                  <h3><a href="#DEFINE-SELF-CLOSING-ELEMENT" class="funcname">DEFINE-SELF-CLOSING-ELEMENT</a></h3>
                   <span class="funcargs">(TAG)</span>
                 </code>
               </header>
               <pre class="funcdesc"></pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="DEFINE-TAG-DISPATCHER"/>
+            <a name="DEFINE-TAG-DISPATCHER" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL MACRO</span>
                 <code>
-                  <h3><a class="funcname" href="#DEFINE-TAG-DISPATCHER">DEFINE-TAG-DISPATCHER</a></h3>
+                  <h3><a href="#DEFINE-TAG-DISPATCHER" class="funcname">DEFINE-TAG-DISPATCHER</a></h3>
                   <span class="funcargs">(NAME (TAGVAR) TEST-FORM &amp;BODY BODY)</span>
                 </code>
               </header>
@@ -204,24 +206,24 @@ If an entity does not match, it is left in place unless REMOVE-INVALID is non-NI
 TAGVAR is bound to the matched name of the tag.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="MAKE-MATCHER"/>
+            <a name="MAKE-MATCHER" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL MACRO</span>
                 <code>
-                  <h3><a class="funcname" href="#MAKE-MATCHER">MAKE-MATCHER</a></h3>
+                  <h3><a href="#MAKE-MATCHER" class="funcname">MAKE-MATCHER</a></h3>
                   <span class="funcargs">(FORM)</span>
                 </code>
               </header>
               <pre class="funcdesc">Macro to create a matcher chain.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="MATCHER-AND"/>
+            <a name="MATCHER-AND" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#MATCHER-AND">MATCHER-AND</a></h3>
+                  <h3><a href="#MATCHER-AND" class="funcname">MATCHER-AND</a></h3>
                   <span class="funcargs">(&amp;REST MATCHERS)</span>
                 </code>
               </header>
@@ -229,24 +231,24 @@ TAGVAR is bound to the matched name of the tag.</pre>
 return successfully. The last match is returned, if all.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="MATCHER-NOT"/>
+            <a name="MATCHER-NOT" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#MATCHER-NOT">MATCHER-NOT</a></h3>
+                  <h3><a href="#MATCHER-NOT" class="funcname">MATCHER-NOT</a></h3>
                   <span class="funcargs">(MATCHER)</span>
                 </code>
               </header>
               <pre class="funcdesc">Creates a matcher function that inverts the result of the sub-expression.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="MATCHER-OR"/>
+            <a name="MATCHER-OR" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#MATCHER-OR">MATCHER-OR</a></h3>
+                  <h3><a href="#MATCHER-OR" class="funcname">MATCHER-OR</a></h3>
                   <span class="funcargs">(&amp;REST MATCHERS)</span>
                 </code>
               </header>
@@ -254,24 +256,24 @@ return successfully. The last match is returned, if all.</pre>
 sub-expressions return successfully. The first match is returned, if any.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="MATCHER-STRING"/>
+            <a name="MATCHER-STRING" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#MATCHER-STRING">MATCHER-STRING</a></h3>
+                  <h3><a href="#MATCHER-STRING" class="funcname">MATCHER-STRING</a></h3>
                   <span class="funcargs">(STRING)</span>
                 </code>
               </header>
               <pre class="funcdesc">Creates a matcher function that attempts to match the given string.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="PARSE"/>
+            <a name="PARSE" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL GENERIC</span>
                 <code>
-                  <h3><a class="funcname" href="#PARSE">PARSE</a></h3>
+                  <h3><a href="#PARSE" class="funcname">PARSE</a></h3>
                   <span class="funcargs">(INPUT &amp;KEY ROOT)</span>
                 </code>
               </header>
@@ -281,24 +283,24 @@ If supplied, the given root is used to append children to as per READ-ROOT.
 Returns the root.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="PEEK"/>
+            <a name="PEEK" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#PEEK">PEEK</a></h3>
+                  <h3><a href="#PEEK" class="funcname">PEEK</a></h3>
                   <span class="funcargs">()</span>
                 </code>
               </header>
               <pre class="funcdesc">Returns the next character, if any.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="PEEK-N"/>
+            <a name="PEEK-N" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#PEEK-N">PEEK-N</a></h3>
+                  <h3><a href="#PEEK-N" class="funcname">PEEK-N</a></h3>
                   <span class="funcargs">(N)</span>
                 </code>
               </header>
@@ -307,84 +309,84 @@ This list is cut short if it is not possible to
 peek ahead farther.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="READ-ATTRIBUTE"/>
+            <a name="READ-ATTRIBUTE" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#READ-ATTRIBUTE">READ-ATTRIBUTE</a></h3>
+                  <h3><a href="#READ-ATTRIBUTE" class="funcname">READ-ATTRIBUTE</a></h3>
                   <span class="funcargs">()</span>
                 </code>
               </header>
               <pre class="funcdesc">Reads an attribute and returns it as a key value cons.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="READ-ATTRIBUTE-NAME"/>
+            <a name="READ-ATTRIBUTE-NAME" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#READ-ATTRIBUTE-NAME">READ-ATTRIBUTE-NAME</a></h3>
+                  <h3><a href="#READ-ATTRIBUTE-NAME" class="funcname">READ-ATTRIBUTE-NAME</a></h3>
                   <span class="funcargs">()</span>
                 </code>
               </header>
               <pre class="funcdesc">Reads an attribute name.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="READ-ATTRIBUTE-VALUE"/>
+            <a name="READ-ATTRIBUTE-VALUE" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#READ-ATTRIBUTE-VALUE">READ-ATTRIBUTE-VALUE</a></h3>
+                  <h3><a href="#READ-ATTRIBUTE-VALUE" class="funcname">READ-ATTRIBUTE-VALUE</a></h3>
                   <span class="funcargs">()</span>
                 </code>
               </header>
               <pre class="funcdesc">Reads an attribute value, either enclosed in quotation marks or until a space or tag end.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="READ-ATTRIBUTES"/>
+            <a name="READ-ATTRIBUTES" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#READ-ATTRIBUTES">READ-ATTRIBUTES</a></h3>
+                  <h3><a href="#READ-ATTRIBUTES" class="funcname">READ-ATTRIBUTES</a></h3>
                   <span class="funcargs">()</span>
                 </code>
               </header>
               <pre class="funcdesc">Reads as many attributes as possible from a tag and returns them as an attribute map.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="READ-CHILDREN"/>
+            <a name="READ-CHILDREN" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#READ-CHILDREN">READ-CHILDREN</a></h3>
+                  <h3><a href="#READ-CHILDREN" class="funcname">READ-CHILDREN</a></h3>
                   <span class="funcargs">()</span>
                 </code>
               </header>
               <pre class="funcdesc"></pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="READ-NAME"/>
+            <a name="READ-NAME" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#READ-NAME">READ-NAME</a></h3>
+                  <h3><a href="#READ-NAME" class="funcname">READ-NAME</a></h3>
                   <span class="funcargs">()</span>
                 </code>
               </header>
               <pre class="funcdesc">Reads and returns a tag name.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="READ-ROOT"/>
+            <a name="READ-ROOT" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#READ-ROOT">READ-ROOT</a></h3>
+                  <h3><a href="#READ-ROOT" class="funcname">READ-ROOT</a></h3>
                   <span class="funcargs">(&amp;OPTIONAL (ROOT (MAKE-ROOT)))</span>
                 </code>
               </header>
@@ -393,12 +395,12 @@ Optionally uses the specified root to append child nodes to.
 Returns the root.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="READ-STANDARD-TAG"/>
+            <a name="READ-STANDARD-TAG" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#READ-STANDARD-TAG">READ-STANDARD-TAG</a></h3>
+                  <h3><a href="#READ-STANDARD-TAG" class="funcname">READ-STANDARD-TAG</a></h3>
                   <span class="funcargs">(NAME)</span>
                 </code>
               </header>
@@ -406,12 +408,12 @@ Returns the root.</pre>
 This recurses with READ-CHILDREN.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="READ-TAG"/>
+            <a name="READ-TAG" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#READ-TAG">READ-TAG</a></h3>
+                  <h3><a href="#READ-TAG" class="funcname">READ-TAG</a></h3>
                   <span class="funcargs">()</span>
                 </code>
               </header>
@@ -419,12 +421,12 @@ This recurses with READ-CHILDREN.</pre>
 Returns the completed node if one can be read.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="READ-TAG-CONTENTS"/>
+            <a name="READ-TAG-CONTENTS" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#READ-TAG-CONTENTS">READ-TAG-CONTENTS</a></h3>
+                  <h3><a href="#READ-TAG-CONTENTS" class="funcname">READ-TAG-CONTENTS</a></h3>
                   <span class="funcargs">()</span>
                 </code>
               </header>
@@ -432,24 +434,24 @@ Returns the completed node if one can be read.</pre>
 E.g. &lt;foo bar baz&gt; =&gt; bar baz</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="READ-TEXT"/>
+            <a name="READ-TEXT" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#READ-TEXT">READ-TEXT</a></h3>
+                  <h3><a href="#READ-TEXT" class="funcname">READ-TEXT</a></h3>
                   <span class="funcargs">()</span>
                 </code>
               </header>
               <pre class="funcdesc">Reads and returns a text-node.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="TRANSLATE-ENTITY"/>
+            <a name="TRANSLATE-ENTITY" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#TRANSLATE-ENTITY">TRANSLATE-ENTITY</a></h3>
+                  <h3><a href="#TRANSLATE-ENTITY" class="funcname">TRANSLATE-ENTITY</a></h3>
                   <span class="funcargs">(ENTITY)</span>
                 </code>
               </header>
@@ -457,12 +459,12 @@ E.g. &lt;foo bar baz&gt; =&gt; bar baz</pre>
 Otherwise returns NIL.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="UNREAD"/>
+            <a name="UNREAD" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#UNREAD">UNREAD</a></h3>
+                  <h3><a href="#UNREAD" class="funcname">UNREAD</a></h3>
                   <span class="funcargs">()</span>
                 </code>
               </header>
@@ -470,12 +472,12 @@ Otherwise returns NIL.</pre>
 Returns the new *INDEX*.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="UNREAD-N"/>
+            <a name="UNREAD-N" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#UNREAD-N">UNREAD-N</a></h3>
+                  <h3><a href="#UNREAD-N" class="funcname">UNREAD-N</a></h3>
                   <span class="funcargs">(N)</span>
                 </code>
               </header>
@@ -483,12 +485,12 @@ Returns the new *INDEX*.</pre>
 Returns the new *INDEX*.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="WITH-LEXER-ENVIRONMENT"/>
+            <a name="WITH-LEXER-ENVIRONMENT" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL MACRO</span>
                 <code>
-                  <h3><a class="funcname" href="#WITH-LEXER-ENVIRONMENT">WITH-LEXER-ENVIRONMENT</a></h3>
+                  <h3><a href="#WITH-LEXER-ENVIRONMENT" class="funcname">WITH-LEXER-ENVIRONMENT</a></h3>
                   <span class="funcargs">((STRING) &amp;BODY BODY)</span>
                 </code>
               </header>
@@ -499,12 +501,12 @@ Returns the new *INDEX*.</pre>
       <article>
         <header><h2>Plump-DOM Package Index</h2></header>
         <ul id="dom-docs" class="docs"><li id="template">
-            <a class="anchor" name="APPEND-CHILD"/>
+            <a name="APPEND-CHILD" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#APPEND-CHILD">APPEND-CHILD</a></h3>
+                  <h3><a href="#APPEND-CHILD" class="funcname">APPEND-CHILD</a></h3>
                   <span class="funcargs">(PARENT CHILD)</span>
                 </code>
               </header>
@@ -512,12 +514,12 @@ Returns the new *INDEX*.</pre>
 Returns the child.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="ATTRIBUTE"/>
+            <a name="ATTRIBUTE" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#ATTRIBUTE">ATTRIBUTE</a></h3>
+                  <h3><a href="#ATTRIBUTE" class="funcname">ATTRIBUTE</a></h3>
                   <span class="funcargs">(ELEMENT ATTRIBUTE)</span>
                 </code>
               </header>
@@ -526,60 +528,86 @@ or NIL. If the attribute could not be found, the
 second return value is set to NIL.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="ATTRIBUTES"/>
+            <a name="ATTRIBUTES" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL GENERIC</span>
                 <code>
-                  <h3><a class="funcname" href="#ATTRIBUTES">ATTRIBUTES</a></h3>
+                  <h3><a href="#ATTRIBUTES" class="funcname">ATTRIBUTES</a></h3>
                   <span class="funcargs">(OBJECT)</span>
                 </code>
               </header>
               <pre class="funcdesc"></pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="CHILD-NODE"/>
+            <a name="CHILD-ELEMENTS" class="anchor"/>
+            <article>
+              <header>
+                <span class="functype">EXTERNAL FUNCTION</span>
+                <code>
+                  <h3><a href="#CHILD-ELEMENTS" class="funcname">CHILD-ELEMENTS</a></h3>
+                  <span class="funcargs">(NESTING-NODE)</span>
+                </code>
+              </header>
+              <pre class="funcdesc">Returns a new vector of children of the given node, filtered to elements.</pre>
+            </article>
+          </li><li id="template">
+            <a name="CHILD-NODE" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL CLASS</span>
                 <code>
-                  <h3><a class="funcname" href="#CHILD-NODE">CHILD-NODE</a></h3>
+                  <h3><a href="#CHILD-NODE" class="funcname">CHILD-NODE</a></h3>
                   <span class="funcargs"></span>
                 </code>
               </header>
               <pre class="funcdesc">Node class that is a child and thus has a parent.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="CHILD-POSITION"/>
+            <a name="CHILD-POSITION" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#CHILD-POSITION">CHILD-POSITION</a></h3>
+                  <h3><a href="#CHILD-POSITION" class="funcname">CHILD-POSITION</a></h3>
                   <span class="funcargs">(CHILD)</span>
                 </code>
               </header>
               <pre class="funcdesc">Returns the index of the child within its parent.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="CHILDREN"/>
+            <a name="CHILDREN" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL GENERIC</span>
                 <code>
-                  <h3><a class="funcname" href="#CHILDREN">CHILDREN</a></h3>
+                  <h3><a href="#CHILDREN" class="funcname">CHILDREN</a></h3>
                   <span class="funcargs">(OBJECT)</span>
                 </code>
               </header>
               <pre class="funcdesc"></pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="CLONE-ATTRIBUTES"/>
+            <a name="CLEAR" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#CLONE-ATTRIBUTES">CLONE-ATTRIBUTES</a></h3>
+                  <h3><a href="#CLEAR" class="funcname">CLEAR</a></h3>
+                  <span class="funcargs">(NESTING-NODE)</span>
+                </code>
+              </header>
+              <pre class="funcdesc">Clears all children from the node.
+
+Noe that the PARENT of all child elements is set to NIL.</pre>
+            </article>
+          </li><li id="template">
+            <a name="CLONE-ATTRIBUTES" class="anchor"/>
+            <article>
+              <header>
+                <span class="functype">EXTERNAL FUNCTION</span>
+                <code>
+                  <h3><a href="#CLONE-ATTRIBUTES" class="funcname">CLONE-ATTRIBUTES</a></h3>
                   <span class="funcargs">(NODE)</span>
                 </code>
               </header>
@@ -587,12 +615,12 @@ second return value is set to NIL.</pre>
 Note that keys and values are NOT copied/cloned.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="CLONE-CHILDREN"/>
+            <a name="CLONE-CHILDREN" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#CLONE-CHILDREN">CLONE-CHILDREN</a></h3>
+                  <h3><a href="#CLONE-CHILDREN" class="funcname">CLONE-CHILDREN</a></h3>
                   <span class="funcargs">(NODE &amp;KEY DEEP)</span>
                 </code>
               </header>
@@ -601,13 +629,13 @@ If DEEP is non-NIL, each child is cloned as per
  (CLONE-NODE :DEEP T) </pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="CLONE-NODE"/>
+            <a name="CLONE-NODE" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL GENERIC</span>
                 <code>
-                  <h3><a class="funcname" href="#CLONE-NODE">CLONE-NODE</a></h3>
-                  <span class="funcargs">(NODE &amp;KEY DEEP)</span>
+                  <h3><a href="#CLONE-NODE" class="funcname">CLONE-NODE</a></h3>
+                  <span class="funcargs">(NODE &amp;KEY DEEP (DEEP T))</span>
                 </code>
               </header>
               <pre class="funcdesc">Clone the given node, creating a new instance with the same contents.
@@ -616,84 +644,84 @@ The text of COMMENT and TEXT-NODEs is copied as per COPY-SEQ.
 The children of NESTING-NODEs are copied as per (CLONE-CHILDREN :DEEP T)</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="COMMENT"/>
+            <a name="COMMENT" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL CLASS</span>
                 <code>
-                  <h3><a class="funcname" href="#COMMENT">COMMENT</a></h3>
+                  <h3><a href="#COMMENT" class="funcname">COMMENT</a></h3>
                   <span class="funcargs"></span>
                 </code>
               </header>
               <pre class="funcdesc">Comment node that can only contain a single comment string.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="COMMENT-P"/>
+            <a name="COMMENT-P" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#COMMENT-P">COMMENT-P</a></h3>
+                  <h3><a href="#COMMENT-P" class="funcname">COMMENT-P</a></h3>
                   <span class="funcargs">(OBJECT)</span>
                 </code>
               </header>
               <pre class="funcdesc">Returns T if the given object is a COMMENT.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="DOCTYPE"/>
+            <a name="DOCTYPE" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL CLASS</span>
                 <code>
-                  <h3><a class="funcname" href="#DOCTYPE">DOCTYPE</a></h3>
+                  <h3><a href="#DOCTYPE" class="funcname">DOCTYPE</a></h3>
                   <span class="funcargs"></span>
                 </code>
               </header>
               <pre class="funcdesc">Special DOM node for the doctype declaration.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="DOCTYPE"/>
+            <a name="DOCTYPE" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL GENERIC</span>
                 <code>
-                  <h3><a class="funcname" href="#DOCTYPE">DOCTYPE</a></h3>
+                  <h3><a href="#DOCTYPE" class="funcname">DOCTYPE</a></h3>
                   <span class="funcargs">(OBJECT)</span>
                 </code>
               </header>
               <pre class="funcdesc"></pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="ELEMENT"/>
+            <a name="ELEMENT" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL CLASS</span>
                 <code>
-                  <h3><a class="funcname" href="#ELEMENT">ELEMENT</a></h3>
+                  <h3><a href="#ELEMENT" class="funcname">ELEMENT</a></h3>
                   <span class="funcargs"></span>
                 </code>
               </header>
               <pre class="funcdesc">Standard DOM element/block including attributes, tag-name, parent and children.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="ELEMENT-P"/>
+            <a name="ELEMENT-P" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#ELEMENT-P">ELEMENT-P</a></h3>
+                  <h3><a href="#ELEMENT-P" class="funcname">ELEMENT-P</a></h3>
                   <span class="funcargs">(OBJECT)</span>
                 </code>
               </header>
               <pre class="funcdesc">Returns T if the given object is an ELEMENT.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="ELEMENT-POSITION"/>
+            <a name="ELEMENT-POSITION" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#ELEMENT-POSITION">ELEMENT-POSITION</a></h3>
+                  <h3><a href="#ELEMENT-POSITION" class="funcname">ELEMENT-POSITION</a></h3>
                   <span class="funcargs">(CHILD)</span>
                 </code>
               </header>
@@ -701,12 +729,12 @@ The children of NESTING-NODEs are copied as per (CLONE-CHILDREN :DEEP T)</pre>
 This excludes comments, text-nodes and the like.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="FAMILY"/>
+            <a name="FAMILY" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#FAMILY">FAMILY</a></h3>
+                  <h3><a href="#FAMILY" class="funcname">FAMILY</a></h3>
                   <span class="funcargs">(CHILD)</span>
                 </code>
               </header>
@@ -714,12 +742,12 @@ This excludes comments, text-nodes and the like.</pre>
 Note that modifying this array directly modifies that of the parent.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="FAMILY-ELEMENTS"/>
+            <a name="FAMILY-ELEMENTS" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#FAMILY-ELEMENTS">FAMILY-ELEMENTS</a></h3>
+                  <h3><a href="#FAMILY-ELEMENTS" class="funcname">FAMILY-ELEMENTS</a></h3>
                   <span class="funcargs">(CHILD)</span>
                 </code>
               </header>
@@ -728,12 +756,12 @@ Note that this is a copy of the array, modifying it is safe.
 This excludes comments, text-nodes and the like.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="FIRST-CHILD"/>
+            <a name="FIRST-CHILD" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#FIRST-CHILD">FIRST-CHILD</a></h3>
+                  <h3><a href="#FIRST-CHILD" class="funcname">FIRST-CHILD</a></h3>
                   <span class="funcargs">(ELEMENT)</span>
                 </code>
               </header>
@@ -741,12 +769,12 @@ This excludes comments, text-nodes and the like.</pre>
 if the parent is empty.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="FIRST-ELEMENT"/>
+            <a name="FIRST-ELEMENT" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#FIRST-ELEMENT">FIRST-ELEMENT</a></h3>
+                  <h3><a href="#FIRST-ELEMENT" class="funcname">FIRST-ELEMENT</a></h3>
                   <span class="funcargs">(ELEMENT)</span>
                 </code>
               </header>
@@ -754,24 +782,24 @@ if the parent is empty.</pre>
 if the parent is empty. This excludes comments, text-nodes and the like.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="GET-ATTRIBUTE"/>
+            <a name="GET-ATTRIBUTE" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#GET-ATTRIBUTE">GET-ATTRIBUTE</a></h3>
+                  <h3><a href="#GET-ATTRIBUTE" class="funcname">GET-ATTRIBUTE</a></h3>
                   <span class="funcargs">(ELEMENT ATTRIBUTE)</span>
                 </code>
               </header>
               <pre class="funcdesc">Synonymous to ATTRIBUTE.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="GET-ELEMENT-BY-ID"/>
+            <a name="GET-ELEMENT-BY-ID" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#GET-ELEMENT-BY-ID">GET-ELEMENT-BY-ID</a></h3>
+                  <h3><a href="#GET-ELEMENT-BY-ID" class="funcname">GET-ELEMENT-BY-ID</a></h3>
                   <span class="funcargs">(NODE ID)</span>
                 </code>
               </header>
@@ -780,24 +808,37 @@ node at arbitrary depth that matches the given ID
 attribute.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="HAS-ATTRIBUTE"/>
+            <a name="HAS-ATTRIBUTE" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#HAS-ATTRIBUTE">HAS-ATTRIBUTE</a></h3>
+                  <h3><a href="#HAS-ATTRIBUTE" class="funcname">HAS-ATTRIBUTE</a></h3>
                   <span class="funcargs">(ELEMENT ATTRIBUTE)</span>
                 </code>
               </header>
               <pre class="funcdesc">Returns T if the provided attribute exists.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="INSERT-AFTER"/>
+            <a name="HAS-CHILD-NODES" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#INSERT-AFTER">INSERT-AFTER</a></h3>
+                  <h3><a href="#HAS-CHILD-NODES" class="funcname">HAS-CHILD-NODES</a></h3>
+                  <span class="funcargs">(NODE)</span>
+                </code>
+              </header>
+              <pre class="funcdesc">Returns T if the node can contain children and
+the child array is not empty.</pre>
+            </article>
+          </li><li id="template">
+            <a name="INSERT-AFTER" class="anchor"/>
+            <article>
+              <header>
+                <span class="functype">EXTERNAL FUNCTION</span>
+                <code>
+                  <h3><a href="#INSERT-AFTER" class="funcname">INSERT-AFTER</a></h3>
                   <span class="funcargs">(ELEMENT NEW-CHILD)</span>
                 </code>
               </header>
@@ -808,12 +849,12 @@ Note that this operation is potentially very costly.
 See VECTOR-PUSH-EXTEND-POSITION</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="INSERT-BEFORE"/>
+            <a name="INSERT-BEFORE" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#INSERT-BEFORE">INSERT-BEFORE</a></h3>
+                  <h3><a href="#INSERT-BEFORE" class="funcname">INSERT-BEFORE</a></h3>
                   <span class="funcargs">(ELEMENT NEW-CHILD)</span>
                 </code>
               </header>
@@ -824,12 +865,12 @@ Note that this operation is potentially very costly.
 See VECTOR-PUSH-EXTEND-POSITION</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="LAST-CHILD"/>
+            <a name="LAST-CHILD" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#LAST-CHILD">LAST-CHILD</a></h3>
+                  <h3><a href="#LAST-CHILD" class="funcname">LAST-CHILD</a></h3>
                   <span class="funcargs">(ELEMENT)</span>
                 </code>
               </header>
@@ -837,12 +878,12 @@ See VECTOR-PUSH-EXTEND-POSITION</pre>
 if the parent is empty.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="LAST-ELEMENT"/>
+            <a name="LAST-ELEMENT" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#LAST-ELEMENT">LAST-ELEMENT</a></h3>
+                  <h3><a href="#LAST-ELEMENT" class="funcname">LAST-ELEMENT</a></h3>
                   <span class="funcargs">(ELEMENT)</span>
                 </code>
               </header>
@@ -850,36 +891,36 @@ if the parent is empty.</pre>
 if the parent is empty. This excludes comments, text-nodes and the like.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="MAKE-ATTRIBUTE-MAP"/>
+            <a name="MAKE-ATTRIBUTE-MAP" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#MAKE-ATTRIBUTE-MAP">MAKE-ATTRIBUTE-MAP</a></h3>
+                  <h3><a href="#MAKE-ATTRIBUTE-MAP" class="funcname">MAKE-ATTRIBUTE-MAP</a></h3>
                   <span class="funcargs">()</span>
                 </code>
               </header>
               <pre class="funcdesc">Creates a map to contain attributes.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="MAKE-CHILD-ARRAY"/>
+            <a name="MAKE-CHILD-ARRAY" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#MAKE-CHILD-ARRAY">MAKE-CHILD-ARRAY</a></h3>
+                  <h3><a href="#MAKE-CHILD-ARRAY" class="funcname">MAKE-CHILD-ARRAY</a></h3>
                   <span class="funcargs">()</span>
                 </code>
               </header>
               <pre class="funcdesc">Creates an array to contain child elements</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="MAKE-COMMENT"/>
+            <a name="MAKE-COMMENT" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#MAKE-COMMENT">MAKE-COMMENT</a></h3>
+                  <h3><a href="#MAKE-COMMENT" class="funcname">MAKE-COMMENT</a></h3>
                   <span class="funcargs">(PARENT &amp;OPTIONAL (TEXT ))</span>
                 </code>
               </header>
@@ -888,12 +929,12 @@ if the parent is empty. This excludes comments, text-nodes and the like.</pre>
 Note that the node is automatically appended to the parent's child list.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="MAKE-DOCTYPE"/>
+            <a name="MAKE-DOCTYPE" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#MAKE-DOCTYPE">MAKE-DOCTYPE</a></h3>
+                  <h3><a href="#MAKE-DOCTYPE" class="funcname">MAKE-DOCTYPE</a></h3>
                   <span class="funcargs">(PARENT DOCTYPE)</span>
                 </code>
               </header>
@@ -902,12 +943,12 @@ Note that the node is automatically appended to the parent's child list.</pre>
 Note that the node is automatically appended to the parent's child list.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="MAKE-ELEMENT"/>
+            <a name="MAKE-ELEMENT" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#MAKE-ELEMENT">MAKE-ELEMENT</a></h3>
+                  <h3><a href="#MAKE-ELEMENT" class="funcname">MAKE-ELEMENT</a></h3>
                   <span class="funcargs">(PARENT TAG &amp;KEY (CHILDREN (MAKE-CHILD-ARRAY))
         (ATTRIBUTES (MAKE-ATTRIBUTE-MAP)))</span>
                 </code>
@@ -919,12 +960,12 @@ attribute-map (a hash-table with equalp test) can be supplied.
 Note that the element is automatically appended to the parent's child list.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="MAKE-ROOT"/>
+            <a name="MAKE-ROOT" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#MAKE-ROOT">MAKE-ROOT</a></h3>
+                  <h3><a href="#MAKE-ROOT" class="funcname">MAKE-ROOT</a></h3>
                   <span class="funcargs">(&amp;OPTIONAL (CHILDREN (MAKE-CHILD-ARRAY)))</span>
                 </code>
               </header>
@@ -932,12 +973,12 @@ Note that the element is automatically appended to the parent's child list.</pre
 Children should be a vector with fill-pointer.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="MAKE-TEXT-NODE"/>
+            <a name="MAKE-TEXT-NODE" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#MAKE-TEXT-NODE">MAKE-TEXT-NODE</a></h3>
+                  <h3><a href="#MAKE-TEXT-NODE" class="funcname">MAKE-TEXT-NODE</a></h3>
                   <span class="funcargs">(PARENT &amp;OPTIONAL (TEXT ))</span>
                 </code>
               </header>
@@ -946,36 +987,36 @@ Children should be a vector with fill-pointer.</pre>
 Note that the node is automatically appended to the parent's child list.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="NESTING-NODE"/>
+            <a name="NESTING-NODE" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL CLASS</span>
                 <code>
-                  <h3><a class="funcname" href="#NESTING-NODE">NESTING-NODE</a></h3>
+                  <h3><a href="#NESTING-NODE" class="funcname">NESTING-NODE</a></h3>
                   <span class="funcargs"></span>
                 </code>
               </header>
               <pre class="funcdesc">Node class that can contain child nodes.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="NESTING-NODE-P"/>
+            <a name="NESTING-NODE-P" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#NESTING-NODE-P">NESTING-NODE-P</a></h3>
+                  <h3><a href="#NESTING-NODE-P" class="funcname">NESTING-NODE-P</a></h3>
                   <span class="funcargs">(OBJECT)</span>
                 </code>
               </header>
               <pre class="funcdesc">Returns T if the givne object is a NESTING-NODE.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="NEXT-ELEMENT"/>
+            <a name="NEXT-ELEMENT" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#NEXT-ELEMENT">NEXT-ELEMENT</a></h3>
+                  <h3><a href="#NEXT-ELEMENT" class="funcname">NEXT-ELEMENT</a></h3>
                   <span class="funcargs">(CHILD)</span>
                 </code>
               </header>
@@ -983,12 +1024,12 @@ Note that the node is automatically appended to the parent's child list.</pre>
 it is already last. This excludes comments, text-nodes and the like.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="NEXT-SIBLING"/>
+            <a name="NEXT-SIBLING" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#NEXT-SIBLING">NEXT-SIBLING</a></h3>
+                  <h3><a href="#NEXT-SIBLING" class="funcname">NEXT-SIBLING</a></h3>
                   <span class="funcargs">(CHILD)</span>
                 </code>
               </header>
@@ -996,48 +1037,48 @@ it is already last. This excludes comments, text-nodes and the like.</pre>
 it is already the last.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="NODE"/>
+            <a name="NODE" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL CLASS</span>
                 <code>
-                  <h3><a class="funcname" href="#NODE">NODE</a></h3>
+                  <h3><a href="#NODE" class="funcname">NODE</a></h3>
                   <span class="funcargs"></span>
                 </code>
               </header>
               <pre class="funcdesc">Base DOM node class.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="NODE-P"/>
+            <a name="NODE-P" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#NODE-P">NODE-P</a></h3>
+                  <h3><a href="#NODE-P" class="funcname">NODE-P</a></h3>
                   <span class="funcargs">(OBJECT)</span>
                 </code>
               </header>
               <pre class="funcdesc">Returns T if the given object is a NODE.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="PARENT"/>
+            <a name="PARENT" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL GENERIC</span>
                 <code>
-                  <h3><a class="funcname" href="#PARENT">PARENT</a></h3>
+                  <h3><a href="#PARENT" class="funcname">PARENT</a></h3>
                   <span class="funcargs">(OBJECT)</span>
                 </code>
               </header>
               <pre class="funcdesc"></pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="PREPEND-CHILD"/>
+            <a name="PREPEND-CHILD" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#PREPEND-CHILD">PREPEND-CHILD</a></h3>
+                  <h3><a href="#PREPEND-CHILD" class="funcname">PREPEND-CHILD</a></h3>
                   <span class="funcargs">(PARENT CHILD)</span>
                 </code>
               </header>
@@ -1047,12 +1088,12 @@ Returns the child.
 Note that this operation is costly, see VECTOR-PUSH-EXTEND-FRONT</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="PREVIOUS-ELEMENT"/>
+            <a name="PREVIOUS-ELEMENT" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#PREVIOUS-ELEMENT">PREVIOUS-ELEMENT</a></h3>
+                  <h3><a href="#PREVIOUS-ELEMENT" class="funcname">PREVIOUS-ELEMENT</a></h3>
                   <span class="funcargs">(CHILD)</span>
                 </code>
               </header>
@@ -1060,12 +1101,12 @@ Note that this operation is costly, see VECTOR-PUSH-EXTEND-FRONT</pre>
 it is already last. This excludes comments, text-nodes and the like.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="PREVIOUS-SIBLING"/>
+            <a name="PREVIOUS-SIBLING" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#PREVIOUS-SIBLING">PREVIOUS-SIBLING</a></h3>
+                  <h3><a href="#PREVIOUS-SIBLING" class="funcname">PREVIOUS-SIBLING</a></h3>
                   <span class="funcargs">(CHILD)</span>
                 </code>
               </header>
@@ -1073,12 +1114,12 @@ it is already last. This excludes comments, text-nodes and the like.</pre>
 it is already the first.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="REMOVE-ATTRIBUTE"/>
+            <a name="REMOVE-ATTRIBUTE" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#REMOVE-ATTRIBUTE">REMOVE-ATTRIBUTE</a></h3>
+                  <h3><a href="#REMOVE-ATTRIBUTE" class="funcname">REMOVE-ATTRIBUTE</a></h3>
                   <span class="funcargs">(ELEMENT ATTRIBUTE)</span>
                 </code>
               </header>
@@ -1086,12 +1127,12 @@ it is already the first.</pre>
 Returns NIL.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="REMOVE-CHILD"/>
+            <a name="REMOVE-CHILD" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#REMOVE-CHILD">REMOVE-CHILD</a></h3>
+                  <h3><a href="#REMOVE-CHILD" class="funcname">REMOVE-CHILD</a></h3>
                   <span class="funcargs">(CHILD)</span>
                 </code>
               </header>
@@ -1102,12 +1143,12 @@ Note that this operation is potentially very costly.
 See VECTOR-POP-POSITION</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="REPLACE-CHILD"/>
+            <a name="REPLACE-CHILD" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#REPLACE-CHILD">REPLACE-CHILD</a></h3>
+                  <h3><a href="#REPLACE-CHILD" class="funcname">REPLACE-CHILD</a></h3>
                   <span class="funcargs">(OLD-CHILD NEW-CHILD)</span>
                 </code>
               </header>
@@ -1115,60 +1156,60 @@ See VECTOR-POP-POSITION</pre>
 Returns the old child.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="ROOT"/>
+            <a name="ROOT" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL CLASS</span>
                 <code>
-                  <h3><a class="funcname" href="#ROOT">ROOT</a></h3>
+                  <h3><a href="#ROOT" class="funcname">ROOT</a></h3>
                   <span class="funcargs"></span>
                 </code>
               </header>
-              <pre class="funcdesc">Root DOM node, practically equivalent to a "document".</pre>
+              <pre class="funcdesc">Root DOM node, practically equivalent to a &quot;document&quot;.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="ROOT-P"/>
+            <a name="ROOT-P" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#ROOT-P">ROOT-P</a></h3>
+                  <h3><a href="#ROOT-P" class="funcname">ROOT-P</a></h3>
                   <span class="funcargs">(OBJECT)</span>
                 </code>
               </header>
               <pre class="funcdesc">Returns T if the given object is a ROOT.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="SERIALIZE"/>
+            <a name="SERIALIZE" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL GENERIC</span>
                 <code>
-                  <h3><a class="funcname" href="#SERIALIZE">SERIALIZE</a></h3>
+                  <h3><a href="#SERIALIZE" class="funcname">SERIALIZE</a></h3>
                   <span class="funcargs">(NODE &amp;OPTIONAL STREAM)</span>
                 </code>
               </header>
               <pre class="funcdesc">Serialize the given node and print it to the stream.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="SET-ATTRIBUTE"/>
+            <a name="SET-ATTRIBUTE" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#SET-ATTRIBUTE">SET-ATTRIBUTE</a></h3>
+                  <h3><a href="#SET-ATTRIBUTE" class="funcname">SET-ATTRIBUTE</a></h3>
                   <span class="funcargs">(ELEMENT ATTRIBUTE VALUE)</span>
                 </code>
               </header>
               <pre class="funcdesc">Synonymous to (SETF (ATTIBUTE ..) ..)</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="SIBLING-ELEMENTS"/>
+            <a name="SIBLING-ELEMENTS" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#SIBLING-ELEMENTS">SIBLING-ELEMENTS</a></h3>
+                  <h3><a href="#SIBLING-ELEMENTS" class="funcname">SIBLING-ELEMENTS</a></h3>
                   <span class="funcargs">(CHILD)</span>
                 </code>
               </header>
@@ -1177,12 +1218,12 @@ Note that this is a copy of the array, modifying it is safe.
 This excludes comments, text-nodes and the like.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="SIBLINGS"/>
+            <a name="SIBLINGS" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#SIBLINGS">SIBLINGS</a></h3>
+                  <h3><a href="#SIBLINGS" class="funcname">SIBLINGS</a></h3>
                   <span class="funcargs">(CHILD)</span>
                 </code>
               </header>
@@ -1190,48 +1231,48 @@ This excludes comments, text-nodes and the like.</pre>
 Note that this is a copy of the array, modifying it is safe.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="TAG-NAME"/>
+            <a name="TAG-NAME" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL GENERIC</span>
                 <code>
-                  <h3><a class="funcname" href="#TAG-NAME">TAG-NAME</a></h3>
+                  <h3><a href="#TAG-NAME" class="funcname">TAG-NAME</a></h3>
                   <span class="funcargs">(OBJECT)</span>
                 </code>
               </header>
               <pre class="funcdesc"></pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="TEXT"/>
+            <a name="TEXT" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL GENERIC</span>
                 <code>
-                  <h3><a class="funcname" href="#TEXT">TEXT</a></h3>
+                  <h3><a href="#TEXT" class="funcname">TEXT</a></h3>
                   <span class="funcargs">(OBJECT)</span>
                 </code>
               </header>
               <pre class="funcdesc"></pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="TEXT-NODE"/>
+            <a name="TEXT-NODE" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL CLASS</span>
                 <code>
-                  <h3><a class="funcname" href="#TEXT-NODE">TEXT-NODE</a></h3>
+                  <h3><a href="#TEXT-NODE" class="funcname">TEXT-NODE</a></h3>
                   <span class="funcargs"></span>
                 </code>
               </header>
               <pre class="funcdesc">Text node that can only contain a single text string.</pre>
             </article>
           </li><li id="template">
-            <a class="anchor" name="TEXT-NODE-P"/>
+            <a name="TEXT-NODE-P" class="anchor"/>
             <article>
               <header>
                 <span class="functype">EXTERNAL FUNCTION</span>
                 <code>
-                  <h3><a class="funcname" href="#TEXT-NODE-P">TEXT-NODE-P</a></h3>
+                  <h3><a href="#TEXT-NODE-P" class="funcname">TEXT-NODE-P</a></h3>
                   <span class="funcargs">(OBJECT)</span>
                 </code>
               </header>
