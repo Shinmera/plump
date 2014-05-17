@@ -59,9 +59,10 @@ E.g. <foo bar baz> => bar baz"
   "Reads an attribute value, either enclosed in quotation marks or until a space or tag end."
   (decode-entities
    (let ((first (peek)))
-     (if (and first (char= first #\"))
+     (if (and first (or (char= first #\")
+                        (char= first #\')))
          (prog2 (advance)
-             (consume-until (make-matcher (is #\")))
+             (consume-until (make-matcher (any #\" #\')))
            (advance))
          (consume-until (make-matcher (or (is #\Space) :tag-end)))))))
 
