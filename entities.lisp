@@ -300,5 +300,5 @@ If an entity does not match, it is left in place unless REMOVE-INVALID is non-NI
            (cl-ppcre:regex-replace-all find text replace)))
     (r "<" "&lt;"
        (r ">" "&gt;"
-          (r "&" "&amp;"
-             (r "\"" "&quot;" text))))))
+          (r "\"" "&quot;"
+             (r "&" "&amp;" text))))))
