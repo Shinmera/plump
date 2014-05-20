@@ -71,3 +71,24 @@
 (define-self-closing-element track)
 (define-self-closing-element wbr)
 
+;; Some tags accept arbitrary text and no sub-elements.
+(defmacro define-fulltext-element (tag)
+  (let ((name (string-downcase tag)))
+    `(define-tag-dispatcher ,tag (name) (string-equal name ,name)
+       (let* ((closing (consume))
+              (attrs (if (char= closing #\Space)
+                         (prog1 (read-attributes)
+                           (setf closing (consume)))
+                         (make-attribute-map))))
+         (case closing
+           (#\/
+            (advance)
+            (make-element *root* ,name :attributes attrs))
+           (#\>
+            (let ((*root* (make-fulltext-element *root* ,name :attributes attrs)))
+              (make-text-node *root* (consume-until (make-matcher (is ,(format NIL "</~a>" name)))))
+              (advance-n ,(length (format NIL "</~a>" name)))
+              *root*)))))))
+
+(define-fulltext-element style)
+(define-fulltext-element script)

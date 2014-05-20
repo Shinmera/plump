@@ -25,6 +25,7 @@
    #:attributes
    #:doctype
    #:doctype
+   #:fulltext-element
    #:make-child-array
    #:make-attribute-map
    #:make-root
@@ -32,6 +33,7 @@
    #:make-text-node
    #:make-comment
    #:make-doctype
+   #:make-fulltext-element
    #:clear
    #:siblings
    #:family
@@ -71,6 +73,7 @@
    #:comment-p
    #:root-p
    #:nesting-node-p
+   #:fulltext-element-p
    #:serialize))
 
 (defpackage #:plump-parser
@@ -115,7 +118,8 @@
    #:parse)
   ;; special-tags.lisp
   (:export
-   #:define-self-closing-element))
+   #:define-self-closing-element
+   #:define-fulltext-element))
 
 (defpackage #:plump
   (:nicknames #:org.tymoonnext.plump)

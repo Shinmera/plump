@@ -49,6 +49,9 @@
     (write-string (doctype node) stream))
   node)
 
+(defclass fulltext-element (element) ()
+  (:documentation "Special DOM element that contains full, un-entitied text like SCRIPT and STYLE."))
+
 (defun make-child-array ()
   "Creates an array to contain child elements"
   (make-array 0 :adjustable T :fill-pointer 0))
@@ -87,6 +90,17 @@ Note that the node is automatically appended to the parent's child list."
 
 Note that the node is automatically appended to the parent's child list."
   (append-child parent (make-instance 'doctype :doctype doctype :parent parent)))
+
+(defun make-fulltext-element (parent tag &key text (attributes (make-attribute-map)))
+  "Creates a fulltext element under the parent.
+Optionally a text and an attribute-map (a hash-table with equalp test) 
+can be supplied.
+
+Note that the element is automatically appended to the parent's child list."
+  (let ((element (make-instance 'fulltext-element :tag-name tag :parent parent :attributes attributes)))
+    (when text
+      (make-text-node element text))
+    (append-child parent element)))
 
 (defun clear (nesting-node)
   "Clears all children from the node.
@@ -411,8 +425,12 @@ attribute."
   (typep object 'root))
 
 (defun nesting-node-p (object)
-  "Returns T if the givne object is a NESTING-NODE."
+  "Returns T if the given object is a NESTING-NODE."
   (typep object 'nesting-node))
+
+(defun fulltext-element-p (object)
+  "Returns T If the given object is a FULLTEXT-ELEMENT."
+  (typep object 'fulltext-element))
 
 (defvar *indent-step* 2)
 (defvar *indent-level* 0)
@@ -435,6 +453,17 @@ attribute."
           (format stream ">")
           (loop for child across (children node)
                 do (serialize child stream))
+          (format stream "</~a>" (tag-name node)))
+        (format stream "/>")))
+  (:method ((node fulltext-element) &optional (stream *standard-output*))
+    (format stream "<~a" (tag-name node))
+    (serialize (attributes node) stream)
+    (if (< 0 (length (children node)))
+        (progn
+          (format stream ">")
+          (loop for child across (children node)
+                when (text-node-p child)
+                  do (format stream "~a" (text child)))
           (format stream "</~a>" (tag-name node)))
         (format stream "/>")))
   (:method ((table hash-table) &optional (stream *standard-output*))
