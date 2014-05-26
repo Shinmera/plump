@@ -4,8 +4,6 @@
  Author: Nicolas Hafner <shinmera@tymoon.eu>
 |#
 
-(in-package #:cl)
-
 (defpackage #:plump-dom
   (:nicknames #:org.tymoonnext.plump.dom)
   ;; dom.lisp
@@ -125,6 +123,7 @@
   (:nicknames #:org.tymoonnext.plump)
   (:use #:cl #:plump-dom #:plump-parser))
 
+(in-package #:plump)
 (let ((plump (find-package "PLUMP")))
   (do-external-symbols (symb (find-package "PLUMP-PARSER"))
     (export symb plump))
