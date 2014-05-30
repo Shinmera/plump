@@ -101,6 +101,7 @@
   ;; parser.lisp
   (:export
    #:*root*
+   #:*tag-dispatchers*
    #:define-tag-dispatcher
    #:read-name
    #:read-text
