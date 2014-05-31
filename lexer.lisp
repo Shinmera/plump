@@ -10,7 +10,8 @@
 (defvar *index* 0 "Set to the current reading index.")
 (defvar *matchers* (make-hash-table) "Hash table containing matching rules.")
 (declaim (fixnum *length* *index*)
-         (string *string*))
+         (simple-string *string*)
+         (hash-table *matchers*))
 
 (defmacro with-lexer-environment ((string) &body body)
   "Sets up the required lexing environment for the given string."
@@ -25,14 +26,16 @@
 (defun consume ()
   "Consumes a single character if possible and returns it.
 Otherwise returns NIL."
+  (declare (optimize (speed 3) (safety 0)))
   (when (< *index* *length*)
-    (prog1 (elt *string* *index*)
+    (prog1 (aref *string* *index*)
       ;;(format T "~a +~%" *index*)
       (incf *index*))))
 
 (defun advance ()
   "Skips a chracter if possible.
 Returns the new index or NIL."
+  (declare (optimize (speed 3) (safety 0)))
   (when (< *index* *length*)
     ;;(format T "~a +~%" *index*)
     (incf *index*)))
@@ -40,6 +43,7 @@ Returns the new index or NIL."
 (defun unread ()
   "Steps back a single character if possible.
 Returns the new *INDEX*."
+  (declare (optimize (speed 3) (safety 0)))
   (when (< 0 *index*)
     ;;(format T "~a -~%" *index*)
     (decf *index*))
@@ -49,11 +53,12 @@ Returns the new *INDEX*."
   "Returns the next character, if any."
   (when (< *index* *length*)
     ;;(format T "~a ?~%" *index*)
-    (elt *string* *index*)))
+    (aref *string* *index*)))
 
 (defun advance-n (n)
   "Advances by N characters if possible.
 Returns the new *INDEX*."
+  (declare (optimize (speed 3) (safety 0)))
   (declare (fixnum n))
   ;;(format T "~a +~d~%" *index* n)
   (incf *index* n)
@@ -64,23 +69,13 @@ Returns the new *INDEX*."
 (defun unread-n (n)
   "Steps back by N characters if possible.
 Returns the new *INDEX*."
+  (declare (optimize (speed 3) (safety 0)))
   (declare (fixnum n))
   ;;(format T "~a -~d~%" *index* n)
   (decf *index* n)
   (when (< *index* 0)
     (setf *index* 0))
   *index*)
-
-(defun peek-n (n)
-  "Returns the next N characters as a list.
-This list is cut short if it is not possible to
-peek ahead farther."
-  (declare (fixnum n))
-  ;;(format T "~a ?~d~%" *index* n)
-  (loop for i from *index*
-        while (< i *length*)
-        repeat n
-        collect (elt *string* i)))
 
 (declaim (ftype (function (function) string) consume-until))
 (defun consume-until (matcher)
