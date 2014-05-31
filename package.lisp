@@ -90,7 +90,6 @@
    #:peek
    #:advance-n
    #:unread-n
-   #:peek-n
    #:consume-until
    #:matcher-string
    #:matcher-or
