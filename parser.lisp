@@ -146,6 +146,8 @@ By default, methods for STRING, PATHNAME and STREAM are defined.
 If supplied, the given root is used to append children to as per READ-ROOT.
 Returns the root.")
   (:method ((input string) &key root)
+    (parse (copy-seq input) :root root))
+  (:method ((input simple-string) &key root)
     (with-lexer-environment (input)
       (if root
           (read-root root)
