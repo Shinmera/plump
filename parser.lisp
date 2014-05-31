@@ -47,7 +47,7 @@ E.g. <foo bar baz> => bar baz"
    (consume-until (make-matcher :tag-end))))
 
 (defun read-children ()
-  (let ((close-tag (format NIL "</~a>" (tag-name *root*))))
+  (let ((close-tag (concatenate 'string "</" (tag-name *root*) ">")))
     (loop while (peek)
           for match = (funcall (make-matcher (is close-tag)))
           until match
@@ -133,9 +133,12 @@ Returns the root."
 
 (defun slurp-stream (stream)
   "Quickly slurps the stream's contents into an array with fill pointer."
-  (let ((seq (make-array (file-length stream) :element-type 'character :fill-pointer t)))
-    (setf (fill-pointer seq) (read-sequence seq stream))
-    seq))
+  (declare (stream stream))
+  (with-output-to-string (string)
+    (let ((buffer (make-array 4096 :element-type 'character)))
+      (loop for bytes = (read-sequence buffer stream)
+            do (write-sequence buffer string :start 0 :end bytes)
+            while (= bytes 4096)))))
 
 (defgeneric parse (input &key root)
   (:documentation "Parses the given input into a DOM representation.
