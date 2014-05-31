@@ -24,7 +24,7 @@
     <header>
       <img src="plump-logo.png" alt="Plump"/><br/>
       Practically Lenient and Unimpressive Markup Parser
-      <h1>v0.1.9</h1>
+      <h1>v0.1.11</h1>
     </header>
     <div id="content">
       <article>
@@ -54,6 +54,10 @@
         <code class="line output">#&lt;PLUMP-DOM:ELEMENT span {100517D8F3}&gt;</code><br/>
         <code class="line">(<a href="#SERIALIZE">plump:serialize</a> ***)</code><br/>
         <code class="line output">&lt;foo&gt;&lt;bar this=&quot;&quot; is=&quot;a thing&quot;&gt;baz&lt;/bar&gt;&lt;/foo&gt;</code>
+        <p>
+          By default plump includes a few special tag dispatchers to catch HTML oddities like doctype, self-closing tags and comments. Especially the self-closing tags can lead to problems in XML documents. In order to parse without any HTML &quot;tricks&quot;, you can simply bind <code>*TAG-DISPATCHERS*</code> to NIL before parsing.
+        </p>
+        <code class="line">(let ((<a href="#*TAG-DISPATCHERS*">plump:*tag-dispatchers*</a> ())) (<a href="#PARSE">plump:parse</a> &quot;<link/>foo&quot;))</code>
       </article>
       <article>
         <header><h2>Extending Plump</h2></header>
@@ -102,6 +106,18 @@
                 </code>
               </header>
               <pre class="funcdesc"></pre>
+            </article>
+          </li><li id="template">
+            <a name="*TAG-DISPATCHERS*" class="anchor"/>
+            <article>
+              <header>
+                <span class="functype">EXTERNAL SPECIAL</span>
+                <code>
+                  <h3><a href="#*TAG-DISPATCHERS*" class="funcname">*TAG-DISPATCHERS*</a></h3>
+                  <span class="funcargs"></span>
+                </code>
+              </header>
+              <pre class="funcdesc">Tag dispatcher functions</pre>
             </article>
           </li><li id="template">
             <a name="ADVANCE" class="anchor"/>
@@ -167,6 +183,18 @@ Returns the substring that was consumed.</pre>
               </header>
               <pre class="funcdesc">Translates all entities in the text into their character counterparts if possible.
 If an entity does not match, it is left in place unless REMOVE-INVALID is non-NIL.</pre>
+            </article>
+          </li><li id="template">
+            <a name="DEFINE-FULLTEXT-ELEMENT" class="anchor"/>
+            <article>
+              <header>
+                <span class="functype">EXTERNAL MACRO</span>
+                <code>
+                  <h3><a href="#DEFINE-FULLTEXT-ELEMENT" class="funcname">DEFINE-FULLTEXT-ELEMENT</a></h3>
+                  <span class="funcargs">(TAG)</span>
+                </code>
+              </header>
+              <pre class="funcdesc"></pre>
             </article>
           </li><li id="template">
             <a name="DEFINE-MATCHER" class="anchor"/>
@@ -293,20 +321,6 @@ Returns the root.</pre>
                 </code>
               </header>
               <pre class="funcdesc">Returns the next character, if any.</pre>
-            </article>
-          </li><li id="template">
-            <a name="PEEK-N" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#PEEK-N" class="funcname">PEEK-N</a></h3>
-                  <span class="funcargs">(N)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Returns the next N characters as a list.
-This list is cut short if it is not possible to
-peek ahead farther.</pre>
             </article>
           </li><li id="template">
             <a name="READ-ATTRIBUTE" class="anchor"/>
@@ -782,6 +796,30 @@ if the parent is empty.</pre>
 if the parent is empty. This excludes comments, text-nodes and the like.</pre>
             </article>
           </li><li id="template">
+            <a name="FULLTEXT-ELEMENT" class="anchor"/>
+            <article>
+              <header>
+                <span class="functype">EXTERNAL CLASS</span>
+                <code>
+                  <h3><a href="#FULLTEXT-ELEMENT" class="funcname">FULLTEXT-ELEMENT</a></h3>
+                  <span class="funcargs"></span>
+                </code>
+              </header>
+              <pre class="funcdesc">Special DOM element that contains full, un-entitied text like SCRIPT and STYLE.</pre>
+            </article>
+          </li><li id="template">
+            <a name="FULLTEXT-ELEMENT-P" class="anchor"/>
+            <article>
+              <header>
+                <span class="functype">EXTERNAL FUNCTION</span>
+                <code>
+                  <h3><a href="#FULLTEXT-ELEMENT-P" class="funcname">FULLTEXT-ELEMENT-P</a></h3>
+                  <span class="funcargs">(OBJECT)</span>
+                </code>
+              </header>
+              <pre class="funcdesc">Returns T If the given object is a FULLTEXT-ELEMENT.</pre>
+            </article>
+          </li><li id="template">
             <a name="GET-ATTRIBUTE" class="anchor"/>
             <article>
               <header>
@@ -960,6 +998,22 @@ attribute-map (a hash-table with equalp test) can be supplied.
 Note that the element is automatically appended to the parent's child list.</pre>
             </article>
           </li><li id="template">
+            <a name="MAKE-FULLTEXT-ELEMENT" class="anchor"/>
+            <article>
+              <header>
+                <span class="functype">EXTERNAL FUNCTION</span>
+                <code>
+                  <h3><a href="#MAKE-FULLTEXT-ELEMENT" class="funcname">MAKE-FULLTEXT-ELEMENT</a></h3>
+                  <span class="funcargs">(PARENT TAG &amp;KEY TEXT (ATTRIBUTES (MAKE-ATTRIBUTE-MAP)))</span>
+                </code>
+              </header>
+              <pre class="funcdesc">Creates a fulltext element under the parent.
+Optionally a text and an attribute-map (a hash-table with equalp test) 
+can be supplied.
+
+Note that the element is automatically appended to the parent's child list.</pre>
+            </article>
+          </li><li id="template">
             <a name="MAKE-ROOT" class="anchor"/>
             <article>
               <header>
@@ -1008,7 +1062,7 @@ Note that the node is automatically appended to the parent's child list.</pre>
                   <span class="funcargs">(OBJECT)</span>
                 </code>
               </header>
-              <pre class="funcdesc">Returns T if the givne object is a NESTING-NODE.</pre>
+              <pre class="funcdesc">Returns T if the given object is a NESTING-NODE.</pre>
             </article>
           </li><li id="template">
             <a name="NEXT-ELEMENT" class="anchor"/>
