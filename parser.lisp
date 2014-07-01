@@ -64,11 +64,24 @@ E.g. <foo bar baz> => bar baz"
          (prog2 (advance)
              (consume-until (make-matcher (any #\" #\')))
            (advance))
-         (consume-until (make-matcher (or (is #\Space) :tag-end)))))))
+         (consume-until (make-matcher (or (is #\Space)
+                                          (is #\Tab)
+                                          (is #\Newline)
+                                          (is #\Linefeed)
+                                          (is #\Page)
+                                          (is #\Return)
+                                          :tag-end)))))))
 
 (defun read-attribute-name ()
   "Reads an attribute name."
-  (consume-until (make-matcher (or (is #\=) (is #\Space) :tag-end))))
+  (consume-until (make-matcher (or (is #\=)
+                                   (is #\Space)
+                                   (is #\Tab)
+                                   (is #\Newline)
+                                   (is #\Linefeed)
+                                   (is #\Page)
+                                   (is #\Return)
+                                   :tag-end))))
 
 (defun read-attribute ()
   "Reads an attribute and returns it as a key value cons."
@@ -97,7 +110,7 @@ E.g. <foo bar baz> => bar baz"
   "Reads an arbitrary tag and returns it.
 This recurses with READ-CHILDREN."
   (let* ((closing (consume))
-         (attrs (if (char= closing #\Space)
+         (attrs (if (member closing *whitespace* :test #'char=)
                     (prog1 (read-attributes)
                       (setf closing (consume)))
                     (make-attribute-map))))
