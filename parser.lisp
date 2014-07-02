@@ -25,6 +25,7 @@ TAGVAR is bound to the matched name of the tag."
            (setf (nth ,posgens *tag-dispatchers*) ,valgens)
            (push ,valgens *tag-dispatchers*)))))
 
+(define-matcher whitespace (find *whitespace*))
 (define-matcher name (or (in #\a #\z) (in #\? #\Z) (in #\- #\:) (is #\\) (is #\_) (is #\!) (is #\#)))
 (define-matcher tag-end (or (and (is #\/) (next (is #\>))) (is #\>)))
 
@@ -64,24 +65,11 @@ E.g. <foo bar baz> => bar baz"
          (prog2 (advance)
              (consume-until (make-matcher (any #\" #\')))
            (advance))
-         (consume-until (make-matcher (or (is #\Space)
-                                          (is #\Tab)
-                                          (is #\Newline)
-                                          (is #\Linefeed)
-                                          (is #\Page)
-                                          (is #\Return)
-                                          :tag-end)))))))
+         (consume-until (make-matcher (or :whitespace :tag-end)))))))
 
 (defun read-attribute-name ()
   "Reads an attribute name."
-  (consume-until (make-matcher (or (is #\=)
-                                   (is #\Space)
-                                   (is #\Tab)
-                                   (is #\Newline)
-                                   (is #\Linefeed)
-                                   (is #\Page)
-                                   (is #\Return)
-                                   :tag-end))))
+  (consume-until (make-matcher (or (is #\=) :whitespace :tag-end))))
 
 (defun read-attribute ()
   "Reads an attribute and returns it as a key value cons."
@@ -127,7 +115,7 @@ This recurses with READ-CHILDREN."
   "Attempts to read a tag and dispatches or defaults to READ-STANDARD-TAG.
 Returns the completed node if one can be read."
   (if (and (char= #\< (consume))
-           (funcall (make-matcher :name)))     
+           (funcall (make-matcher :name)))   
       (let ((name (read-name)))
         (loop for (d test func) in *tag-dispatchers*
               when (funcall (the function test) name)
