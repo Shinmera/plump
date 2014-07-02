@@ -119,6 +119,13 @@ Returns the substring that was consumed."
             (when char
               (<= from (char-code char) to)))))))
 
+(declaim (ftype (function (list) function) matcher-find))
+(defun matcher-find (list)
+  "Creates a matcher function that returns T if the character is found in the given list."
+  #'(lambda ()
+      (let ((char (peek)))
+        (and char (member char list :test #'char=)))))
+
 (declaim (ftype (function (&rest function) function) matcher-or))
 (defun matcher-or (&rest matchers)
   "Creates a matcher function that returns successfully if any of the
@@ -177,6 +184,7 @@ return successfully. The last match is returned, if all."
                    (in 'matcher-range)
                    (next 'matcher-next)
                    (any 'matcher-any)
+                   (find 'matcher-find)
                    (T (car form)))
                  (mapcar #'transform (cdr form)))))))
     (transform form)))
