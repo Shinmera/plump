@@ -7,7 +7,7 @@
 (in-package #:org.tymoonnext.plump)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (defvar *whitespace* '(#\Tab #\Newline #\Linefeed #\Page #\Return #\Space)
+  (defvar *whitespace* '(#\Space #\Newline #\Tab #\Return #\Linefeed #\Page)
     "List containing all whitespace characters."))
 (defvar *root* "Object containing the current node to set as parent.")
 (defvar *tag-dispatchers* () "Tag dispatcher functions")
