@@ -91,10 +91,15 @@
    #:advance-n
    #:unread-n
    #:consume-until
+   #:matcher-character
    #:matcher-string
+   #:matcher-range
+   #:matcher-find
    #:matcher-or
    #:matcher-and
    #:matcher-not
+   #:matcher-next
+   #:matcher-any
    #:make-matcher
    #:define-matcher)
   ;; parser.lisp
