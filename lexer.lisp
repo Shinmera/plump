@@ -29,7 +29,7 @@ Otherwise returns NIL."
   (declare (optimize (speed 3) (safety 0)))
   (when (< *index* *length*)
     (prog1 (aref *string* *index*)
-      ;;(format T "~a +~%" *index*)
+      #+plump-debug-lexer (format T "~a +~%" *index*)
       (incf *index*))))
 
 (defun advance ()
@@ -37,7 +37,7 @@ Otherwise returns NIL."
 Returns the new index or NIL."
   (declare (optimize (speed 3) (safety 0)))
   (when (< *index* *length*)
-    ;;(format T "~a +~%" *index*)
+    #+plump-debug-lexer (format T "~a +~%" *index*)
     (incf *index*)))
 
 (defun unread ()
@@ -45,14 +45,14 @@ Returns the new index or NIL."
 Returns the new *INDEX*."
   (declare (optimize (speed 3) (safety 0)))
   (when (< 0 *index*)
-    ;;(format T "~a -~%" *index*)
+    #+plump-debug-lexer (format T "~a -~%" *index*)
     (decf *index*))
   *index*)
 
 (defun peek ()
   "Returns the next character, if any."
   (when (< *index* *length*)
-    ;;(format T "~a ?~%" *index*)
+    #+plump-debug-lexer (format T "~a ?~%" *index*)
     (aref *string* *index*)))
 
 (defun advance-n (n)
@@ -60,7 +60,7 @@ Returns the new *INDEX*."
 Returns the new *INDEX*."
   (declare (optimize (speed 3) (safety 0)))
   (declare (fixnum n))
-  ;;(format T "~a +~d~%" *index* n)
+  #+plump-debug-lexer (format T "~a +~d~%" *index* n)
   (incf *index* n)
   (when (<= *length* *index*)
     (setf *index* *length*))
@@ -71,7 +71,7 @@ Returns the new *INDEX*."
 Returns the new *INDEX*."
   (declare (optimize (speed 3) (safety 0)))
   (declare (fixnum n))
-  ;;(format T "~a -~d~%" *index* n)
+  #+plump-debug-lexer (format T "~a -~d~%" *index* n)
   (decf *index* n)
   (when (< *index* 0)
     (setf *index* 0))
