@@ -60,12 +60,14 @@ E.g. <foo bar baz> => bar baz"
   "Reads an attribute value, either enclosed in quotation marks or until a space or tag end."
   (decode-entities
    (let ((first (peek)))
-     (if (and first (or (char= first #\")
-                        (char= first #\')))
-         (prog2 (advance)
-             (consume-until (make-matcher (any #\" #\')))
-           (advance))
-         (consume-until (make-matcher (or :whitespace :tag-end)))))))
+     (case first
+       (#\" (prog2 (advance)
+                (consume-until (make-matcher (is #\")))
+              (advance)))
+       (#\' (prog2 (advance)
+                (consume-until (make-matcher (is #\')))
+              (advance)))
+       (T (consume-until (make-matcher (or :whitespace :tag-end))))))))
 
 (defun read-attribute-name ()
   "Reads an attribute name."
