@@ -27,7 +27,7 @@ FILL   --- If provided, empty spaces created by the move will be filled with thi
                        (aref array cursor)))
         (when f-p
           (loop repeat n
-                for cursor from from below to
+                for cursor from from below (+ to n)
                 do (setf (aref array cursor) fill))))
       (progn
         (loop repeat (- to from)
