@@ -11,11 +11,11 @@
   (:documentation "Base DOM node class."))
 
 (defclass nesting-node (node)
-  ((%children :initarg :children :initform (make-child-array) :accessor children))
+  ((%children :initarg :children :initform (make-child-array) :accessor children :type vector))
   (:documentation "Node class that can contain child nodes."))
 
 (defclass child-node (node)
-  ((%parent :initarg :parent :initform (error "Parent required.") :accessor parent))
+  ((%parent :initarg :parent :initform (error "Parent required.") :accessor parent :type node))
   (:documentation "Node class that is a child and thus has a parent."))
 
 (defclass root (nesting-node)
@@ -23,16 +23,16 @@
   (:documentation "Root DOM node, practically equivalent to a \"document\"."))
 
 (defclass text-node (child-node)
-  ((%text :initarg :text :initform "" :accessor text))
+  ((%text :initarg :text :initform "" :accessor text :type string))
   (:documentation "Text node that can only contain a single text string."))
 
 (defclass comment (child-node)
-  ((%text :initarg :text :initform "" :accessor text))
+  ((%text :initarg :text :initform "" :accessor text :type string))
   (:documentation "Comment node that can only contain a single comment string."))
 
 (defclass element (nesting-node child-node)
-  ((%tag-name :initarg :tag-name :initform (error "Tag name required.") :accessor tag-name)
-   (%attributes :initarg :attributes :initform (make-attribute-map) :accessor attributes))
+  ((%tag-name :initarg :tag-name :initform (error "Tag name required.") :accessor tag-name :type string)
+   (%attributes :initarg :attributes :initform (make-attribute-map) :accessor attributes :type hash-table))
   (:documentation "Standard DOM element/block including attributes, tag-name, parent and children."))
 
 (defmethod print-object ((node element) stream)
@@ -41,7 +41,7 @@
   node)
 
 (defclass doctype (child-node)
-  ((%doctype :initarg :doctype :initform (error "Doctype declaration required.") :accessor doctype))
+  ((%doctype :initarg :doctype :initform (error "Doctype declaration required.") :accessor doctype :type string))
   (:documentation "Special DOM node for the doctype declaration."))
 
 (defmethod print-object ((node doctype) stream)
@@ -294,10 +294,8 @@ This excludes comments, text-nodes and the like."
   "Returns the first child element within the parent or NIL
 if the parent is empty. This excludes comments, text-nodes and the like."
   (when (< 0 (fill-pointer (children element)))
-    (let ((first (elt (children element) 0)))
-      (if (element-p first)
-          first
-          (next-element first)))))
+    (loop for child across (children element)
+          when (element-p child) do (return child))))
 
 (defun last-element (element)
   "Returns the last child element within the parent or NIL
