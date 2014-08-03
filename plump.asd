@@ -10,11 +10,12 @@
 
 (defsystem plump
   :name "Practically Lenient and Unimpressive Markup Parser"
-  :version "0.1.11"
+  :version "0.1.12"
   :license "Artistic"
   :author "Nicolas Hafner <shinmera@tymoon.eu>"
   :maintainer "Nicolas Hafner <shinmera@tymoon.eu>"
   :description "An X/HTML parser that aims to be as lenient as possible."
+  :homepage "https://github.com/Shinmera/plump"
   :serial T
   :components ((:file "package")
                (:file "array")
