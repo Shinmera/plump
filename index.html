@@ -1,1339 +1,1499 @@
-<!--
-  This file is a part of Plump
-  (c) 2014 TymoonNET/NexT http://tymoon.eu (shinmera@tymoon.eu)
-  Author: Nicolas Hafner <shinmera@tymoon.eu>
-  !-->
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8"/>
-    <title>Plump - About</title>
+    <title>PLUMP</title>
     <style type="text/css">
+      code a{text-decoration:none;}
+      h1{display:inline-block;font-size: 28pt;margin-bottom:0;}
       code{font-family: Consolas, Inconsolata, monospace;}
-      code.line{margin-left: 20px;}
-      code.output{color: #882222;}
-      code.output:before{content:'=> ';}
-      code a{text-decoration: none; color: blue;}
-      h3{display: inline-block;margin:0;padding:0;}
-      .docs{list-style: none;}
-      .docs li{margin-bottom: 20px;}
-      .docs pre{margin: 0 0 0 10px; white-space: pre-wrap;}
+      h4{display: inline-block;margin:0;padding:0;}
+      ul{list-style: none;}
+      .package li{margin-bottom: 20px;}
+      .package pre{margin: 0 0 0 10px; white-space: pre-wrap;}
+      .package .nicknames{font-size: 12pt; font-weight: normal;}
+      table{margin: 20px;}
+      td{padding-bottom: 10px;}
     </style>
   </head>
   <body>
     <header>
-      <img src="plump-logo.png" alt="Plump"/><br/>
-      Practically Lenient and Unimpressive Markup Parser
-      <h1>v0.1.11</h1>
+      <h1><img src="plump-logo.png" alt="plump"/></h1>
+      <span>0.1.12</span>
+      <p>An X/HTML parser that aims to be as lenient as possible.</p>
     </header>
     <div id="content">
       <article>
-        <header><h2>What is Plump?</h2></header>
-        <p>
-          Plump is a parser for HTML/XML like documents, focusing on being lenient towards invalid markup. It can handle things like invalid attributes, bad closing tag order, unencoded entities, inexistent tag types, self-closing tags and so on. It parses documents to a class representation and offers a small set of DOM functions to manipulate it. You are free to change it to parse to your own classes though.
-        </p>
+        <documentate>
+          <span><h2>What is Plump?</h2>
+
+<p>Plump is a parser for HTML/XML like documents, focusing on being lenient towards invalid markup. It can handle things like invalid attributes, bad closing tag order, unencoded entities, inexistent tag types, self-closing tags and so on. It parses documents to a class representation and offers a small set of DOM functions to manipulate it. You are free to change it to parse to your own classes though.</p>
+
+<h2>How To</h2>
+
+<p>Load Plump through Quicklisp or ASDF:</p>
+
+<pre><code>(ql:quickload :plump)</code></pre>
+
+<p>Using the <code><a href="#PLUMP-PARSER:PARSE">PARSE</a></code> function, plump will transform a string, pathname or stream into a document:</p>
+
+<pre><code>(<a href="#PLUMP-PARSER:PARSE">plump:parse</a> &quot;&lt;foo&gt;&lt;bar this is=\&quot;a thing\&quot;&gt;baz&lt;/bar&gt;&lt;span id=\&quot;test\&quot;&gt;oh my&quot;)</code></pre>
+
+<p>This returns a root node. If you want to append a document to a root node (or any other node that accepts children) that you've made, you can pass it into the parse function. To return the document into a readable form, you can call <code><a href="#PLUMP-DOM:SERIALIZE">SERIALIZE</a></code>:</p>
+
+<pre><code>(<a href="#PLUMP-DOM:SERIALIZE">plump:serialize</a> *)</code></pre>
+
+<p>Using the DOM you can easily traverse the document and change it:</p>
+
+<pre><code>(<a href="#PLUMP-DOM:REMOVE-CHILD">plump:remove-child</a> (<a href="#PLUMP-DOM:GET-ELEMENT-BY-ID">plump:get-element-by-id</a> ** &quot;test&quot;))
+(<a href="#PLUMP-DOM:SERIALIZE">plump:serialize</a> ***)</code></pre>
+
+<p>By default plump includes a few special tag dispatchers to catch HTML oddities like doctype, self-closing tags and comments. Especially the self-closing tags can lead to problems in XML documents. In order to parse without any HTML &quot;tricks&quot;, you can simply bind <code><a href="#PLUMP-PARSER:*TAG-DISPATCHERS*">*TAG-DISPATCHERS*</a></code> to NIL before parsing.</p>
+
+<pre><code>(<a href="http://l1sp.org/cl/LET">let</a> (<a href="#PLUMP-PARSER:*TAG-DISPATCHERS*">(plump:*tag-dispatchers*</a> ())) (<a href="#PLUMP-PARSER:PARSE">plump:parse</a> &quot;&lt;link&gt;foo&lt;/link&gt;&quot;))</code></pre>
+
+<h2>Extending Plump</h2>
+
+<p>If you want to handle a certain tag in a special way, you can write your own tag-dispatcher. For example comments, the doctype and self-closing tags are handled in this fashion by default. </p>
+
+<pre><code>(<a href="#PLUMP-PARSER:DEFINE-TAG-DISPATCHER">plump:define-tag-dispatcher</a> my-dispatcher (name)
+    (<a href="http://l1sp.org/cl/STRING-EQUAL">string-equal</a> name &quot;my-tag&quot;)
+  (<a href="http://l1sp.org/cl/LET">let</a> ((attrs (<a href="#PLUMP-PARSER:READ-ATTRIBUTES">plump:read-attributes</a>)))
+    (<a href="http://l1sp.org/cl/WHEN">when</a> (<a href="http://l1sp.org/cl/CHAR=">char=</a> (<a href="#PLUMP-PARSER:CONSUME">plump:consume</a>) #\/)
+      (<a href="#PLUMP-PARSER:CONSUME">plump:consume</a>)) ;; Consume closing
+    (<a href="http://l1sp.org/cl/MAKE-INSTANCE">make-instance</a> 'my-tag :parent plump:*root* :attributes attrs)))</code></pre>
+
+<p>During parsing, all elements are created through the functions <code><a href="#PLUMP-DOM:MAKE-ROOT">MAKE-ROOT</a></code>, <code><a href="#PLUMP-DOM:MAKE-ELEMENT">MAKE-ELEMENT</a></code>, <code><a href="#PLUMP-DOM:MAKE-TEXT-NODE">MAKE-TEXT-NODE</a></code>, and <code><a href="#PLUMP-DOM:MAKE-COMMENT">MAKE-COMMENT</a></code>. By overriding these functions you can instead delegate the parsing to your own DOM.</p>
+
+<h2>Speed</h2>
+
+<p><img src="http://shinmera.tymoon.eu/public/plump-benchmark.png" alt="benchmark"/></p>
+
+<p>If you know of other native-lisp libraries that beat Plump, please do let me know, I would be very interested!</p>
+</span>
+        </documentate>
       </article>
       <article>
-        <header><h2>How To</h2></header>
-        <p>Load Plump through Quicklisp or ASDF:</p>
-        <code class="line">(ql:quickload :plump)</code>
-        <p>
-          Using the <code>PARSE</code> function, plump will transform a string, pathname or file into a document:
-        </p>
-        <code class="line">(<a href="#PARSE">plump:parse</a> &quot;&lt;foo&gt;&lt;bar this is=\&quot;a thing\&quot;&gt;baz&lt;/bar&gt;&lt;span id=\&quot;test\&quot;&gt;oh my&quot;)</code><br/>
-        <code class="line output">#&lt;PLUMP-DOM:ROOT {1004F3FCC3}&gt;</code>
-        <p>
-          This returns a root node. If you want to append a document to a root node (or any other node that accepts children) that you've made, you can pass it into the parse function. To return the document into a readable form, you can call <code>SERIALIZE</code>:
-        </p>
-        <code class="line">(<a href="#SERIALIZE">plump:serialize</a> *)</code><br/>
-        <code class="line output">&lt;foo&gt;&lt;bar this=&quot;&quot; is=&quot;a thing&quot;&gt;baz&lt;/bar&gt;&lt;span id=&quot;test&quot;&gt;oh my&lt;/span&gt;&lt;/foo&gt;</code>
-        <p>
-          Using the DOM you can easily traverse the document and change it:
-        </p>
-        <code class="line">(<a href="#REMOVE-CHILD">plump:remove-child</a> (<a href="#GET-ELEMENT-BY-ID">plump:get-element-by-id</a> ** &quot;test&quot;))</code><br/>
-        <code class="line output">#&lt;PLUMP-DOM:ELEMENT span {100517D8F3}&gt;</code><br/>
-        <code class="line">(<a href="#SERIALIZE">plump:serialize</a> ***)</code><br/>
-        <code class="line output">&lt;foo&gt;&lt;bar this=&quot;&quot; is=&quot;a thing&quot;&gt;baz&lt;/bar&gt;&lt;/foo&gt;</code>
-        <p>
-          By default plump includes a few special tag dispatchers to catch HTML oddities like doctype, self-closing tags and comments. Especially the self-closing tags can lead to problems in XML documents. In order to parse without any HTML &quot;tricks&quot;, you can simply bind <code>*TAG-DISPATCHERS*</code> to NIL before parsing.
-        </p>
-        <code class="line">(let ((<a href="#*TAG-DISPATCHERS*">plump:*tag-dispatchers*</a> ())) (<a href="#PARSE">plump:parse</a> &quot;<link/>foo&quot;))</code>
+        <h2>Copyright</h2>
+        <span>plump</span> is licensed under the <span><a href="https://tldrlegal.com/search?q=Artistic">Artistic</a></span> license and ©<span>2014</span> <span>Nicolas Hafner &lt;shinmera@tymoon.eu&gt;</span>. This library can be obtained on <a href="https://github.com/Shinmera/plump">https://github.com/Shinmera/plump</a>.
       </article>
       <article>
-        <header><h2>Extending Plump</h2></header>
-        <p>
-          If you want to handle a certain tag in a special way, you can write your own tag-dispatcher. For example comments, the doctype and self-closing tags are handled in this fashion by default. 
-        </p>
-        <pre><code class="line">(<a href="#DEFINE-TAG-DISPATCHER">plump:define-tag-dispatcher</a> my-dispatcher (name)
-        (string-equal name &quot;my-tag&quot;)
-    (let ((attrs (<a href="#READ-ATTRIBUTES">plump:read-attributes</a>)))
-      (when (char= (<a href="#CONSUME">plump:consume</a>) #\/)
-        (<a href="#CONSUME">plump:consume</a>)) <span style="color:gray">;; Consume closing</span>
-      (make-instance 'my-tag :parent <a href="#*ROOT*">plump:*root*</a> :attributes attrs)))</code></pre>
-        <p>
-          During parsing, all elements are created through the functions <code><a href="#MAKE-ROOT">MAKE-ROOT</a></code>, <code><a href="#MAKE-ELEMENT">MAKE-ELEMENT</a></code>, <code><a href="#MAKE-TEXT-NODE">MAKE-TEXT-NODE</a></code>, and <code><a href="#MAKE-COMMENT">MAKE-COMMENT</a></code>. By overriding these functions you can instead delegate the parsing to your own DOM.
-        </p>
-      </article>
-      <article>
-        <header><h2>Other Guff</h2></header>
-        <p>
-          Plump is licensed under the <a href="http://opensource.org/licenses/Artistic-2.0">Artistic License 2.0</a> and ©2014 TymoonNET/NexT, <a href="http://shinmera.com">Nicolas Hafner</a>.<br/>
-          This library can be obtained via git on <a href="https://github.com/Shinmera/plump.git">https://github.com/Shinmera/plump.git</a>. For questions, patches or suggestions, please contact me via <a href="mailto:shinmera@tymoon.eu">email</a> or open a <a href="https://github.com/Shinmera/plump/issues">github issue</a>.
-        </p>
-      </article>
-      <article>
-        <header><h2>Plump-Parser Package Index</h2></header>
-        <ul id="parser-docs" class="docs"><li id="template">
-            <a name="*ENTITY-MAP*" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL SPECIAL</span>
-                <code>
-                  <h3><a href="#*ENTITY-MAP*" class="funcname">*ENTITY-MAP*</a></h3>
-                  <span class="funcargs"></span>
-                </code>
-              </header>
-              <pre class="funcdesc">String hash-table containing the entity names and mapping them to their respective characters.</pre>
-            </article>
-          </li><li id="template">
-            <a name="*ROOT*" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL SPECIAL</span>
-                <code>
-                  <h3><a href="#*ROOT*" class="funcname">*ROOT*</a></h3>
-                  <span class="funcargs"></span>
-                </code>
-              </header>
-              <pre class="funcdesc"></pre>
-            </article>
-          </li><li id="template">
-            <a name="*TAG-DISPATCHERS*" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL SPECIAL</span>
-                <code>
-                  <h3><a href="#*TAG-DISPATCHERS*" class="funcname">*TAG-DISPATCHERS*</a></h3>
-                  <span class="funcargs"></span>
-                </code>
-              </header>
-              <pre class="funcdesc">Tag dispatcher functions</pre>
-            </article>
-          </li><li id="template">
-            <a name="ADVANCE" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#ADVANCE" class="funcname">ADVANCE</a></h3>
-                  <span class="funcargs">()</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Skips a chracter if possible.
-Returns the new index or NIL.</pre>
-            </article>
-          </li><li id="template">
-            <a name="ADVANCE-N" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#ADVANCE-N" class="funcname">ADVANCE-N</a></h3>
-                  <span class="funcargs">(N)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Advances by N characters if possible.
-Returns the new *INDEX*.</pre>
-            </article>
-          </li><li id="template">
-            <a name="CONSUME" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#CONSUME" class="funcname">CONSUME</a></h3>
-                  <span class="funcargs">()</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Consumes a single character if possible and returns it.
-Otherwise returns NIL.</pre>
-            </article>
-          </li><li id="template">
-            <a name="CONSUME-UNTIL" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#CONSUME-UNTIL" class="funcname">CONSUME-UNTIL</a></h3>
-                  <span class="funcargs">(MATCHER)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Consumes until the provided matcher function returns positively.
-Returns the substring that was consumed.</pre>
-            </article>
-          </li><li id="template">
-            <a name="DECODE-ENTITIES" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#DECODE-ENTITIES" class="funcname">DECODE-ENTITIES</a></h3>
-                  <span class="funcargs">(TEXT &amp;OPTIONAL REMOVE-INVALID)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Translates all entities in the text into their character counterparts if possible.
-If an entity does not match, it is left in place unless REMOVE-INVALID is non-NIL.</pre>
-            </article>
-          </li><li id="template">
-            <a name="DEFINE-FULLTEXT-ELEMENT" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL MACRO</span>
-                <code>
-                  <h3><a href="#DEFINE-FULLTEXT-ELEMENT" class="funcname">DEFINE-FULLTEXT-ELEMENT</a></h3>
-                  <span class="funcargs">(TAG)</span>
-                </code>
-              </header>
-              <pre class="funcdesc"></pre>
-            </article>
-          </li><li id="template">
-            <a name="DEFINE-MATCHER" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL MACRO</span>
-                <code>
-                  <h3><a href="#DEFINE-MATCHER" class="funcname">DEFINE-MATCHER</a></h3>
-                  <span class="funcargs">(NAME FORM)</span>
-                </code>
-              </header>
-              <pre class="funcdesc"></pre>
-            </article>
-          </li><li id="template">
-            <a name="DEFINE-SELF-CLOSING-ELEMENT" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL MACRO</span>
-                <code>
-                  <h3><a href="#DEFINE-SELF-CLOSING-ELEMENT" class="funcname">DEFINE-SELF-CLOSING-ELEMENT</a></h3>
-                  <span class="funcargs">(TAG)</span>
-                </code>
-              </header>
-              <pre class="funcdesc"></pre>
-            </article>
-          </li><li id="template">
-            <a name="DEFINE-TAG-DISPATCHER" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL MACRO</span>
-                <code>
-                  <h3><a href="#DEFINE-TAG-DISPATCHER" class="funcname">DEFINE-TAG-DISPATCHER</a></h3>
-                  <span class="funcargs">(NAME (TAGVAR) TEST-FORM &amp;BODY BODY)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Defines a new tag dispatcher. It is invoked if TEST-FORM passes.
-TAGVAR is bound to the matched name of the tag.</pre>
-            </article>
-          </li><li id="template">
-            <a name="MAKE-MATCHER" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL MACRO</span>
-                <code>
-                  <h3><a href="#MAKE-MATCHER" class="funcname">MAKE-MATCHER</a></h3>
-                  <span class="funcargs">(FORM)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Macro to create a matcher chain.</pre>
-            </article>
-          </li><li id="template">
-            <a name="MATCHER-AND" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#MATCHER-AND" class="funcname">MATCHER-AND</a></h3>
-                  <span class="funcargs">(&amp;REST MATCHERS)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Creates a matcher function that returns if all of the sub-expressions
-return successfully. The last match is returned, if all.</pre>
-            </article>
-          </li><li id="template">
-            <a name="MATCHER-NOT" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#MATCHER-NOT" class="funcname">MATCHER-NOT</a></h3>
-                  <span class="funcargs">(MATCHER)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Creates a matcher function that inverts the result of the sub-expression.</pre>
-            </article>
-          </li><li id="template">
-            <a name="MATCHER-OR" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#MATCHER-OR" class="funcname">MATCHER-OR</a></h3>
-                  <span class="funcargs">(&amp;REST MATCHERS)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Creates a matcher function that returns successfully if any of the
-sub-expressions return successfully. The first match is returned, if any.</pre>
-            </article>
-          </li><li id="template">
-            <a name="MATCHER-STRING" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#MATCHER-STRING" class="funcname">MATCHER-STRING</a></h3>
-                  <span class="funcargs">(STRING)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Creates a matcher function that attempts to match the given string.</pre>
-            </article>
-          </li><li id="template">
-            <a name="PARSE" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL GENERIC</span>
-                <code>
-                  <h3><a href="#PARSE" class="funcname">PARSE</a></h3>
-                  <span class="funcargs">(INPUT &amp;KEY ROOT)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Parses the given input into a DOM representation.
-By default, methods for STRING, PATHNAME and STREAM are defined.
-If supplied, the given root is used to append children to as per READ-ROOT.
-Returns the root.</pre>
-            </article>
-          </li><li id="template">
-            <a name="PEEK" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#PEEK" class="funcname">PEEK</a></h3>
-                  <span class="funcargs">()</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Returns the next character, if any.</pre>
-            </article>
-          </li><li id="template">
-            <a name="READ-ATTRIBUTE" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#READ-ATTRIBUTE" class="funcname">READ-ATTRIBUTE</a></h3>
-                  <span class="funcargs">()</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Reads an attribute and returns it as a key value cons.</pre>
-            </article>
-          </li><li id="template">
-            <a name="READ-ATTRIBUTE-NAME" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#READ-ATTRIBUTE-NAME" class="funcname">READ-ATTRIBUTE-NAME</a></h3>
-                  <span class="funcargs">()</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Reads an attribute name.</pre>
-            </article>
-          </li><li id="template">
-            <a name="READ-ATTRIBUTE-VALUE" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#READ-ATTRIBUTE-VALUE" class="funcname">READ-ATTRIBUTE-VALUE</a></h3>
-                  <span class="funcargs">()</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Reads an attribute value, either enclosed in quotation marks or until a space or tag end.</pre>
-            </article>
-          </li><li id="template">
-            <a name="READ-ATTRIBUTES" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#READ-ATTRIBUTES" class="funcname">READ-ATTRIBUTES</a></h3>
-                  <span class="funcargs">()</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Reads as many attributes as possible from a tag and returns them as an attribute map.</pre>
-            </article>
-          </li><li id="template">
-            <a name="READ-CHILDREN" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#READ-CHILDREN" class="funcname">READ-CHILDREN</a></h3>
-                  <span class="funcargs">()</span>
-                </code>
-              </header>
-              <pre class="funcdesc"></pre>
-            </article>
-          </li><li id="template">
-            <a name="READ-NAME" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#READ-NAME" class="funcname">READ-NAME</a></h3>
-                  <span class="funcargs">()</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Reads and returns a tag name.</pre>
-            </article>
-          </li><li id="template">
-            <a name="READ-ROOT" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#READ-ROOT" class="funcname">READ-ROOT</a></h3>
-                  <span class="funcargs">(&amp;OPTIONAL (ROOT (MAKE-ROOT)))</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Creates a root element and reads nodes into it.
-Optionally uses the specified root to append child nodes to.
-Returns the root.</pre>
-            </article>
-          </li><li id="template">
-            <a name="READ-STANDARD-TAG" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#READ-STANDARD-TAG" class="funcname">READ-STANDARD-TAG</a></h3>
-                  <span class="funcargs">(NAME)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Reads an arbitrary tag and returns it.
-This recurses with READ-CHILDREN.</pre>
-            </article>
-          </li><li id="template">
-            <a name="READ-TAG" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#READ-TAG" class="funcname">READ-TAG</a></h3>
-                  <span class="funcargs">()</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Attempts to read a tag and dispatches or defaults to READ-STANDARD-TAG.
-Returns the completed node if one can be read.</pre>
-            </article>
-          </li><li id="template">
-            <a name="READ-TAG-CONTENTS" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#READ-TAG-CONTENTS" class="funcname">READ-TAG-CONTENTS</a></h3>
-                  <span class="funcargs">()</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Reads and reuturns all tag contents. 
-E.g. &lt;foo bar baz&gt; =&gt; bar baz</pre>
-            </article>
-          </li><li id="template">
-            <a name="READ-TEXT" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#READ-TEXT" class="funcname">READ-TEXT</a></h3>
-                  <span class="funcargs">()</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Reads and returns a text-node.</pre>
-            </article>
-          </li><li id="template">
-            <a name="TRANSLATE-ENTITY" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#TRANSLATE-ENTITY" class="funcname">TRANSLATE-ENTITY</a></h3>
-                  <span class="funcargs">(ENTITY)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Translates the given entity identifier (a name, #Dec or #xHex) into their respective strings if possible.
-Otherwise returns NIL.</pre>
-            </article>
-          </li><li id="template">
-            <a name="UNREAD" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#UNREAD" class="funcname">UNREAD</a></h3>
-                  <span class="funcargs">()</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Steps back a single character if possible.
-Returns the new *INDEX*.</pre>
-            </article>
-          </li><li id="template">
-            <a name="UNREAD-N" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#UNREAD-N" class="funcname">UNREAD-N</a></h3>
-                  <span class="funcargs">(N)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Steps back by N characters if possible.
-Returns the new *INDEX*.</pre>
-            </article>
-          </li><li id="template">
-            <a name="WITH-LEXER-ENVIRONMENT" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL MACRO</span>
-                <code>
-                  <h3><a href="#WITH-LEXER-ENVIRONMENT" class="funcname">WITH-LEXER-ENVIRONMENT</a></h3>
-                  <span class="funcargs">((STRING) &amp;BODY BODY)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Sets up the required lexing environment for the given string.</pre>
-            </article>
-          </li></ul>
-      </article>
-      <article>
-        <header><h2>Plump-DOM Package Index</h2></header>
-        <ul id="dom-docs" class="docs"><li id="template">
-            <a name="APPEND-CHILD" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#APPEND-CHILD" class="funcname">APPEND-CHILD</a></h3>
-                  <span class="funcargs">(PARENT CHILD)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Appends the given child onto the parent's child list.
+        <h2>Package Index</h2>
+        <ul><li class="package">
+            <h3>
+              <a name="PLUMP-DOM" href="#PLUMP-DOM">PLUMP-DOM</a>
+              <span class="nicknames">(ORG.TYMOONNEXT.PLUMP.DOM)</span>
+            </h3>
+            <ul><li>
+                <a name="PLUMP-DOM:CHILD-NODE"/>
+                <article>
+                  <header>
+                    <span>CLASS</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:CHILD-NODE">CHILD-NODE</a></h4>
+                      <span></span>
+                      <span></span>
+                    </code>
+                  </header>
+                  <pre>Node class that is a child and thus has a parent.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:COMMENT"/>
+                <article>
+                  <header>
+                    <span>CLASS</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:COMMENT">COMMENT</a></h4>
+                      <span></span>
+                      <span></span>
+                    </code>
+                  </header>
+                  <pre>Comment node that can only contain a single comment string.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:DOCTYPE"/>
+                <article>
+                  <header>
+                    <span>CLASS</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:DOCTYPE">DOCTYPE</a></h4>
+                      <span></span>
+                      <span></span>
+                    </code>
+                  </header>
+                  <pre>Special DOM node for the doctype declaration.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:ELEMENT"/>
+                <article>
+                  <header>
+                    <span>CLASS</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:ELEMENT">ELEMENT</a></h4>
+                      <span></span>
+                      <span></span>
+                    </code>
+                  </header>
+                  <pre>Standard DOM element/block including attributes, tag-name, parent and children.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:FULLTEXT-ELEMENT"/>
+                <article>
+                  <header>
+                    <span>CLASS</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:FULLTEXT-ELEMENT">FULLTEXT-ELEMENT</a></h4>
+                      <span></span>
+                      <span></span>
+                    </code>
+                  </header>
+                  <pre>Special DOM element that contains full, un-entitied text like SCRIPT and STYLE.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:NESTING-NODE"/>
+                <article>
+                  <header>
+                    <span>CLASS</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:NESTING-NODE">NESTING-NODE</a></h4>
+                      <span></span>
+                      <span></span>
+                    </code>
+                  </header>
+                  <pre>Node class that can contain child nodes.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:NODE"/>
+                <article>
+                  <header>
+                    <span>CLASS</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:NODE">NODE</a></h4>
+                      <span></span>
+                      <span></span>
+                    </code>
+                  </header>
+                  <pre>Base DOM node class.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:ROOT"/>
+                <article>
+                  <header>
+                    <span>CLASS</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:ROOT">ROOT</a></h4>
+                      <span></span>
+                      <span></span>
+                    </code>
+                  </header>
+                  <pre>Root DOM node, practically equivalent to a &quot;document&quot;.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:TEXT-NODE"/>
+                <article>
+                  <header>
+                    <span>CLASS</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:TEXT-NODE">TEXT-NODE</a></h4>
+                      <span></span>
+                      <span></span>
+                    </code>
+                  </header>
+                  <pre>Text node that can only contain a single text string.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:APPEND-CHILD"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:APPEND-CHILD">APPEND-CHILD</a></h4>
+                      <span></span>
+                      <span>(PARENT CHILD)</span>
+                    </code>
+                  </header>
+                  <pre>Appends the given child onto the parent's child list.
 Returns the child.</pre>
-            </article>
-          </li><li id="template">
-            <a name="ATTRIBUTE" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#ATTRIBUTE" class="funcname">ATTRIBUTE</a></h3>
-                  <span class="funcargs">(ELEMENT ATTRIBUTE)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Returns the asked attribute from the element
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:ATTRIBUTE"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:ATTRIBUTE">ATTRIBUTE</a></h4>
+                      <span></span>
+                      <span>(ELEMENT ATTRIBUTE)</span>
+                    </code>
+                  </header>
+                  <pre>Returns the asked attribute from the element
 or NIL. If the attribute could not be found, the
 second return value is set to NIL.</pre>
-            </article>
-          </li><li id="template">
-            <a name="ATTRIBUTES" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL GENERIC</span>
-                <code>
-                  <h3><a href="#ATTRIBUTES" class="funcname">ATTRIBUTES</a></h3>
-                  <span class="funcargs">(OBJECT)</span>
-                </code>
-              </header>
-              <pre class="funcdesc"></pre>
-            </article>
-          </li><li id="template">
-            <a name="CHILD-ELEMENTS" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#CHILD-ELEMENTS" class="funcname">CHILD-ELEMENTS</a></h3>
-                  <span class="funcargs">(NESTING-NODE)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Returns a new vector of children of the given node, filtered to elements.</pre>
-            </article>
-          </li><li id="template">
-            <a name="CHILD-NODE" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL CLASS</span>
-                <code>
-                  <h3><a href="#CHILD-NODE" class="funcname">CHILD-NODE</a></h3>
-                  <span class="funcargs"></span>
-                </code>
-              </header>
-              <pre class="funcdesc">Node class that is a child and thus has a parent.</pre>
-            </article>
-          </li><li id="template">
-            <a name="CHILD-POSITION" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#CHILD-POSITION" class="funcname">CHILD-POSITION</a></h3>
-                  <span class="funcargs">(CHILD)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Returns the index of the child within its parent.</pre>
-            </article>
-          </li><li id="template">
-            <a name="CHILDREN" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL GENERIC</span>
-                <code>
-                  <h3><a href="#CHILDREN" class="funcname">CHILDREN</a></h3>
-                  <span class="funcargs">(OBJECT)</span>
-                </code>
-              </header>
-              <pre class="funcdesc"></pre>
-            </article>
-          </li><li id="template">
-            <a name="CLEAR" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#CLEAR" class="funcname">CLEAR</a></h3>
-                  <span class="funcargs">(NESTING-NODE)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Clears all children from the node.
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:CHILD-ELEMENTS"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:CHILD-ELEMENTS">CHILD-ELEMENTS</a></h4>
+                      <span></span>
+                      <span>(NESTING-NODE)</span>
+                    </code>
+                  </header>
+                  <pre>Returns a new vector of children of the given node, filtered to elements.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:CHILD-POSITION"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:CHILD-POSITION">CHILD-POSITION</a></h4>
+                      <span></span>
+                      <span>(CHILD)</span>
+                    </code>
+                  </header>
+                  <pre>Returns the index of the child within its parent.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:CLEAR"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:CLEAR">CLEAR</a></h4>
+                      <span></span>
+                      <span>(NESTING-NODE)</span>
+                    </code>
+                  </header>
+                  <pre>Clears all children from the node.
 
 Noe that the PARENT of all child elements is set to NIL.</pre>
-            </article>
-          </li><li id="template">
-            <a name="CLONE-ATTRIBUTES" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#CLONE-ATTRIBUTES" class="funcname">CLONE-ATTRIBUTES</a></h3>
-                  <span class="funcargs">(NODE)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Clone the attribute map.
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:CLONE-ATTRIBUTES"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:CLONE-ATTRIBUTES">CLONE-ATTRIBUTES</a></h4>
+                      <span></span>
+                      <span>(NODE)</span>
+                    </code>
+                  </header>
+                  <pre>Clone the attribute map.
 Note that keys and values are NOT copied/cloned.</pre>
-            </article>
-          </li><li id="template">
-            <a name="CLONE-CHILDREN" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#CLONE-CHILDREN" class="funcname">CLONE-CHILDREN</a></h3>
-                  <span class="funcargs">(NODE &amp;KEY DEEP)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Clone the array of children.
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:CLONE-CHILDREN"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:CLONE-CHILDREN">CLONE-CHILDREN</a></h4>
+                      <span></span>
+                      <span>(NODE &amp;KEY DEEP)</span>
+                    </code>
+                  </header>
+                  <pre>Clone the array of children.
 If DEEP is non-NIL, each child is cloned as per
  (CLONE-NODE :DEEP T) </pre>
-            </article>
-          </li><li id="template">
-            <a name="CLONE-NODE" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL GENERIC</span>
-                <code>
-                  <h3><a href="#CLONE-NODE" class="funcname">CLONE-NODE</a></h3>
-                  <span class="funcargs">(NODE &amp;KEY DEEP (DEEP T))</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Clone the given node, creating a new instance with the same contents.
-If DEEP is non-NIL, the following applies:
-The text of COMMENT and TEXT-NODEs is copied as per COPY-SEQ.
-The children of NESTING-NODEs are copied as per (CLONE-CHILDREN :DEEP T)</pre>
-            </article>
-          </li><li id="template">
-            <a name="COMMENT" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL CLASS</span>
-                <code>
-                  <h3><a href="#COMMENT" class="funcname">COMMENT</a></h3>
-                  <span class="funcargs"></span>
-                </code>
-              </header>
-              <pre class="funcdesc">Comment node that can only contain a single comment string.</pre>
-            </article>
-          </li><li id="template">
-            <a name="COMMENT-P" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#COMMENT-P" class="funcname">COMMENT-P</a></h3>
-                  <span class="funcargs">(OBJECT)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Returns T if the given object is a COMMENT.</pre>
-            </article>
-          </li><li id="template">
-            <a name="DOCTYPE" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL CLASS</span>
-                <code>
-                  <h3><a href="#DOCTYPE" class="funcname">DOCTYPE</a></h3>
-                  <span class="funcargs"></span>
-                </code>
-              </header>
-              <pre class="funcdesc">Special DOM node for the doctype declaration.</pre>
-            </article>
-          </li><li id="template">
-            <a name="DOCTYPE" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL GENERIC</span>
-                <code>
-                  <h3><a href="#DOCTYPE" class="funcname">DOCTYPE</a></h3>
-                  <span class="funcargs">(OBJECT)</span>
-                </code>
-              </header>
-              <pre class="funcdesc"></pre>
-            </article>
-          </li><li id="template">
-            <a name="ELEMENT" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL CLASS</span>
-                <code>
-                  <h3><a href="#ELEMENT" class="funcname">ELEMENT</a></h3>
-                  <span class="funcargs"></span>
-                </code>
-              </header>
-              <pre class="funcdesc">Standard DOM element/block including attributes, tag-name, parent and children.</pre>
-            </article>
-          </li><li id="template">
-            <a name="ELEMENT-P" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#ELEMENT-P" class="funcname">ELEMENT-P</a></h3>
-                  <span class="funcargs">(OBJECT)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Returns T if the given object is an ELEMENT.</pre>
-            </article>
-          </li><li id="template">
-            <a name="ELEMENT-POSITION" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#ELEMENT-POSITION" class="funcname">ELEMENT-POSITION</a></h3>
-                  <span class="funcargs">(CHILD)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Returns the index of the child within its parent, counting only elements.
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:COMMENT-P"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:COMMENT-P">COMMENT-P</a></h4>
+                      <span></span>
+                      <span>(OBJECT)</span>
+                    </code>
+                  </header>
+                  <pre>Returns T if the given object is a COMMENT.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:ELEMENT-P"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:ELEMENT-P">ELEMENT-P</a></h4>
+                      <span></span>
+                      <span>(OBJECT)</span>
+                    </code>
+                  </header>
+                  <pre>Returns T if the given object is an ELEMENT.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:ELEMENT-POSITION"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:ELEMENT-POSITION">ELEMENT-POSITION</a></h4>
+                      <span></span>
+                      <span>(CHILD)</span>
+                    </code>
+                  </header>
+                  <pre>Returns the index of the child within its parent, counting only elements.
 This excludes comments, text-nodes and the like.</pre>
-            </article>
-          </li><li id="template">
-            <a name="FAMILY" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#FAMILY" class="funcname">FAMILY</a></h3>
-                  <span class="funcargs">(CHILD)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Returns the direct array of children of the parent of the given child.
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:FAMILY"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:FAMILY">FAMILY</a></h4>
+                      <span></span>
+                      <span>(CHILD)</span>
+                    </code>
+                  </header>
+                  <pre>Returns the direct array of children of the parent of the given child.
 Note that modifying this array directly modifies that of the parent.</pre>
-            </article>
-          </li><li id="template">
-            <a name="FAMILY-ELEMENTS" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#FAMILY-ELEMENTS" class="funcname">FAMILY-ELEMENTS</a></h3>
-                  <span class="funcargs">(CHILD)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Returns the direct array of children elements of the parent of the given child.
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:FAMILY-ELEMENTS"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:FAMILY-ELEMENTS">FAMILY-ELEMENTS</a></h4>
+                      <span></span>
+                      <span>(CHILD)</span>
+                    </code>
+                  </header>
+                  <pre>Returns the direct array of children elements of the parent of the given child.
 Note that this is a copy of the array, modifying it is safe.
 This excludes comments, text-nodes and the like.</pre>
-            </article>
-          </li><li id="template">
-            <a name="FIRST-CHILD" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#FIRST-CHILD" class="funcname">FIRST-CHILD</a></h3>
-                  <span class="funcargs">(ELEMENT)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Returns the first child within the parent or NIL
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:FIRST-CHILD"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:FIRST-CHILD">FIRST-CHILD</a></h4>
+                      <span></span>
+                      <span>(ELEMENT)</span>
+                    </code>
+                  </header>
+                  <pre>Returns the first child within the parent or NIL
 if the parent is empty.</pre>
-            </article>
-          </li><li id="template">
-            <a name="FIRST-ELEMENT" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#FIRST-ELEMENT" class="funcname">FIRST-ELEMENT</a></h3>
-                  <span class="funcargs">(ELEMENT)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Returns the first child element within the parent or NIL
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:FIRST-ELEMENT"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:FIRST-ELEMENT">FIRST-ELEMENT</a></h4>
+                      <span></span>
+                      <span>(ELEMENT)</span>
+                    </code>
+                  </header>
+                  <pre>Returns the first child element within the parent or NIL
 if the parent is empty. This excludes comments, text-nodes and the like.</pre>
-            </article>
-          </li><li id="template">
-            <a name="FULLTEXT-ELEMENT" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL CLASS</span>
-                <code>
-                  <h3><a href="#FULLTEXT-ELEMENT" class="funcname">FULLTEXT-ELEMENT</a></h3>
-                  <span class="funcargs"></span>
-                </code>
-              </header>
-              <pre class="funcdesc">Special DOM element that contains full, un-entitied text like SCRIPT and STYLE.</pre>
-            </article>
-          </li><li id="template">
-            <a name="FULLTEXT-ELEMENT-P" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#FULLTEXT-ELEMENT-P" class="funcname">FULLTEXT-ELEMENT-P</a></h3>
-                  <span class="funcargs">(OBJECT)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Returns T If the given object is a FULLTEXT-ELEMENT.</pre>
-            </article>
-          </li><li id="template">
-            <a name="GET-ATTRIBUTE" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#GET-ATTRIBUTE" class="funcname">GET-ATTRIBUTE</a></h3>
-                  <span class="funcargs">(ELEMENT ATTRIBUTE)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Synonymous to ATTRIBUTE.</pre>
-            </article>
-          </li><li id="template">
-            <a name="GET-ELEMENT-BY-ID" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#GET-ELEMENT-BY-ID" class="funcname">GET-ELEMENT-BY-ID</a></h3>
-                  <span class="funcargs">(NODE ID)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Searches the given node and returns the first
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:FULLTEXT-ELEMENT-P"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:FULLTEXT-ELEMENT-P">FULLTEXT-ELEMENT-P</a></h4>
+                      <span></span>
+                      <span>(OBJECT)</span>
+                    </code>
+                  </header>
+                  <pre>Returns T If the given object is a FULLTEXT-ELEMENT.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:GET-ATTRIBUTE"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:GET-ATTRIBUTE">GET-ATTRIBUTE</a></h4>
+                      <span></span>
+                      <span>(ELEMENT ATTRIBUTE)</span>
+                    </code>
+                  </header>
+                  <pre>Synonymous to ATTRIBUTE.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:GET-ELEMENT-BY-ID"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:GET-ELEMENT-BY-ID">GET-ELEMENT-BY-ID</a></h4>
+                      <span></span>
+                      <span>(NODE ID)</span>
+                    </code>
+                  </header>
+                  <pre>Searches the given node and returns the first
 node at arbitrary depth that matches the given ID
 attribute.</pre>
-            </article>
-          </li><li id="template">
-            <a name="HAS-ATTRIBUTE" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#HAS-ATTRIBUTE" class="funcname">HAS-ATTRIBUTE</a></h3>
-                  <span class="funcargs">(ELEMENT ATTRIBUTE)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Returns T if the provided attribute exists.</pre>
-            </article>
-          </li><li id="template">
-            <a name="HAS-CHILD-NODES" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#HAS-CHILD-NODES" class="funcname">HAS-CHILD-NODES</a></h3>
-                  <span class="funcargs">(NODE)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Returns T if the node can contain children and
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:HAS-ATTRIBUTE"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:HAS-ATTRIBUTE">HAS-ATTRIBUTE</a></h4>
+                      <span></span>
+                      <span>(ELEMENT ATTRIBUTE)</span>
+                    </code>
+                  </header>
+                  <pre>Returns T if the provided attribute exists.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:HAS-CHILD-NODES"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:HAS-CHILD-NODES">HAS-CHILD-NODES</a></h4>
+                      <span></span>
+                      <span>(NODE)</span>
+                    </code>
+                  </header>
+                  <pre>Returns T if the node can contain children and
 the child array is not empty.</pre>
-            </article>
-          </li><li id="template">
-            <a name="INSERT-AFTER" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#INSERT-AFTER" class="funcname">INSERT-AFTER</a></h3>
-                  <span class="funcargs">(ELEMENT NEW-CHILD)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Inserts the new-child after the given element in the parent's list.
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:INSERT-AFTER"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:INSERT-AFTER">INSERT-AFTER</a></h4>
+                      <span></span>
+                      <span>(ELEMENT NEW-CHILD)</span>
+                    </code>
+                  </header>
+                  <pre>Inserts the new-child after the given element in the parent's list.
 Returns the new child.
 
 Note that this operation is potentially very costly.
 See VECTOR-PUSH-EXTEND-POSITION</pre>
-            </article>
-          </li><li id="template">
-            <a name="INSERT-BEFORE" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#INSERT-BEFORE" class="funcname">INSERT-BEFORE</a></h3>
-                  <span class="funcargs">(ELEMENT NEW-CHILD)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Inserts the new-child before the given element in the parent's list.
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:INSERT-BEFORE"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:INSERT-BEFORE">INSERT-BEFORE</a></h4>
+                      <span></span>
+                      <span>(ELEMENT NEW-CHILD)</span>
+                    </code>
+                  </header>
+                  <pre>Inserts the new-child before the given element in the parent's list.
 Returns the new child.
 
 Note that this operation is potentially very costly.
 See VECTOR-PUSH-EXTEND-POSITION</pre>
-            </article>
-          </li><li id="template">
-            <a name="LAST-CHILD" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#LAST-CHILD" class="funcname">LAST-CHILD</a></h3>
-                  <span class="funcargs">(ELEMENT)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Returns the last child within the parent or NIL
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:LAST-CHILD"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:LAST-CHILD">LAST-CHILD</a></h4>
+                      <span></span>
+                      <span>(ELEMENT)</span>
+                    </code>
+                  </header>
+                  <pre>Returns the last child within the parent or NIL
 if the parent is empty.</pre>
-            </article>
-          </li><li id="template">
-            <a name="LAST-ELEMENT" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#LAST-ELEMENT" class="funcname">LAST-ELEMENT</a></h3>
-                  <span class="funcargs">(ELEMENT)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Returns the last child element within the parent or NIL
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:LAST-ELEMENT"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:LAST-ELEMENT">LAST-ELEMENT</a></h4>
+                      <span></span>
+                      <span>(ELEMENT)</span>
+                    </code>
+                  </header>
+                  <pre>Returns the last child element within the parent or NIL
 if the parent is empty. This excludes comments, text-nodes and the like.</pre>
-            </article>
-          </li><li id="template">
-            <a name="MAKE-ATTRIBUTE-MAP" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#MAKE-ATTRIBUTE-MAP" class="funcname">MAKE-ATTRIBUTE-MAP</a></h3>
-                  <span class="funcargs">()</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Creates a map to contain attributes.</pre>
-            </article>
-          </li><li id="template">
-            <a name="MAKE-CHILD-ARRAY" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#MAKE-CHILD-ARRAY" class="funcname">MAKE-CHILD-ARRAY</a></h3>
-                  <span class="funcargs">()</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Creates an array to contain child elements</pre>
-            </article>
-          </li><li id="template">
-            <a name="MAKE-COMMENT" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#MAKE-COMMENT" class="funcname">MAKE-COMMENT</a></h3>
-                  <span class="funcargs">(PARENT &amp;OPTIONAL (TEXT ))</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Creates a new comment node under the parent.
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:MAKE-ATTRIBUTE-MAP"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:MAKE-ATTRIBUTE-MAP">MAKE-ATTRIBUTE-MAP</a></h4>
+                      <span></span>
+                      <span></span>
+                    </code>
+                  </header>
+                  <pre>Creates a map to contain attributes.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:MAKE-CHILD-ARRAY"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:MAKE-CHILD-ARRAY">MAKE-CHILD-ARRAY</a></h4>
+                      <span></span>
+                      <span></span>
+                    </code>
+                  </header>
+                  <pre>Creates an array to contain child elements</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:MAKE-COMMENT"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:MAKE-COMMENT">MAKE-COMMENT</a></h4>
+                      <span></span>
+                      <span>(PARENT &amp;OPTIONAL (TEXT ))</span>
+                    </code>
+                  </header>
+                  <pre>Creates a new comment node under the parent.
 
 Note that the node is automatically appended to the parent's child list.</pre>
-            </article>
-          </li><li id="template">
-            <a name="MAKE-DOCTYPE" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#MAKE-DOCTYPE" class="funcname">MAKE-DOCTYPE</a></h3>
-                  <span class="funcargs">(PARENT DOCTYPE)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Creates a new doctype node under the parent.
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:MAKE-DOCTYPE"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:MAKE-DOCTYPE">MAKE-DOCTYPE</a></h4>
+                      <span></span>
+                      <span>(PARENT DOCTYPE)</span>
+                    </code>
+                  </header>
+                  <pre>Creates a new doctype node under the parent.
 
 Note that the node is automatically appended to the parent's child list.</pre>
-            </article>
-          </li><li id="template">
-            <a name="MAKE-ELEMENT" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#MAKE-ELEMENT" class="funcname">MAKE-ELEMENT</a></h3>
-                  <span class="funcargs">(PARENT TAG &amp;KEY (CHILDREN (MAKE-CHILD-ARRAY))
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:MAKE-ELEMENT"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:MAKE-ELEMENT">MAKE-ELEMENT</a></h4>
+                      <span></span>
+                      <span>(PARENT TAG &amp;KEY (CHILDREN (MAKE-CHILD-ARRAY))
         (ATTRIBUTES (MAKE-ATTRIBUTE-MAP)))</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Creates a standard DOM element with the given tag name and parent.
+                    </code>
+                  </header>
+                  <pre>Creates a standard DOM element with the given tag name and parent.
 Optionally a vector (with fill-pointer) containing children and an
 attribute-map (a hash-table with equalp test) can be supplied.
 
 Note that the element is automatically appended to the parent's child list.</pre>
-            </article>
-          </li><li id="template">
-            <a name="MAKE-FULLTEXT-ELEMENT" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#MAKE-FULLTEXT-ELEMENT" class="funcname">MAKE-FULLTEXT-ELEMENT</a></h3>
-                  <span class="funcargs">(PARENT TAG &amp;KEY TEXT (ATTRIBUTES (MAKE-ATTRIBUTE-MAP)))</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Creates a fulltext element under the parent.
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:MAKE-FULLTEXT-ELEMENT"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:MAKE-FULLTEXT-ELEMENT">MAKE-FULLTEXT-ELEMENT</a></h4>
+                      <span></span>
+                      <span>(PARENT TAG &amp;KEY TEXT (ATTRIBUTES (MAKE-ATTRIBUTE-MAP)))</span>
+                    </code>
+                  </header>
+                  <pre>Creates a fulltext element under the parent.
 Optionally a text and an attribute-map (a hash-table with equalp test) 
 can be supplied.
 
 Note that the element is automatically appended to the parent's child list.</pre>
-            </article>
-          </li><li id="template">
-            <a name="MAKE-ROOT" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#MAKE-ROOT" class="funcname">MAKE-ROOT</a></h3>
-                  <span class="funcargs">(&amp;OPTIONAL (CHILDREN (MAKE-CHILD-ARRAY)))</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Creates a root node with the given children.
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:MAKE-ROOT"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:MAKE-ROOT">MAKE-ROOT</a></h4>
+                      <span></span>
+                      <span>(&amp;OPTIONAL (CHILDREN (MAKE-CHILD-ARRAY)))</span>
+                    </code>
+                  </header>
+                  <pre>Creates a root node with the given children.
 Children should be a vector with fill-pointer.</pre>
-            </article>
-          </li><li id="template">
-            <a name="MAKE-TEXT-NODE" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#MAKE-TEXT-NODE" class="funcname">MAKE-TEXT-NODE</a></h3>
-                  <span class="funcargs">(PARENT &amp;OPTIONAL (TEXT ))</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Creates a new text node under the parent.
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:MAKE-TEXT-NODE"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:MAKE-TEXT-NODE">MAKE-TEXT-NODE</a></h4>
+                      <span></span>
+                      <span>(PARENT &amp;OPTIONAL (TEXT ))</span>
+                    </code>
+                  </header>
+                  <pre>Creates a new text node under the parent.
 
 Note that the node is automatically appended to the parent's child list.</pre>
-            </article>
-          </li><li id="template">
-            <a name="NESTING-NODE" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL CLASS</span>
-                <code>
-                  <h3><a href="#NESTING-NODE" class="funcname">NESTING-NODE</a></h3>
-                  <span class="funcargs"></span>
-                </code>
-              </header>
-              <pre class="funcdesc">Node class that can contain child nodes.</pre>
-            </article>
-          </li><li id="template">
-            <a name="NESTING-NODE-P" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#NESTING-NODE-P" class="funcname">NESTING-NODE-P</a></h3>
-                  <span class="funcargs">(OBJECT)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Returns T if the given object is a NESTING-NODE.</pre>
-            </article>
-          </li><li id="template">
-            <a name="NEXT-ELEMENT" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#NEXT-ELEMENT" class="funcname">NEXT-ELEMENT</a></h3>
-                  <span class="funcargs">(CHILD)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Returns the sibling element next to this one or NIL if
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:NESTING-NODE-P"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:NESTING-NODE-P">NESTING-NODE-P</a></h4>
+                      <span></span>
+                      <span>(OBJECT)</span>
+                    </code>
+                  </header>
+                  <pre>Returns T if the given object is a NESTING-NODE.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:NEXT-ELEMENT"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:NEXT-ELEMENT">NEXT-ELEMENT</a></h4>
+                      <span></span>
+                      <span>(CHILD)</span>
+                    </code>
+                  </header>
+                  <pre>Returns the sibling element next to this one or NIL if
 it is already last. This excludes comments, text-nodes and the like.</pre>
-            </article>
-          </li><li id="template">
-            <a name="NEXT-SIBLING" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#NEXT-SIBLING" class="funcname">NEXT-SIBLING</a></h3>
-                  <span class="funcargs">(CHILD)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Returns the sibling next to this one or NIL if
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:NEXT-SIBLING"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:NEXT-SIBLING">NEXT-SIBLING</a></h4>
+                      <span></span>
+                      <span>(CHILD)</span>
+                    </code>
+                  </header>
+                  <pre>Returns the sibling next to this one or NIL if
 it is already the last.</pre>
-            </article>
-          </li><li id="template">
-            <a name="NODE" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL CLASS</span>
-                <code>
-                  <h3><a href="#NODE" class="funcname">NODE</a></h3>
-                  <span class="funcargs"></span>
-                </code>
-              </header>
-              <pre class="funcdesc">Base DOM node class.</pre>
-            </article>
-          </li><li id="template">
-            <a name="NODE-P" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#NODE-P" class="funcname">NODE-P</a></h3>
-                  <span class="funcargs">(OBJECT)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Returns T if the given object is a NODE.</pre>
-            </article>
-          </li><li id="template">
-            <a name="PARENT" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL GENERIC</span>
-                <code>
-                  <h3><a href="#PARENT" class="funcname">PARENT</a></h3>
-                  <span class="funcargs">(OBJECT)</span>
-                </code>
-              </header>
-              <pre class="funcdesc"></pre>
-            </article>
-          </li><li id="template">
-            <a name="PREPEND-CHILD" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#PREPEND-CHILD" class="funcname">PREPEND-CHILD</a></h3>
-                  <span class="funcargs">(PARENT CHILD)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Prepends the given child onto the parent's child list.
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:NODE-P"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:NODE-P">NODE-P</a></h4>
+                      <span></span>
+                      <span>(OBJECT)</span>
+                    </code>
+                  </header>
+                  <pre>Returns T if the given object is a NODE.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:PREPEND-CHILD"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:PREPEND-CHILD">PREPEND-CHILD</a></h4>
+                      <span></span>
+                      <span>(PARENT CHILD)</span>
+                    </code>
+                  </header>
+                  <pre>Prepends the given child onto the parent's child list.
 Returns the child.
 
 Note that this operation is costly, see VECTOR-PUSH-EXTEND-FRONT</pre>
-            </article>
-          </li><li id="template">
-            <a name="PREVIOUS-ELEMENT" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#PREVIOUS-ELEMENT" class="funcname">PREVIOUS-ELEMENT</a></h3>
-                  <span class="funcargs">(CHILD)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Returns the sibling element next to this one or NIL if
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:PREVIOUS-ELEMENT"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:PREVIOUS-ELEMENT">PREVIOUS-ELEMENT</a></h4>
+                      <span></span>
+                      <span>(CHILD)</span>
+                    </code>
+                  </header>
+                  <pre>Returns the sibling element next to this one or NIL if
 it is already last. This excludes comments, text-nodes and the like.</pre>
-            </article>
-          </li><li id="template">
-            <a name="PREVIOUS-SIBLING" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#PREVIOUS-SIBLING" class="funcname">PREVIOUS-SIBLING</a></h3>
-                  <span class="funcargs">(CHILD)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Returns the sibling before this one or NIL if 
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:PREVIOUS-SIBLING"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:PREVIOUS-SIBLING">PREVIOUS-SIBLING</a></h4>
+                      <span></span>
+                      <span>(CHILD)</span>
+                    </code>
+                  </header>
+                  <pre>Returns the sibling before this one or NIL if 
 it is already the first.</pre>
-            </article>
-          </li><li id="template">
-            <a name="REMOVE-ATTRIBUTE" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#REMOVE-ATTRIBUTE" class="funcname">REMOVE-ATTRIBUTE</a></h3>
-                  <span class="funcargs">(ELEMENT ATTRIBUTE)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Remove the specified attribute if it exists.
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:REMOVE-ATTRIBUTE"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:REMOVE-ATTRIBUTE">REMOVE-ATTRIBUTE</a></h4>
+                      <span></span>
+                      <span>(ELEMENT ATTRIBUTE)</span>
+                    </code>
+                  </header>
+                  <pre>Remove the specified attribute if it exists.
 Returns NIL.</pre>
-            </article>
-          </li><li id="template">
-            <a name="REMOVE-CHILD" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#REMOVE-CHILD" class="funcname">REMOVE-CHILD</a></h3>
-                  <span class="funcargs">(CHILD)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Removes the child from its parent.
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:REMOVE-CHILD"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:REMOVE-CHILD">REMOVE-CHILD</a></h4>
+                      <span></span>
+                      <span>(CHILD)</span>
+                    </code>
+                  </header>
+                  <pre>Removes the child from its parent.
 Returns the child.
 
 Note that this operation is potentially very costly.
 See VECTOR-POP-POSITION</pre>
-            </article>
-          </li><li id="template">
-            <a name="REPLACE-CHILD" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#REPLACE-CHILD" class="funcname">REPLACE-CHILD</a></h3>
-                  <span class="funcargs">(OLD-CHILD NEW-CHILD)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Replace the old child with a new one.
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:REPLACE-CHILD"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:REPLACE-CHILD">REPLACE-CHILD</a></h4>
+                      <span></span>
+                      <span>(OLD-CHILD NEW-CHILD)</span>
+                    </code>
+                  </header>
+                  <pre>Replace the old child with a new one.
 Returns the old child.</pre>
-            </article>
-          </li><li id="template">
-            <a name="ROOT" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL CLASS</span>
-                <code>
-                  <h3><a href="#ROOT" class="funcname">ROOT</a></h3>
-                  <span class="funcargs"></span>
-                </code>
-              </header>
-              <pre class="funcdesc">Root DOM node, practically equivalent to a &quot;document&quot;.</pre>
-            </article>
-          </li><li id="template">
-            <a name="ROOT-P" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#ROOT-P" class="funcname">ROOT-P</a></h3>
-                  <span class="funcargs">(OBJECT)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Returns T if the given object is a ROOT.</pre>
-            </article>
-          </li><li id="template">
-            <a name="SERIALIZE" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL GENERIC</span>
-                <code>
-                  <h3><a href="#SERIALIZE" class="funcname">SERIALIZE</a></h3>
-                  <span class="funcargs">(NODE &amp;OPTIONAL STREAM)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Serialize the given node and print it to the stream.</pre>
-            </article>
-          </li><li id="template">
-            <a name="SET-ATTRIBUTE" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#SET-ATTRIBUTE" class="funcname">SET-ATTRIBUTE</a></h3>
-                  <span class="funcargs">(ELEMENT ATTRIBUTE VALUE)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Synonymous to (SETF (ATTIBUTE ..) ..)</pre>
-            </article>
-          </li><li id="template">
-            <a name="SIBLING-ELEMENTS" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#SIBLING-ELEMENTS" class="funcname">SIBLING-ELEMENTS</a></h3>
-                  <span class="funcargs">(CHILD)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Returns the array of sibling elements of the given child.
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:ROOT-P"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:ROOT-P">ROOT-P</a></h4>
+                      <span></span>
+                      <span>(OBJECT)</span>
+                    </code>
+                  </header>
+                  <pre>Returns T if the given object is a ROOT.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:SET-ATTRIBUTE"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:SET-ATTRIBUTE">SET-ATTRIBUTE</a></h4>
+                      <span></span>
+                      <span>(ELEMENT ATTRIBUTE VALUE)</span>
+                    </code>
+                  </header>
+                  <pre>Synonymous to (SETF (ATTIBUTE ..) ..)</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:SIBLING-ELEMENTS"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:SIBLING-ELEMENTS">SIBLING-ELEMENTS</a></h4>
+                      <span></span>
+                      <span>(CHILD)</span>
+                    </code>
+                  </header>
+                  <pre>Returns the array of sibling elements of the given child.
 Note that this is a copy of the array, modifying it is safe.
 This excludes comments, text-nodes and the like.</pre>
-            </article>
-          </li><li id="template">
-            <a name="SIBLINGS" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#SIBLINGS" class="funcname">SIBLINGS</a></h3>
-                  <span class="funcargs">(CHILD)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Returns the array of siblings of the given child.
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:SIBLINGS"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:SIBLINGS">SIBLINGS</a></h4>
+                      <span></span>
+                      <span>(CHILD)</span>
+                    </code>
+                  </header>
+                  <pre>Returns the array of siblings of the given child.
 Note that this is a copy of the array, modifying it is safe.</pre>
-            </article>
-          </li><li id="template">
-            <a name="TAG-NAME" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL GENERIC</span>
-                <code>
-                  <h3><a href="#TAG-NAME" class="funcname">TAG-NAME</a></h3>
-                  <span class="funcargs">(OBJECT)</span>
-                </code>
-              </header>
-              <pre class="funcdesc"></pre>
-            </article>
-          </li><li id="template">
-            <a name="TEXT" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL GENERIC</span>
-                <code>
-                  <h3><a href="#TEXT" class="funcname">TEXT</a></h3>
-                  <span class="funcargs">(OBJECT)</span>
-                </code>
-              </header>
-              <pre class="funcdesc"></pre>
-            </article>
-          </li><li id="template">
-            <a name="TEXT-NODE" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL CLASS</span>
-                <code>
-                  <h3><a href="#TEXT-NODE" class="funcname">TEXT-NODE</a></h3>
-                  <span class="funcargs"></span>
-                </code>
-              </header>
-              <pre class="funcdesc">Text node that can only contain a single text string.</pre>
-            </article>
-          </li><li id="template">
-            <a name="TEXT-NODE-P" class="anchor"/>
-            <article>
-              <header>
-                <span class="functype">EXTERNAL FUNCTION</span>
-                <code>
-                  <h3><a href="#TEXT-NODE-P" class="funcname">TEXT-NODE-P</a></h3>
-                  <span class="funcargs">(OBJECT)</span>
-                </code>
-              </header>
-              <pre class="funcdesc">Returns T if the given object is a TEXT-NODE.</pre>
-            </article>
-          </li></ul>
-      </article>
-    </div>
-  </body>
-</html>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:TEXT-NODE-P"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:TEXT-NODE-P">TEXT-NODE-P</a></h4>
+                      <span></span>
+                      <span>(OBJECT)</span>
+                    </code>
+                  </header>
+                  <pre>Returns T if the given object is a TEXT-NODE.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:ATTRIBUTES"/>
+                <article>
+                  <header>
+                    <span>GENERIC</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:ATTRIBUTES">ATTRIBUTES</a></h4>
+                      <span></span>
+                      <span>(OBJECT)</span>
+                    </code>
+                  </header>
+                  <pre></pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:CHILDREN"/>
+                <article>
+                  <header>
+                    <span>GENERIC</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:CHILDREN">CHILDREN</a></h4>
+                      <span></span>
+                      <span>(OBJECT)</span>
+                    </code>
+                  </header>
+                  <pre></pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:CLONE-NODE"/>
+                <article>
+                  <header>
+                    <span>GENERIC</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:CLONE-NODE">CLONE-NODE</a></h4>
+                      <span></span>
+                      <span>(NODE &amp;KEY DEEP (DEEP T))</span>
+                    </code>
+                  </header>
+                  <pre>Clone the given node, creating a new instance with the same contents.
+If DEEP is non-NIL, the following applies:
+The text of COMMENT and TEXT-NODEs is copied as per COPY-SEQ.
+The children of NESTING-NODEs are copied as per (CLONE-CHILDREN :DEEP T)</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:DOCTYPE"/>
+                <article>
+                  <header>
+                    <span>GENERIC</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:DOCTYPE">DOCTYPE</a></h4>
+                      <span></span>
+                      <span>(OBJECT)</span>
+                    </code>
+                  </header>
+                  <pre></pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:PARENT"/>
+                <article>
+                  <header>
+                    <span>GENERIC</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:PARENT">PARENT</a></h4>
+                      <span></span>
+                      <span>(OBJECT)</span>
+                    </code>
+                  </header>
+                  <pre></pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:SERIALIZE"/>
+                <article>
+                  <header>
+                    <span>GENERIC</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:SERIALIZE">SERIALIZE</a></h4>
+                      <span></span>
+                      <span>(NODE &amp;OPTIONAL STREAM)</span>
+                    </code>
+                  </header>
+                  <pre>Serialize the given node and print it to the stream.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:TAG-NAME"/>
+                <article>
+                  <header>
+                    <span>GENERIC</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:TAG-NAME">TAG-NAME</a></h4>
+                      <span></span>
+                      <span>(OBJECT)</span>
+                    </code>
+                  </header>
+                  <pre></pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:TEXT"/>
+                <article>
+                  <header>
+                    <span>GENERIC</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:TEXT">TEXT</a></h4>
+                      <span></span>
+                      <span>(OBJECT)</span>
+                    </code>
+                  </header>
+                  <pre></pre>
+                </article>
+              </li></ul></li><li class="package">
+            <h3>
+              <a name="PLUMP-PARSER" href="#PLUMP-PARSER">PLUMP-PARSER</a>
+              <span class="nicknames">(ORG.TYMOONNEXT.PLUMP.PARSER)</span>
+            </h3>
+            <ul><li>
+                <a name="PLUMP-PARSER:ADVANCE"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:ADVANCE">ADVANCE</a></h4>
+                      <span></span>
+                      <span></span>
+                    </code>
+                  </header>
+                  <pre>Skips a chracter if possible.
+Returns the new index or NIL.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:ADVANCE-N"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:ADVANCE-N">ADVANCE-N</a></h4>
+                      <span></span>
+                      <span>(N)</span>
+                    </code>
+                  </header>
+                  <pre>Advances by N characters if possible.
+Returns the new *INDEX*.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:CONSUME"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:CONSUME">CONSUME</a></h4>
+                      <span></span>
+                      <span></span>
+                    </code>
+                  </header>
+                  <pre>Consumes a single character if possible and returns it.
+Otherwise returns NIL.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:CONSUME-UNTIL"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:CONSUME-UNTIL">CONSUME-UNTIL</a></h4>
+                      <span></span>
+                      <span>(MATCHER)</span>
+                    </code>
+                  </header>
+                  <pre>Consumes until the provided matcher function returns positively.
+Returns the substring that was consumed.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:DECODE-ENTITIES"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:DECODE-ENTITIES">DECODE-ENTITIES</a></h4>
+                      <span></span>
+                      <span>(TEXT &amp;OPTIONAL REMOVE-INVALID)</span>
+                    </code>
+                  </header>
+                  <pre>Translates all entities in the text into their character counterparts if possible.
+If an entity does not match, it is left in place unless REMOVE-INVALID is non-NIL.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:MATCHER-AND"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:MATCHER-AND">MATCHER-AND</a></h4>
+                      <span></span>
+                      <span>(&amp;REST MATCHERS)</span>
+                    </code>
+                  </header>
+                  <pre>Creates a matcher function that returns if all of the sub-expressions
+return successfully. The last match is returned, if all.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:MATCHER-CHARACTER"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:MATCHER-CHARACTER">MATCHER-CHARACTER</a></h4>
+                      <span></span>
+                      <span>(CHARACTER)</span>
+                    </code>
+                  </header>
+                  <pre>Creates a matcher function that attempts to match the given character.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:MATCHER-FIND"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:MATCHER-FIND">MATCHER-FIND</a></h4>
+                      <span></span>
+                      <span>(LIST)</span>
+                    </code>
+                  </header>
+                  <pre>Creates a matcher function that returns T if the character is found in the given list.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:MATCHER-NEXT"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:MATCHER-NEXT">MATCHER-NEXT</a></h4>
+                      <span></span>
+                      <span>(MATCHER)</span>
+                    </code>
+                  </header>
+                  <pre>Creates a matcher environment that peeks ahead one farther.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:MATCHER-NOT"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:MATCHER-NOT">MATCHER-NOT</a></h4>
+                      <span></span>
+                      <span>(MATCHER)</span>
+                    </code>
+                  </header>
+                  <pre>Creates a matcher function that inverts the result of the sub-expression.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:MATCHER-OR"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:MATCHER-OR">MATCHER-OR</a></h4>
+                      <span></span>
+                      <span>(&amp;REST MATCHERS)</span>
+                    </code>
+                  </header>
+                  <pre>Creates a matcher function that returns successfully if any of the
+sub-expressions return successfully. The first match is returned, if any.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:MATCHER-RANGE"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:MATCHER-RANGE">MATCHER-RANGE</a></h4>
+                      <span></span>
+                      <span>(FROM TO)</span>
+                    </code>
+                  </header>
+                  <pre>Creates a matcher that checks a range according to the next character's CHAR-CODE.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:MATCHER-STRING"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:MATCHER-STRING">MATCHER-STRING</a></h4>
+                      <span></span>
+                      <span>(STRING)</span>
+                    </code>
+                  </header>
+                  <pre>Creates a matcher function that attempts to match the given string.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:PEEK"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:PEEK">PEEK</a></h4>
+                      <span></span>
+                      <span></span>
+                    </code>
+                  </header>
+                  <pre>Returns the next character, if any.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:READ-ATTRIBUTE"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:READ-ATTRIBUTE">READ-ATTRIBUTE</a></h4>
+                      <span></span>
+                      <span></span>
+                    </code>
+                  </header>
+                  <pre>Reads an attribute and returns it as a key value cons.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:READ-ATTRIBUTE-NAME"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:READ-ATTRIBUTE-NAME">READ-ATTRIBUTE-NAME</a></h4>
+                      <span></span>
+                      <span></span>
+                    </code>
+                  </header>
+                  <pre>Reads an attribute name.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:READ-ATTRIBUTE-VALUE"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:READ-ATTRIBUTE-VALUE">READ-ATTRIBUTE-VALUE</a></h4>
+                      <span></span>
+                      <span></span>
+                    </code>
+                  </header>
+                  <pre>Reads an attribute value, either enclosed in quotation marks or until a space or tag end.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:READ-ATTRIBUTES"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:READ-ATTRIBUTES">READ-ATTRIBUTES</a></h4>
+                      <span></span>
+                      <span></span>
+                    </code>
+                  </header>
+                  <pre>Reads as many attributes as possible from a tag and returns them as an attribute map.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:READ-CHILDREN"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:READ-CHILDREN">READ-CHILDREN</a></h4>
+                      <span></span>
+                      <span></span>
+                    </code>
+                  </header>
+                  <pre></pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:READ-NAME"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:READ-NAME">READ-NAME</a></h4>
+                      <span></span>
+                      <span></span>
+                    </code>
+                  </header>
+                  <pre>Reads and returns a tag name.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:READ-ROOT"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:READ-ROOT">READ-ROOT</a></h4>
+                      <span></span>
+                      <span>(&amp;OPTIONAL (ROOT (MAKE-ROOT)))</span>
+                    </code>
+                  </header>
+                  <pre>Creates a root element and reads nodes into it.
+Optionally uses the specified root to append child nodes to.
+Returns the root.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:READ-STANDARD-TAG"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:READ-STANDARD-TAG">READ-STANDARD-TAG</a></h4>
+                      <span></span>
+                      <span>(NAME)</span>
+                    </code>
+                  </header>
+                  <pre>Reads an arbitrary tag and returns it.
+This recurses with READ-CHILDREN.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:READ-TAG"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:READ-TAG">READ-TAG</a></h4>
+                      <span></span>
+                      <span></span>
+                    </code>
+                  </header>
+                  <pre>Attempts to read a tag and dispatches or defaults to READ-STANDARD-TAG.
+Returns the completed node if one can be read.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:READ-TAG-CONTENTS"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:READ-TAG-CONTENTS">READ-TAG-CONTENTS</a></h4>
+                      <span></span>
+                      <span></span>
+                    </code>
+                  </header>
+                  <pre>Reads and reuturns all tag contents. 
+E.g. &lt;foo bar baz&gt; =&gt; bar baz</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:READ-TEXT"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:READ-TEXT">READ-TEXT</a></h4>
+                      <span></span>
+                      <span></span>
+                    </code>
+                  </header>
+                  <pre>Reads and returns a text-node.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:TRANSLATE-ENTITY"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:TRANSLATE-ENTITY">TRANSLATE-ENTITY</a></h4>
+                      <span></span>
+                      <span>(ENTITY)</span>
+                    </code>
+                  </header>
+                  <pre>Translates the given entity identifier (a name, #Dec or #xHex) into their respective strings if possible.
+Otherwise returns NIL.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:UNREAD"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:UNREAD">UNREAD</a></h4>
+                      <span></span>
+                      <span></span>
+                    </code>
+                  </header>
+                  <pre>Steps back a single character if possible.
+Returns the new *INDEX*.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:UNREAD-N"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:UNREAD-N">UNREAD-N</a></h4>
+                      <span></span>
+                      <span>(N)</span>
+                    </code>
+                  </header>
+                  <pre>Steps back by N characters if possible.
+Returns the new *INDEX*.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:PARSE"/>
+                <article>
+                  <header>
+                    <span>GENERIC</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:PARSE">PARSE</a></h4>
+                      <span></span>
+                      <span>(INPUT &amp;KEY ROOT)</span>
+                    </code>
+                  </header>
+                  <pre>Parses the given input into a DOM representation.
+By default, methods for STRING, PATHNAME and STREAM are defined.
+If supplied, the given root is used to append children to as per READ-ROOT.
+Returns the root.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:DEFINE-FULLTEXT-ELEMENT"/>
+                <article>
+                  <header>
+                    <span>MACRO</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:DEFINE-FULLTEXT-ELEMENT">DEFINE-FULLTEXT-ELEMENT</a></h4>
+                      <span></span>
+                      <span>(TAG)</span>
+                    </code>
+                  </header>
+                  <pre></pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:DEFINE-MATCHER"/>
+                <article>
+                  <header>
+                    <span>MACRO</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:DEFINE-MATCHER">DEFINE-MATCHER</a></h4>
+                      <span></span>
+                      <span>(NAME FORM)</span>
+                    </code>
+                  </header>
+                  <pre></pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:DEFINE-SELF-CLOSING-ELEMENT"/>
+                <article>
+                  <header>
+                    <span>MACRO</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:DEFINE-SELF-CLOSING-ELEMENT">DEFINE-SELF-CLOSING-ELEMENT</a></h4>
+                      <span></span>
+                      <span>(TAG)</span>
+                    </code>
+                  </header>
+                  <pre></pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:DEFINE-TAG-DISPATCHER"/>
+                <article>
+                  <header>
+                    <span>MACRO</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:DEFINE-TAG-DISPATCHER">DEFINE-TAG-DISPATCHER</a></h4>
+                      <span></span>
+                      <span>(NAME (TAGVAR) TEST-FORM &amp;BODY BODY)</span>
+                    </code>
+                  </header>
+                  <pre>Defines a new tag dispatcher. It is invoked if TEST-FORM passes.
+TAGVAR is bound to the matched name of the tag.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:MAKE-MATCHER"/>
+                <article>
+                  <header>
+                    <span>MACRO</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:MAKE-MATCHER">MAKE-MATCHER</a></h4>
+                      <span></span>
+                      <span>(FORM)</span>
+                    </code>
+                  </header>
+                  <pre>Macro to create a matcher chain.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:MATCHER-ANY"/>
+                <article>
+                  <header>
+                    <span>MACRO</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:MATCHER-ANY">MATCHER-ANY</a></h4>
+                      <span></span>
+                      <span>(&amp;REST IS)</span>
+                    </code>
+                  </header>
+                  <pre>Shorthand for (or (is a) (is b)..)</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:WITH-LEXER-ENVIRONMENT"/>
+                <article>
+                  <header>
+                    <span>MACRO</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:WITH-LEXER-ENVIRONMENT">WITH-LEXER-ENVIRONMENT</a></h4>
+                      <span></span>
+                      <span>((STRING) &amp;BODY BODY)</span>
+                    </code>
+                  </header>
+                  <pre>Sets up the required lexing environment for the given string.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:*ENTITY-MAP*"/>
+                <article>
+                  <header>
+                    <span>SPECIAL</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:*ENTITY-MAP*">*ENTITY-MAP*</a></h4>
+                      <span></span>
+                      <span></span>
+                    </code>
+                  </header>
+                  <pre>String hash-table containing the entity names and mapping them to their respective characters.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:*ROOT*"/>
+                <article>
+                  <header>
+                    <span>SPECIAL</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:*ROOT*">*ROOT*</a></h4>
+                      <span></span>
+                      <span></span>
+                    </code>
+                  </header>
+                  <pre></pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:*TAG-DISPATCHERS*"/>
+                <article>
+                  <header>
+                    <span>SPECIAL</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:*TAG-DISPATCHERS*">*TAG-DISPATCHERS*</a></h4>
+                      <span></span>
+                      <span></span>
+                    </code>
+                  </header>
+                  <pre>Tag dispatcher functions</pre>
+                </article>
+              </li></ul></li></ul></article></div></body></html>
