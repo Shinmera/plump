@@ -156,6 +156,13 @@ return successfully. The last match is returned, if all."
       (let ((*index* (1+ *index*)))
         (funcall matcher))))
 
+(declaim (ftype (function (function) function) matcher-prev))
+(defun matcher-prev (matcher)
+  "Creates a matcher environment that peeks behind."
+  #'(lambda ()
+      (let ((*index* (1- *index*)))
+        (funcall matcher))))
+
 (defmacro matcher-any (&rest is)
   "Shorthand for (or (is a) (is b)..)"
   `(matcher-or ,@(loop for i in is
@@ -183,6 +190,7 @@ return successfully. The last match is returned, if all."
                          (T 'matcher-string)))
                    (in 'matcher-range)
                    (next 'matcher-next)
+                   (prev 'matcher-prev)
                    (any 'matcher-any)
                    (find 'matcher-find)
                    (T (car form)))

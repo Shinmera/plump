@@ -99,6 +99,7 @@
    #:matcher-and
    #:matcher-not
    #:matcher-next
+   #:matcher-prev
    #:matcher-any
    #:make-matcher
    #:define-matcher)
