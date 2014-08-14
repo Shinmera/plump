@@ -185,13 +185,17 @@ See VECTOR-PUSH-EXTEND-POSITION"
    (1+ (child-position element)))
   new-child)
 
-(defun clone-children (node &key deep)
+(defun clone-children (node &optional deep new-parent)
   "Clone the array of children.
-If DEEP is non-NIL, each child is cloned as per
- (CLONE-NODE :DEEP T) "
+If DEEP is non-NIL, each child is cloned as per (CLONE-NODE NODE T).
+When copying deeply, you can also pass a NEW-PARENT to set on each child."
   (loop with array = (make-array (length (children node)) :adjustable T :fill-pointer 0)
         for child across (children node)
-        do (vector-push (if deep (clone-node child :deep T) child) array)
+        do (vector-push (if deep
+                            (let ((child (clone-node child T)))
+                              (when new-parent (setf (parent child) new-parent))
+                              child)
+                            child) array)
         finally (return array)))
 
 (defun clone-attributes (node)
@@ -203,29 +207,33 @@ Note that keys and values are NOT copied/cloned."
           do (setf (gethash key map) val))
     map))
 
-(defgeneric clone-node (node &key deep)
+(defgeneric clone-node (node &optional deep)
   (:documentation "Clone the given node, creating a new instance with the same contents.
 If DEEP is non-NIL, the following applies:
 The text of COMMENT and TEXT-NODEs is copied as per COPY-SEQ.
-The children of NESTING-NODEs are copied as per (CLONE-CHILDREN :DEEP T)")
-  (:method ((node comment) &key (deep T))
+The children of NESTING-NODEs are copied as per (CLONE-CHILDREN CHILD T)")
+  (:method ((node comment) &optional (deep T))
     (make-instance (class-of node)
                    :parent (parent node)
                    :text (if deep (copy-seq (text node)) (text node))))
-  (:method ((node text-node) &key (deep T))
+  (:method ((node text-node) &optional (deep T))
     (make-instance (class-of node)
                    :parent (parent node)
                    :text (if deep (copy-seq (text node)) (text node))))
-  (:method ((node nesting-node) &key (deep T))
-    (make-instance (class-of node)
-                   :parent (parent node)
-                   :children (clone-children node :deep deep)))
-  (:method ((node element) &key (deep T))
-    (make-instance (class-of node)
-                   :parent (parent node)
-                   :tag-name (tag-name node)
-                   :children (clone-children node :deep deep)
-                   :attributes (clone-attributes node))))
+  (:method ((node nesting-node) &optional (deep T))
+    (let ((clone (make-instance (class-of node)
+                                :parent (parent node)
+                                :children NIL)))
+      (setf (children clone) (clone-children node deep clone))
+      clone))
+  (:method ((node element) &optional (deep T))
+    (let ((clone (make-instance (class-of node)
+                                :parent (parent node)
+                                :tag-name (tag-name node)
+                                :children NIL
+                                :attributes (clone-attributes node))))
+      (setf (children clone) (clone-children node deep clone))
+      clone)))
 
 (defun first-child (element)
   "Returns the first child within the parent or NIL
