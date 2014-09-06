@@ -78,9 +78,13 @@ E.g. <foo bar baz> => bar baz"
   (let ((name (read-attribute-name))
         (next (consume))
         (value ""))
-    (if (and next (char= next #\=))
-        (setf value (read-attribute-value))
-        (unread))
+    (cond
+      ((and next (char= next #\=))
+       (setf value (read-attribute-value)))
+      ((not next)
+       (cons name NIL))
+      (T
+       (unread)))
     (cons name value)))
 
 (defun read-attributes ()
@@ -100,7 +104,7 @@ E.g. <foo bar baz> => bar baz"
   "Reads an arbitrary tag and returns it.
 This recurses with READ-CHILDREN."
   (let* ((closing (consume))
-         (attrs (if (member closing *whitespace* :test #'char=)
+         (attrs (if (member closing *whitespace* :test #'eql)
                     (prog1 (read-attributes)
                       (setf closing (consume)))
                     (make-attribute-map))))
