@@ -123,10 +123,19 @@ Returns the completed node if one can be read."
   (if (and (char= #\< (consume))
            (funcall (make-matcher :name)))   
       (let ((name (read-name)))
-        (loop for (d test func) in *tag-dispatchers*
-              when (funcall (the function test) name)
-                do (return (funcall (the function func) name))
-              finally (return (read-standard-tag name))))
+        (or (loop for (d test func) in *tag-dispatchers*
+                  when (funcall (the function test) name)
+                    do (return (funcall (the function func) name))
+                  finally (return (read-standard-tag name)))
+            (progn ;; It seems we can't parse this tag for some reason,
+              ;; read it as a text node instead. In order to avoid the
+              ;; auto-breaking of the text node on < and a subsequently
+              ;; resulting infinite-loop, don't unwind fully and instead
+              ;; prepend the < manually.
+              (unread-n (length name))
+              (let ((text (read-text)))
+                (setf (text text) (concatenate 'string "<" (text text)))
+                text))))
       (progn (unread) NIL)))
 
 (defun read-root (&optional (root (make-root)))

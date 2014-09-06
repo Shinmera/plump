@@ -15,7 +15,7 @@
 ;; That way the order of the closing tags is
 ;; restored naturally by the reading algorithm.
 (define-tag-dispatcher invalid-closing-tag (name)
-      (char= (elt name 0) #\/)
+      (and (< 0 (length name)) (char= (elt name 0) #\/))
   (consume-until (make-matcher (is #\>)))
   (advance)
   NIL)
