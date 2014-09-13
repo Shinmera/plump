@@ -48,13 +48,14 @@ E.g. <foo bar baz> => bar baz"
    (consume-until (make-matcher :tag-end))))
 
 (defun read-children ()
-  (let ((close-tag (concatenate 'string "</" (tag-name *root*) ">")))
+  (let ((close-tag (concatenate 'string "</" (tag-name *root*))))
     (loop while (peek)
           for match = (funcall (make-matcher (is close-tag)))
           until match
           do (or (read-tag) (read-text))
           finally (when match
-                    (advance-n (length close-tag))))))
+                    (loop for char = (consume)
+                          until (or (not char) (char= char #\>)))))))
 
 (defun read-attribute-value ()
   "Reads an attribute value, either enclosed in quotation marks or until a space or tag end."
