@@ -15,7 +15,7 @@
   (:documentation "Node class that can contain child nodes."))
 
 (defclass child-node (node)
-  ((%parent :initarg :parent :initform (error "Parent required.") :accessor parent :type node))
+  ((%parent :initarg :parent :initform (error "Parent required.") :accessor parent :type (or null node)))
   (:documentation "Node class that is a child and thus has a parent."))
 
 (defclass root (nesting-node)
