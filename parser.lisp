@@ -42,7 +42,7 @@ TAGVAR is bound to the matched name of the tag."
 
 ;; Robustify against strings inside containing >
 (defun read-tag-contents ()
-  "Reads and reuturns all tag contents. 
+  "Reads and returns all tag contents. 
 E.g. <foo bar baz> => bar baz"
   (decode-entities
    (consume-until (make-matcher :tag-end))))
