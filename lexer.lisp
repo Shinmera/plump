@@ -154,6 +154,7 @@ return successfully. The last match is returned, if all."
   "Creates a matcher environment that peeks ahead one farther."
   #'(lambda ()
       (let ((*index* (1+ *index*)))
+	(when (< *index* *length*))
         (funcall matcher))))
 
 (declaim (ftype (function (function) function) matcher-prev))
@@ -161,7 +162,8 @@ return successfully. The last match is returned, if all."
   "Creates a matcher environment that peeks behind."
   #'(lambda ()
       (let ((*index* (1- *index*)))
-        (funcall matcher))))
+	(when (<= 0 *index*)
+	  (funcall matcher)))))
 
 (defmacro matcher-any (&rest is)
   "Shorthand for (or (is a) (is b)..)"
