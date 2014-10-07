@@ -43,6 +43,15 @@
       (advance)) ;; Consume closing
     (make-doctype *root* (string-trim " " declaration))))
 
+;; Special handling for the XML header
+(define-tag-dispatcher xml-header (name)
+      (string-equal name "?xml")
+  (let ((attrs (consume-until (make-matcher (and (is #\?)
+                                                 (next (is #\>)))))))
+    (advance-n 2)
+    (make-xml-header *root* :attributes (with-lexer-environment (attrs)
+                                          (read-attributes)))))
+
 ;; Shorthand macro to define self-closing elements
 (defmacro define-self-closing-element (tag)
   `(define-tag-dispatcher ,tag (name)

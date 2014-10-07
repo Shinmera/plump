@@ -24,6 +24,7 @@
    #:doctype
    #:doctype
    #:fulltext-element
+   #:xml-header
    #:make-child-array
    #:make-attribute-map
    #:make-root
@@ -32,6 +33,7 @@
    #:make-comment
    #:make-doctype
    #:make-fulltext-element
+   #:make-xml-header
    #:clear
    #:siblings
    #:family

@@ -52,6 +52,15 @@
 (defclass fulltext-element (element) ()
   (:documentation "Special DOM element that contains full, un-entitied text like SCRIPT and STYLE."))
 
+(defclass xml-header (child-node)
+  ((%attributes :initarg :attributes :initform (make-attribute-map) :accessor attributes :type hash-table))
+  (:documentation "XML header element"))
+
+(defmethod print-object ((node doctype) stream)
+  (print-unreadable-object (node stream :type T)
+    (format stream "version ~a" (attribute node "version")))
+  node)
+
 (defun make-child-array ()
   "Creates an array to contain child elements"
   (make-array 0 :adjustable T :fill-pointer 0))
@@ -101,6 +110,12 @@ Note that the element is automatically appended to the parent's child list."
     (when text
       (make-text-node element text))
     (append-child parent element)))
+
+(defun make-xml-header (parent &key (attributes (make-attribute-map)))
+  "Creates an XML header object under the parent.
+
+Note that the element is automatically appended to the parent's child list."
+  (append-child parent (make-instance 'xml-header :attributes attributes :parent parent)))
 
 (defun clear (nesting-node)
   "Clears all children from the node.
@@ -472,6 +487,10 @@ attribute."
                   do (format stream "~a" (text child)))
           (format stream "</~a>" (tag-name node)))
         (format stream "/>")))
+  (:method ((node xml-header) &optional (stream *standard-output*))
+    (format stream "<?xml")
+    (serialize (attributes node) stream)
+    (format stream "?>"))
   (:method ((table hash-table) &optional (stream *standard-output*))
     (loop for key being the hash-keys of table
           for val being the hash-values of table
