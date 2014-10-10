@@ -25,6 +25,10 @@ TAGVAR is bound to the matched name of the tag."
            (setf (nth ,posgens *tag-dispatchers*) ,valgens)
            (push ,valgens *tag-dispatchers*)))))
 
+(defun remove-tag-dispatcher (name)
+  (setf *tag-dispatchers*
+        (delete name *tag-dispatchers* :key #'car)))
+
 (define-matcher whitespace (find *whitespace*))
 (define-matcher name (or (in #\a #\z) (in #\? #\Z) (in #\- #\:) (any #\\ #\_ #\! #\# #\[ #\])))
 (define-matcher tag-end (or (and (is #\/) (next (is #\>))) (is #\>)))
