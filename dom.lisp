@@ -69,6 +69,15 @@
   (print-unreadable-object (node stream :type T))
   node)
 
+(defclass processing-instruction (child-node)
+  ((%tag-name :initarg :tag-name :initform NIL :accessor tag-name :type (or null string))
+   (%text :initarg :text :initform "" :accessor text :type string)))
+
+(defmethod print-object ((node processing-instruction) stream)
+  (print-unreadable-object (node stream :type T)
+    (format stream "~@[~a~]" (tag-name node)))
+  node)
+
 (defun make-child-array ()
   "Creates an array to contain child elements"
   (make-array 0 :adjustable T :fill-pointer 0))
@@ -125,11 +134,17 @@ Note that the element is automatically appended to the parent's child list."
 Note that the element is automatically appended to the parent's child list."
   (append-child parent (make-instance 'xml-header :attributes attributes :parent parent)))
 
-(defun make-cdata (parent &key text)
+(defun make-cdata (parent &key (text ""))
   "Creates an XML CDATA section under the parent.
 
 Note that the element is automatically appended to the parent's child list."
   (append-child parent (make-instance 'cdata :text text :parent parent)))
+
+(defun make-processing-instruction (parent &key name (text ""))
+  "Creates an XML processing instruction under the parent.
+
+Note that the element is automatically appended to the parent's child list."
+  (append-child parent (make-instance 'processing-instruction :tag-name name :text text :parent parent)))
 
 (defun clear (nesting-node)
   "Clears all children from the node.
@@ -512,6 +527,8 @@ attribute."
     (format *stream* "?>"))
   (:method ((node cdata))
     (format *stream* "<![CDATA[~a]]>" (text node)))
+  (:method ((node processing-instruction))
+    (format *stream* "<?~@[~a~]~a ?>" (tag-name node) (text node)))
   (:method ((table hash-table))
     (loop for key being the hash-keys of table
           for val being the hash-values of table
