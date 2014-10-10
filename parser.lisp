@@ -26,7 +26,7 @@ TAGVAR is bound to the matched name of the tag."
            (push ,valgens *tag-dispatchers*)))))
 
 (define-matcher whitespace (find *whitespace*))
-(define-matcher name (or (in #\a #\z) (in #\? #\Z) (in #\- #\:) (is #\\) (is #\_) (is #\!) (is #\#)))
+(define-matcher name (or (in #\a #\z) (in #\? #\Z) (in #\- #\:) (any #\\ #\_ #\! #\# #\[ #\])))
 (define-matcher tag-end (or (and (is #\/) (next (is #\>))) (is #\>)))
 
 (defun read-name ()
