@@ -25,6 +25,7 @@
    #:doctype
    #:fulltext-element
    #:xml-header
+   #:cdata
    #:make-child-array
    #:make-attribute-map
    #:make-root
@@ -34,6 +35,7 @@
    #:make-doctype
    #:make-fulltext-element
    #:make-xml-header
+   #:make-cdata
    #:clear
    #:siblings
    #:family
@@ -74,7 +76,8 @@
    #:root-p
    #:nesting-node-p
    #:fulltext-element-p
-   #:serialize))
+   #:serialize
+   #:serialize-object))
 
 (defpackage #:plump-parser
   (:nicknames #:org.tymoonnext.plump.parser)
@@ -85,6 +88,9 @@
    #:decode-entities)
   ;; lexer.lisp
   (:export
+   #:*string*
+   #:*length*
+   #:*index*
    #:with-lexer-environment
    #:consume
    #:advance
