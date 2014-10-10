@@ -56,9 +56,17 @@
   ((%attributes :initarg :attributes :initform (make-attribute-map) :accessor attributes :type hash-table))
   (:documentation "XML header element"))
 
-(defmethod print-object ((node doctype) stream)
+(defmethod print-object ((node xml-header) stream)
   (print-unreadable-object (node stream :type T)
     (format stream "version ~a" (attribute node "version")))
+  node)
+
+(defclass cdata (child-node)
+  ((%text :initarg :text :initform "" :accessor text :type string))
+  (:documentation "XML CDATA section node."))
+
+(defmethod print-object ((node cdata) stream)
+  (print-unreadable-object (node stream :type T))
   node)
 
 (defun make-child-array ()
@@ -116,6 +124,12 @@ Note that the element is automatically appended to the parent's child list."
 
 Note that the element is automatically appended to the parent's child list."
   (append-child parent (make-instance 'xml-header :attributes attributes :parent parent)))
+
+(defun make-cdata (parent &key text)
+  "Creates an XML CDATA section under the parent.
+
+Note that the element is automatically appended to the parent's child list."
+  (append-child parent (make-instance 'cdata :text text :parent parent)))
 
 (defun clear (nesting-node)
   "Clears all children from the node.
@@ -453,51 +467,58 @@ attribute."
   "Returns T If the given object is a FULLTEXT-ELEMENT."
   (typep object 'fulltext-element))
 
+(defvar *stream* *standard-output*)
 (defvar *indent-step* 2)
 (defvar *indent-level* 0)
 (defun indent ()
   (make-string (* *indent-level* *indent-step*) :initial-element #\Space))
 
-(defgeneric serialize (node &optional stream)
-  (:documentation "Serialize the given node and print it to the stream.")
-  (:method ((node text-node) &optional (stream *standard-output*))
-    (format stream "~a" (encode-entities (text node))))
-  (:method ((node doctype) &optional (stream *standard-output*))
-    (format stream "<!DOCTYPE ~a>" (doctype node)))
-  (:method ((node comment) &optional (stream *standard-output*))
-    (format stream "<!--~a-->" (text node)))
-  (:method ((node element) &optional (stream *standard-output*))
-    (format stream "<~a" (tag-name node))
-    (serialize (attributes node) stream)
+(defun serialize (node &optional (stream *standard-output*))
+  (let ((*stream* stream))
+    (serialize-object node)))
+
+(defgeneric serialize-object (node)
+  (:documentation "Serialize the given node and print it to *stream*.")
+  (:method ((node text-node))
+    (format *stream* "~a" (encode-entities (text node))))
+  (:method ((node doctype))
+    (format *stream* "<!DOCTYPE ~a>" (doctype node)))
+  (:method ((node comment))
+    (format *stream* "<!--~a-->" (text node)))
+  (:method ((node element))
+    (format *stream* "<~a" (tag-name node))
+    (serialize (attributes node) *stream*)
     (if (< 0 (length (children node)))
         (progn
-          (format stream ">")
+          (format *stream* ">")
           (loop for child across (children node)
-                do (serialize child stream))
-          (format stream "</~a>" (tag-name node)))
-        (format stream "/>")))
-  (:method ((node fulltext-element) &optional (stream *standard-output*))
-    (format stream "<~a" (tag-name node))
-    (serialize (attributes node) stream)
+                do (serialize child *stream*))
+          (format *stream* "</~a>" (tag-name node)))
+        (format *stream* "/>")))
+  (:method ((node fulltext-element))
+    (format *stream* "<~a" (tag-name node))
+    (serialize (attributes node) *stream*)
     (if (< 0 (length (children node)))
         (progn
-          (format stream ">")
+          (format *stream* ">")
           (loop for child across (children node)
                 when (text-node-p child)
-                  do (format stream "~a" (text child)))
-          (format stream "</~a>" (tag-name node)))
-        (format stream "/>")))
-  (:method ((node xml-header) &optional (stream *standard-output*))
-    (format stream "<?xml")
-    (serialize (attributes node) stream)
-    (format stream "?>"))
-  (:method ((table hash-table) &optional (stream *standard-output*))
+                  do (format *stream* "~a" (text child)))
+          (format *stream* "</~a>" (tag-name node)))
+        (format *stream* "/>")))
+  (:method ((node xml-header))
+    (format *stream* "<?xml")
+    (serialize (attributes node) *stream*)
+    (format *stream* "?>"))
+  (:method ((node cdata))
+    (format *stream* "<![CDATA[~a]]>" (text node)))
+  (:method ((table hash-table))
     (loop for key being the hash-keys of table
           for val being the hash-values of table
-          do (format stream " ~a~@[=~s~]" key (when val (encode-entities val)))))
-  (:method ((node nesting-node) &optional (stream *standard-output*))
+          do (format *stream* " ~a~@[=~s~]" key (when val (encode-entities val)))))
+  (:method ((node nesting-node))
     (loop for child across (children node)
-          do (serialize child stream)))
-  (:method ((nodes vector) &optional (stream *standard-output*))
+          do (serialize child *stream*)))
+  (:method ((nodes vector))
     (loop for child across nodes
-          do (serialize child stream))))
+          do (serialize child *stream*))))
