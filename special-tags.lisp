@@ -52,6 +52,14 @@
     (make-xml-header *root* :attributes (with-lexer-environment (attrs)
                                           (read-attributes)))))
 
+;; Special handling for CDATA sections
+(define-tag-dispatcher cdata (name)
+      (and (<= 8 (length name))
+           (string-equal name "![CDATA[" :end1 8))
+  (let ((text (consume-until (make-matcher (is "]]>")))))
+    (advance-n 3)
+    (make-cdata *root* :text text)))
+
 ;; Shorthand macro to define self-closing elements
 (defmacro define-self-closing-element (tag)
   `(define-tag-dispatcher ,tag (name)
