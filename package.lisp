@@ -25,6 +25,7 @@
    #:doctype
    #:fulltext-element
    #:xml-header
+   #:processing-instruction
    #:cdata
    #:make-child-array
    #:make-attribute-map
@@ -36,6 +37,7 @@
    #:make-fulltext-element
    #:make-xml-header
    #:make-cdata
+   #:make-processing-instruction
    #:clear
    #:siblings
    #:family
@@ -116,6 +118,7 @@
    #:*root*
    #:*tag-dispatchers*
    #:define-tag-dispatcher
+   #:remove-tag-dispatcher
    #:read-name
    #:read-text
    #:read-tag-contents
@@ -128,6 +131,12 @@
    #:read-tag
    #:read-root
    #:parse)
+  ;; processing.lisp
+  (:export
+   #:*processing-parsers*
+   #:processing-parser
+   #:remove-processing-parser
+   #:define-processing-parser)
   ;; special-tags.lisp
   (:export
    #:define-self-closing-element
