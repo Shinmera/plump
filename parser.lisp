@@ -121,7 +121,7 @@ This recurses with READ-CHILDREN."
 (defun read-tag ()
   "Attempts to read a tag and dispatches or defaults to READ-STANDARD-TAG.
 Returns the completed node if one can be read."
-  (if (and (char= #\< (consume))
+  (if (and (char= #\< (or (consume) #\ ))
            (funcall (make-matcher :name)))   
       (let ((name (read-name)))
         (or (loop for (d test func) in *tag-dispatchers*

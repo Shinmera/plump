@@ -51,6 +51,7 @@ Returns the new *INDEX*."
 
 (defun peek ()
   "Returns the next character, if any."
+  (declare (optimize (speed 3) (safety 0)))
   (when (< *index* *length*)
     #+plump-debug-lexer (format T "~a ?~%" *index*)
     (aref *string* *index*)))

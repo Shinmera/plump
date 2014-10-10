@@ -39,7 +39,7 @@
 (define-tag-dispatcher doctype (name)
       (string-equal name "!DOCTYPE")
   (let ((declaration (read-tag-contents)))
-    (when (char= (consume) #\/)
+    (when (char= (or (consume) #\ ) #\/)
       (advance)) ;; Consume closing
     (make-doctype *root* (string-trim " " declaration))))
 
@@ -57,7 +57,7 @@
   `(define-tag-dispatcher ,tag (name)
          (string-equal name ,(string tag))
      (let ((attrs (read-attributes)))
-       (when (char= (consume) #\/)
+       (when (char= (or (consume) #\ ) #\/)
          (advance)) ;; Consume closing
        (make-element *root* ,(string-downcase tag) :attributes attrs))))
 
