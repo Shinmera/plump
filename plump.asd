@@ -24,6 +24,6 @@
                (:file "entities")
                (:file "lexer")
                (:file "parser")
-               (:file "special-tags")
-               (:file "processing"))
+               (:file "processing")
+               (:file "special-tags"))
   :depends-on (:cl-ppcre))
