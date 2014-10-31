@@ -117,9 +117,6 @@
   ;; parser.lisp
   (:export
    #:*root*
-   #:*tag-dispatchers*
-   #:define-tag-dispatcher
-   #:remove-tag-dispatcher
    #:read-name
    #:read-text
    #:read-tag-contents
@@ -140,7 +137,17 @@
   ;; special-tags.lisp
   (:export
    #:define-self-closing-element
-   #:define-fulltext-element))
+   #:define-fulltext-element)
+  ;; tag-dispatcher.lisp
+  (:export
+   #:*tag-dispatchers*
+   #:*xml-tags*
+   #:*html-tags*
+   #:tag-dispatcher
+   #:set-tag-dispatcher
+   #:define-tag-dispatcher
+   #:remove-tag-dispatcher
+   #:do-tag-dispatchers))
 
 (defpackage #:plump
   (:nicknames #:org.tymoonnext.plump)

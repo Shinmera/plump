@@ -11,25 +11,6 @@
     "List containing all whitespace characters."))
 (defvar *root*)
 (setf (documentation '*root* 'variable) "Object containing the current node to set as parent.")
-(defvar *tag-dispatchers* () "Tag dispatcher functions")
-
-(defmacro define-tag-dispatcher (name (tagvar) test-form &body body)
-  "Defines a new tag dispatcher. It is invoked if TEST-FORM passes.
-TAGVAR is bound to the matched name of the tag."
-  (let ((namegens (gensym "NAME")) (posgens (gensym "POSITION")) (valgens (gensym "VALUE")))
-    `(let* ((,namegens ',name)
-            (,valgens (list ,namegens
-                            #'(lambda (,tagvar) ,test-form)
-                            #'(lambda (,tagvar) (declare (ignorable ,tagvar)) ,@body)))
-            (,posgens (position ,namegens *tag-dispatchers* :key #'first)))
-       (if ,posgens
-           (setf (nth ,posgens *tag-dispatchers*) ,valgens)
-           (push ,valgens *tag-dispatchers*)))))
-
-(defun remove-tag-dispatcher (name)
-  "Removes the tag dispatcher of NAME."
-  (setf *tag-dispatchers*
-        (delete name *tag-dispatchers* :key #'car)))
 
 (define-matcher whitespace (find *whitespace*))
 (define-matcher name (or (in #\a #\z) (in #\? #\Z) (in #\- #\:) (any #\\ #\_ #\! #\# #\[ #\])))
@@ -131,10 +112,9 @@ Returns the completed node if one can be read."
   (if (and (char= #\< (or (consume) #\ ))
            (funcall (make-matcher :name)))   
       (let ((name (read-name)))
-        (or (loop for (d test func) in *tag-dispatchers*
-                  when (funcall (the function test) name)
-                    do (return (funcall (the function func) name))
-                  finally (return (read-standard-tag name)))
+        (or (do-tag-dispatchers (test func (read-standard-tag name))
+              (when (funcall (the function test) name)
+                (return (funcall (the function func) name))))
             (progn ;; It seems we can't parse this tag for some reason,
               ;; read it as a text node instead. In order to avoid the
               ;; auto-breaking of the text node on < and a subsequently
