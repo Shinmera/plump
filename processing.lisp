@@ -9,7 +9,7 @@
 (defvar *processing-parsers* (make-hash-table :test 'equalp))
 
 (defun processing-parser (process-name)
-  "Return the processing-parser function for PROCESS-NAME."
+  "Return the processing-parser function for PROCESS-NAME. SETF-able."
   (gethash process-name *processing-parsers*))
 
 (defun (setf processing-parser) (func process-name)

@@ -62,6 +62,7 @@
 
 ;; Shorthand macro to define self-closing elements
 (defmacro define-self-closing-element (tag)
+  "Defines an element that does not need to be closed with /> and cannot contain child nodes."
   `(define-tag-dispatcher ,tag (name)
          (string-equal name ,(string tag))
      (let ((attrs (read-attributes)))
@@ -90,6 +91,9 @@
 
 ;; Some tags accept arbitrary text and no sub-elements.
 (defmacro define-fulltext-element (tag)
+  "Defines an element to be read as a full-text element.
+This means that it cannot contain any child-nodes and everything up until its closing
+tag is used as its text."
   (let ((name (string-downcase tag)))
     `(define-tag-dispatcher ,tag (name) (string-equal name ,name)
        (let* ((closing (consume))

@@ -5,9 +5,12 @@
 |#
 
 (in-package #:org.tymoonnext.plump)
-(defvar *string* "Contains the current string to lex.")
-(defvar *length* 0 "Set to the length of the string for bounds checking.")
-(defvar *index* 0 "Set to the current reading index.")
+(defvar *string*)
+(defvar *length*)
+(defvar *index*)
+(setf (documentation '*string* 'variable) "Contains the current string to lex.")
+(setf (documentation '*length* 'variable) "Set to the length of the string for bounds checking.")
+(setf (documentation '*index* 'variable) "Set to the current reading index.")
 (defvar *matchers* (make-hash-table) "Hash table containing matching rules.")
 (declaim (fixnum *length* *index*)
          (simple-string *string*)
@@ -201,4 +204,5 @@ return successfully. The last match is returned, if all."
     (transform form)))
 
 (defmacro define-matcher (name form)
+  "Associates NAME as a keyword to the matcher form. You can then use the keyword in further matcher rules."
   `(setf (gethash ,(intern (string name) "KEYWORD") *matchers*) (make-matcher ,form)))

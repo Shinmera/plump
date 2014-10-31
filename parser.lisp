@@ -9,7 +9,8 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defvar *whitespace* '(#\Space #\Newline #\Tab #\Return #\Linefeed #\Page)
     "List containing all whitespace characters."))
-(defvar *root* "Object containing the current node to set as parent.")
+(defvar *root*)
+(setf (documentation '*root* 'variable) "Object containing the current node to set as parent.")
 (defvar *tag-dispatchers* () "Tag dispatcher functions")
 
 (defmacro define-tag-dispatcher (name (tagvar) test-form &body body)
@@ -26,6 +27,7 @@ TAGVAR is bound to the matched name of the tag."
            (push ,valgens *tag-dispatchers*)))))
 
 (defun remove-tag-dispatcher (name)
+  "Removes the tag dispatcher of NAME."
   (setf *tag-dispatchers*
         (delete name *tag-dispatchers* :key #'car)))
 
@@ -52,6 +54,7 @@ E.g. <foo bar baz> => bar baz"
    (consume-until (make-matcher :tag-end))))
 
 (defun read-children ()
+  "Read all children of the current *root* until the closing tag for *root* is encountered."
   (let ((close-tag (concatenate 'string "</" (tag-name *root*))))
     (loop while (peek)
           for match = (funcall (make-matcher (is close-tag)))
