@@ -10,7 +10,7 @@
 
 (defsystem plump
   :name "Practically Lenient and Unimpressive Markup Parser"
-  :version "0.1.13"
+  :version "0.1.14"
   :license "Artistic"
   :author "Nicolas Hafner <shinmera@tymoon.eu>"
   :maintainer "Nicolas Hafner <shinmera@tymoon.eu>"
@@ -23,6 +23,7 @@
                (:file "dom")
                (:file "entities")
                (:file "lexer")
+               (:file "tag-dispatcher")
                (:file "parser")
                (:file "processing")
                (:file "special-tags"))
