@@ -31,7 +31,7 @@ The closing tag (?>) should NOT be consumed by a processing-parser."
          #'(lambda () ,@body)))
 
 ;; Special handling for processing instructions
-(define-tag-dispatcher process (name)
+(define-tag-dispatcher (process *xml-tags* *html-tags*) (name)
       (and (<= 1 (length name))
            (char= (aref name 0) #\?))
   (let* ((name (subseq name 1))

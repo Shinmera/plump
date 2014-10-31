@@ -14,7 +14,7 @@
 ;; handled by this, which are best left ignored.
 ;; That way the order of the closing tags is
 ;; restored naturally by the reading algorithm.
-(define-tag-dispatcher invalid-closing-tag (name)
+(define-tag-dispatcher (invalid-closing-tag *tag-dispatchers* *xml-tags* *html-tags*) (name)
       (and (< 0 (length name)) (char= (elt name 0) #\/))
   (consume-until (make-matcher (is #\>)))
   (advance)
@@ -24,7 +24,7 @@
 ;; with a bit of grace, but having the inner content
 ;; be read in the best way possible is hard to get
 ;; right due to various commenting styles.
-(define-tag-dispatcher comment (name)
+(define-tag-dispatcher (comment *tag-dispatchers* *xml-tags* *html-tags*) (name)
       (and (<= 3 (length name))
            (string= name "!--" :end1 3))
   (prog1 (make-comment
@@ -36,7 +36,7 @@
     (advance-n 3)))
 
 ;; Special handling for the doctype tag
-(define-tag-dispatcher doctype (name)
+(define-tag-dispatcher (doctype *tag-dispatchers* *xml-tags* *html-tags*) (name)
       (string-equal name "!DOCTYPE")
   (let ((declaration (read-tag-contents)))
     (when (char= (or (consume) #\ ) #\/)
@@ -44,7 +44,7 @@
     (make-doctype *root* (string-trim " " declaration))))
 
 ;; Special handling for the XML header
-(define-tag-dispatcher xml-header (name)
+(define-tag-dispatcher (xml-header *tag-dispatchers* *xml-tags*) (name)
       (string-equal name "?xml")
   (let ((attrs (consume-until (make-matcher (and (is #\?)
                                                  (next (is #\>)))))))
@@ -53,7 +53,7 @@
                                           (read-attributes)))))
 
 ;; Special handling for CDATA sections
-(define-tag-dispatcher cdata (name)
+(define-tag-dispatcher (cdata *tag-dispatchers* *xml-tags*) (name)
       (and (<= 8 (length name))
            (string-equal name "![CDATA[" :end1 8))
   (let ((text (consume-until (make-matcher (is "]]>")))))
@@ -61,9 +61,9 @@
     (make-cdata *root* :text text)))
 
 ;; Shorthand macro to define self-closing elements
-(defmacro define-self-closing-element (tag)
+(defmacro define-self-closing-element (tag &rest lists)
   "Defines an element that does not need to be closed with /> and cannot contain child nodes."
-  `(define-tag-dispatcher ,tag (name)
+  `(define-tag-dispatcher (,tag ,@lists) (name)
          (string-equal name ,(string tag))
      (let ((attrs (read-attributes)))
        (when (char= (or (consume) #\ ) #\/)
@@ -72,30 +72,17 @@
 
 ;; According to http://www.w3.org/html/wg/drafts/html/master/syntax.html#void-elements
 ;; area, base, br, col, embed, hr, img, input, keygen, link, menuitem, meta, param, source, track, wbr
-(define-self-closing-element area)
-(define-self-closing-element base)
-(define-self-closing-element br)
-(define-self-closing-element col)
-(define-self-closing-element embed)
-(define-self-closing-element hr)
-(define-self-closing-element img)
-(define-self-closing-element input)
-(define-self-closing-element keygen)
-(define-self-closing-element link)
-(define-self-closing-element menuitem)
-(define-self-closing-element meta)
-(define-self-closing-element param)
-(define-self-closing-element source)
-(define-self-closing-element track)
-(define-self-closing-element wbr)
+(macrolet ((define-all (&rest tags)
+             `(progn ,@(loop for tag in tags collect `(define-self-closing-element ,tag *tag-dispatchers* *html-tags*)))))
+  (define-all area base br col embed hr img input keygen link menuitem meta param source track wbr))
 
 ;; Some tags accept arbitrary text and no sub-elements.
-(defmacro define-fulltext-element (tag)
+(defmacro define-fulltext-element (tag &rest lists)
   "Defines an element to be read as a full-text element.
 This means that it cannot contain any child-nodes and everything up until its closing
 tag is used as its text."
   (let ((name (string-downcase tag)))
-    `(define-tag-dispatcher ,tag (name) (string-equal name ,name)
+    `(define-tag-dispatcher (,tag ,@lists) (name) (string-equal name ,name)
        (let* ((closing (consume))
               (attrs (if (char= closing #\Space)
                          (prog1 (read-attributes)
@@ -111,5 +98,5 @@ tag is used as its text."
               (advance-n ,(length (format NIL "</~a>" name)))
               *root*)))))))
 
-(define-fulltext-element style)
-(define-fulltext-element script)
+(define-fulltext-element style *tag-dispatchers* *html-tags*)
+(define-fulltext-element script *tag-dispatchers* *html-tags*)
