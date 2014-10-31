@@ -71,7 +71,8 @@
 
 (defclass processing-instruction (child-node)
   ((%tag-name :initarg :tag-name :initform NIL :accessor tag-name :type (or null string))
-   (%text :initarg :text :initform "" :accessor text :type string)))
+   (%text :initarg :text :initform "" :accessor text :type string))
+  (:documentation "XML processing instruction node."))
 
 (defmethod print-object ((node processing-instruction) stream)
   (print-unreadable-object (node stream :type T)
@@ -482,15 +483,21 @@ attribute."
   "Returns T If the given object is a FULLTEXT-ELEMENT."
   (typep object 'fulltext-element))
 
-(defvar *stream* *standard-output*)
-(defvar *indent-step* 2)
-(defvar *indent-level* 0)
-(defun indent ()
-  (make-string (* *indent-level* *indent-step*) :initial-element #\Space))
+(defvar *stream* *standard-output*
+  "The stream to serialize to during SERIALIZE-OBJECT.")
 
-(defun serialize (node &optional (stream *standard-output*))
-  (let ((*stream* stream))
-    (serialize-object node)))
+(defun serialize (node &optional (stream T))
+  "Serializes NODE to STREAM.
+STREAM can be a stream, T for *standard-output* or NIL to serialize to string."
+  (cond ((eql stream T)
+         (let ((*stream* *standard-output*))
+           (serialize-object node)))
+        ((eql stream NIL)
+         (with-output-to-string (*stream*)
+           (serialize-object node)))
+        (T
+         (let ((*stream* stream))
+           (serialize-object node)))))
 
 (defgeneric serialize-object (node)
   (:documentation "Serialize the given node and print it to *stream*.")
