@@ -8,7 +8,7 @@
       h1{display:inline-block;font-size: 28pt;margin-bottom:0;}
       code{font-family: Consolas, Inconsolata, monospace;}
       h4{display: inline-block;margin:0;padding:0;}
-      ul{list-style: none;}
+      #symbol-index ul{list-style: none;}
       .package li{margin-bottom: 20px;}
       .package pre{margin: 0 0 0 10px; white-space: pre-wrap;}
       .package .nicknames{font-size: 12pt; font-weight: normal;}
@@ -18,13 +18,13 @@
   </head>
   <body>
     <header>
-      <h1><img src="plump-logo.png" alt="plump"/></h1>
-      <span>0.1.12</span>
+      <h1>plump</h1>
+      <span>0.1.14</span>
       <p>An X/HTML parser that aims to be as lenient as possible.</p>
     </header>
     <div id="content">
       <article>
-        <documentate>
+        <c:documentate>
           <span><h2>What is Plump?</h2>
 
 <p>Plump is a parser for HTML/XML like documents, focusing on being lenient towards invalid markup. It can handle things like invalid attributes, bad closing tag order, unencoded entities, inexistent tag types, self-closing tags and so on. It parses documents to a class representation and offers a small set of DOM functions to manipulate it. You are free to change it to parse to your own classes though.</p>
@@ -33,51 +33,96 @@
 
 <p>Load Plump through Quicklisp or ASDF:</p>
 
-<pre><code>(ql:quickload :plump)</code></pre>
+<pre><code>(ql:quickload :plump)
+</code></pre>
 
 <p>Using the <code><a href="#PLUMP-PARSER:PARSE">PARSE</a></code> function, plump will transform a string, pathname or stream into a document:</p>
 
-<pre><code>(<a href="#PLUMP-PARSER:PARSE">plump:parse</a> &quot;&lt;foo&gt;&lt;bar this is=\&quot;a thing\&quot;&gt;baz&lt;/bar&gt;&lt;span id=\&quot;test\&quot;&gt;oh my&quot;)</code></pre>
+<pre><code>(<a href="#PLUMP-PARSER:PARSE">plump:parse</a> &quot;&lt;foo&gt;&lt;bar this is=\&quot;a thing\&quot;&gt;baz&lt;/bar&gt;&lt;span id=\&quot;test\&quot;&gt;oh my&quot;)
+</code></pre>
 
 <p>This returns a root node. If you want to append a document to a root node (or any other node that accepts children) that you've made, you can pass it into the parse function. To return the document into a readable form, you can call <code><a href="#PLUMP-DOM:SERIALIZE">SERIALIZE</a></code>:</p>
 
-<pre><code>(<a href="#PLUMP-DOM:SERIALIZE">plump:serialize</a> *)</code></pre>
+<pre><code>(<a href="#PLUMP-DOM:SERIALIZE">plump:serialize</a> *)
+</code></pre>
 
 <p>Using the DOM you can easily traverse the document and change it:</p>
 
 <pre><code>(<a href="#PLUMP-DOM:REMOVE-CHILD">plump:remove-child</a> (<a href="#PLUMP-DOM:GET-ELEMENT-BY-ID">plump:get-element-by-id</a> ** &quot;test&quot;))
-(<a href="#PLUMP-DOM:SERIALIZE">plump:serialize</a> ***)</code></pre>
+(<a href="#PLUMP-DOM:SERIALIZE">plump:serialize</a> ***)
+</code></pre>
 
-<p>By default plump includes a few special tag dispatchers to catch HTML oddities like doctype, self-closing tags and comments. Especially the self-closing tags can lead to problems in XML documents. In order to parse without any HTML &quot;tricks&quot;, you can simply bind <code><a href="#PLUMP-PARSER:*TAG-DISPATCHERS*">*TAG-DISPATCHERS*</a></code> to NIL before parsing.</p>
+<p>By default plump includes a few special tag dispatchers to catch HTML oddities like self-closing tags and fulltext-nodes. Especially the self-closing tags can lead to problems in XML documents. In order to parse without any HTML &quot;tricks&quot;, you can simply do:</p>
 
-<pre><code>(<a href="http://l1sp.org/cl/LET">let</a> (<a href="#PLUMP-PARSER:*TAG-DISPATCHERS*">(plump:*tag-dispatchers*</a> ())) (<a href="#PLUMP-PARSER:PARSE">plump:parse</a> &quot;&lt;link&gt;foo&lt;/link&gt;&quot;))</code></pre>
+<pre><code>(<a href="http://l1sp.org/cl/let">let</a> (<a href="#PLUMP-PARSER:*TAG-DISPATCHERS*">(plump:*tag-dispatchers*</a> plump:*xml-tags*)) (<a href="#PLUMP-PARSER:PARSE">plump:parse</a> &quot;&lt;link&gt;foo&lt;/link&gt;&quot;))
+</code></pre>
 
 <h2>Extending Plump</h2>
 
-<p>If you want to handle a certain tag in a special way, you can write your own tag-dispatcher. For example comments, the doctype and self-closing tags are handled in this fashion by default. </p>
+<p>If you want to handle a certain tag in a special way, you can write your own tag-dispatcher. For example comments, the doctype and self-closing tags are handled in this fashion. In order to properly hook in, you will have to learn to use Plump's lexer (see next section).</p>
 
-<pre><code>(<a href="#PLUMP-PARSER:DEFINE-TAG-DISPATCHER">plump:define-tag-dispatcher</a> my-dispatcher (name)
-    (<a href="http://l1sp.org/cl/STRING-EQUAL">string-equal</a> name &quot;my-tag&quot;)
-  (<a href="http://l1sp.org/cl/LET">let</a> ((attrs (<a href="#PLUMP-PARSER:READ-ATTRIBUTES">plump:read-attributes</a>)))
-    (<a href="http://l1sp.org/cl/WHEN">when</a> (<a href="http://l1sp.org/cl/CHAR=">char=</a> (<a href="#PLUMP-PARSER:CONSUME">plump:consume</a>) #\/)
+<pre><code>(<a href="#PLUMP-PARSER:DEFINE-TAG-DISPATCHER">plump:define-tag-dispatcher</a> (my-dispatcher *tag-dispatchers*) (name)
+    (<a href="http://l1sp.org/cl/string-equal">string-equal</a> name &quot;my-tag&quot;)
+  (<a href="http://l1sp.org/cl/let">let</a> ((attrs (<a href="#PLUMP-PARSER:READ-ATTRIBUTES">plump:read-attributes</a>)))
+    (<a href="http://l1sp.org/cl/when">when</a> (<a href="http://l1sp.org/cl/char=">char=</a> (<a href="#PLUMP-PARSER:CONSUME">plump:consume</a>) #\/)
       (<a href="#PLUMP-PARSER:CONSUME">plump:consume</a>)) ;; Consume closing
-    (<a href="http://l1sp.org/cl/MAKE-INSTANCE">make-instance</a> 'my-tag :parent plump:*root* :attributes attrs)))</code></pre>
+    (<a href="http://l1sp.org/cl/make-instance">make-instance</a> 'my-tag :parent plump:*root* :attributes attrs)))
+</code></pre>
 
-<p>During parsing, all elements are created through the functions <code><a href="#PLUMP-DOM:MAKE-ROOT">MAKE-ROOT</a></code>, <code><a href="#PLUMP-DOM:MAKE-ELEMENT">MAKE-ELEMENT</a></code>, <code><a href="#PLUMP-DOM:MAKE-TEXT-NODE">MAKE-TEXT-NODE</a></code>, and <code><a href="#PLUMP-DOM:MAKE-COMMENT">MAKE-COMMENT</a></code>. By overriding these functions you can instead delegate the parsing to your own DOM.</p>
+<p>If you don't want to disturb the standard Plump tag dispatchers list, you can define your own special variable to contain the dispatchers and bind <code><a href="#PLUMP-PARSER:*TAG-DISPATCHERS*">*tag-dispatchers*</a></code> to that during parsing, as shown for the XML example above. Shorthand macros exist to define self-closing or full-text tags:</p>
+
+<pre><code>(<a href="#PLUMP-PARSER:DEFINE-SELF-CLOSING-ELEMENT">plump:define-self-closing-element</a> img *tag-dispatchers* *html-tags*)
+(<a href="#PLUMP-PARSER:DEFINE-FULLTEXT-ELEMENT">plump:define-fulltext-element</a> style *tag-dispatchers* *html-tags*)
+</code></pre>
+
+<p>XML allows for script tags (like <code>&lt;?php ?&gt;</code>). By default Plump does not specify any special reading for any script tag. If an unhandled script tag is encountered, a warning is emitted and Plump will try to just read anything until <code>?&gt;</code> is encountered. For most script tags this probably will not suffice, as they might contain some form of escaped <code>?&gt;</code>. If you do want to use Plump to process script tags properly as well, you will have to define your own reader with <code><a href="#PLUMP-PARSER:DEFINE-PROCESSING-PARSER">define-processing-parser</a></code>. You can also use that macro to define a reader that outputs a more suitable format than a text tag.</p>
+
+<p>During parsing, all elements are created through <code>MAKE-*</code> functions like <code><a href="#PLUMP-DOM:MAKE-ROOT">MAKE-ROOT</a></code>, <code><a href="#PLUMP-DOM:MAKE-ELEMENT">MAKE-ELEMENT</a></code>, <code><a href="#PLUMP-DOM:MAKE-TEXT-NODE">MAKE-TEXT-NODE</a></code>, and so on. By overriding these functions you can instead delegate the parsing to your own DOM.</p>
+
+<p>If you subclass the DOM classes, you might want to define a method on <code><a href="#PLUMP-DOM:SERIALIZE-OBJECT">SERIALIZE-OBJECT</a></code> to produce the right output.</p>
+
+<h2>Plump's Lexer</h2>
+
+<p>Since parser generators are good for strict grammars and Plump needed to be fast and lenient, it comes with its own primitive reading/lexing mechanisms. All the lexer primitives are defined in <code>lexer.lisp</code> and you can leverage them for your own projects as well, if you so desire.</p>
+
+<p>In order to allow the lexing to work, you'll have to wrap your processing code in <code><a href="#PLUMP-PARSER:WITH-LEXER-ENVIRONMENT">with-lexer-environment</a></code>. You can then use functions like <code><a href="#PLUMP-PARSER:CONSUME">consume</a></code>, <code><a href="#PLUMP-PARSER:ADVANCE">advance</a></code>, <code><a href="#PLUMP-PARSER:UNREAD">unread</a></code>, <code><a href="#PLUMP-PARSER:PEEK">peek</a></code> and <code><a href="#PLUMP-PARSER:CONSUME-UNTIL">consume-until</a></code> to process the input.</p>
+
+<p><code><a href="#PLUMP-PARSER:MAKE-MATCHER">make-matcher</a></code> allows you to use a very simple language to define matching operations. This will evaluate to a function with no arguments that should return <code>T</code> if it matches and <code>NIL</code> otherwise. Combining matchers with <code><a href="#PLUMP-PARSER:CONSUME-UNTIL">consume-until</a></code> allows you to easily make sequence readers:</p>
+
+<pre><code>(<a href="#PLUMP-PARSER:WITH-LEXER-ENVIRONMENT">plump:with-lexer-environment</a> (&quot;&lt;foo&gt;&quot;)
+  (<a href="http://l1sp.org/cl/when">when</a> (<a href="http://l1sp.org/cl/char=">char=</a> #\&lt; (<a href="#PLUMP-PARSER:CONSUME">plump:consume</a>))
+    (<a href="#PLUMP-PARSER:CONSUME-UNTIL">plump:consume-until</a> (<a href="#PLUMP-PARSER:MAKE-MATCHER">plump:make-matcher</a> (is #\&gt;)))))
+</code></pre>
+
+<p>Available matcher constructs are <code><a href="http://l1sp.org/cl/not">not</a></code>, <code><a href="http://l1sp.org/cl/and">and</a></code>, <code><a href="http://l1sp.org/cl/or">or</a></code>, <code>is</code>, <code>in</code>, <code>next</code>, <code>prev</code>, <code>any</code>, and <code><a href="http://l1sp.org/cl/find">find</a></code>. <code><a href="#PLUMP-PARSER:DEFINE-MATCHER">define-matcher</a></code> allows you to associate keywords to matchers, which you can then use as a matcher rule in <code><a href="#PLUMP-PARSER:MAKE-MATCHER">make-matcher</a></code>. Regular symbols act as variables:</p>
+
+<pre><code>(<a href="http://l1sp.org/cl/let">let</a> ((find &quot;baz&quot;))
+  (<a href="#PLUMP-PARSER:WITH-LEXER-ENVIRONMENT">plump:with-lexer-environment</a> (&quot;foo bar baz&quot;)
+     (<a href="#PLUMP-PARSER:CONSUME-UNTIL">plump:consume-until</a> (<a href="#PLUMP-PARSER:MAKE-MATCHER">plump:make-matcher</a> (is find)))))
+</code></pre>
 
 <h2>Speed</h2>
 
 <p><img src="http://shinmera.tymoon.eu/public/plump-benchmark.png" alt="benchmark"/></p>
 
 <p>If you know of other native-lisp libraries that beat Plump, please do let me know, I would be very interested!</p>
+
+<h2>See Also</h2>
+
+<ul>
+<li><a href="https://shinmera.github.io/lquery/">lQuery</a> Dissect and manipulate the DOM with jQuery-like commands.</li>
+<li><a href="https://shinmera.github.io/CLSS/">CLSS</a> Traverse the DOM by CSS selectors.</li>
+<li><a href="https://github.com/Shinmera/plump-tex">plump-tex</a> Serialize between TeX and the Plump DOM.</li>
+<li><a href="https://github.com/Shinmera/plump-sexp">plump-sexp</a> Serialize between SEXPrs and the Plump DOM.</li>
+</ul>
 </span>
-        </documentate>
+        </c:documentate>
       </article>
       <article>
         <h2>Copyright</h2>
         <span>plump</span> is licensed under the <span><a href="https://tldrlegal.com/search?q=Artistic">Artistic</a></span> license and ©<span>2014</span> <span>Nicolas Hafner &lt;shinmera@tymoon.eu&gt;</span>. This library can be obtained on <a href="https://github.com/Shinmera/plump">https://github.com/Shinmera/plump</a>.
       </article>
-      <article>
+      <article id="symbol-index">
         <h2>Package Index</h2>
         <ul><li class="package">
             <h3>
@@ -85,14 +130,27 @@
               <span class="nicknames">(ORG.TYMOONNEXT.PLUMP.DOM)</span>
             </h3>
             <ul><li>
+                <a name="PLUMP-DOM:CDATA"/>
+                <article>
+                  <header>
+                    <span>CLASS</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:CDATA">CDATA</a></h4>
+                      <span/>
+                      <span/>
+                    </code>
+                  </header>
+                  <pre>XML CDATA section node.</pre>
+                </article>
+              </li><li>
                 <a name="PLUMP-DOM:CHILD-NODE"/>
                 <article>
                   <header>
                     <span>CLASS</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:CHILD-NODE">CHILD-NODE</a></h4>
-                      <span></span>
-                      <span></span>
+                      <span/>
+                      <span/>
                     </code>
                   </header>
                   <pre>Node class that is a child and thus has a parent.</pre>
@@ -104,8 +162,8 @@
                     <span>CLASS</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:COMMENT">COMMENT</a></h4>
-                      <span></span>
-                      <span></span>
+                      <span/>
+                      <span/>
                     </code>
                   </header>
                   <pre>Comment node that can only contain a single comment string.</pre>
@@ -117,8 +175,8 @@
                     <span>CLASS</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:DOCTYPE">DOCTYPE</a></h4>
-                      <span></span>
-                      <span></span>
+                      <span/>
+                      <span/>
                     </code>
                   </header>
                   <pre>Special DOM node for the doctype declaration.</pre>
@@ -130,8 +188,8 @@
                     <span>CLASS</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:ELEMENT">ELEMENT</a></h4>
-                      <span></span>
-                      <span></span>
+                      <span/>
+                      <span/>
                     </code>
                   </header>
                   <pre>Standard DOM element/block including attributes, tag-name, parent and children.</pre>
@@ -143,8 +201,8 @@
                     <span>CLASS</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:FULLTEXT-ELEMENT">FULLTEXT-ELEMENT</a></h4>
-                      <span></span>
-                      <span></span>
+                      <span/>
+                      <span/>
                     </code>
                   </header>
                   <pre>Special DOM element that contains full, un-entitied text like SCRIPT and STYLE.</pre>
@@ -156,8 +214,8 @@
                     <span>CLASS</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:NESTING-NODE">NESTING-NODE</a></h4>
-                      <span></span>
-                      <span></span>
+                      <span/>
+                      <span/>
                     </code>
                   </header>
                   <pre>Node class that can contain child nodes.</pre>
@@ -169,11 +227,24 @@
                     <span>CLASS</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:NODE">NODE</a></h4>
-                      <span></span>
-                      <span></span>
+                      <span/>
+                      <span/>
                     </code>
                   </header>
                   <pre>Base DOM node class.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:PROCESSING-INSTRUCTION"/>
+                <article>
+                  <header>
+                    <span>CLASS</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:PROCESSING-INSTRUCTION">PROCESSING-INSTRUCTION</a></h4>
+                      <span/>
+                      <span/>
+                    </code>
+                  </header>
+                  <pre>XML processing instruction node.</pre>
                 </article>
               </li><li>
                 <a name="PLUMP-DOM:ROOT"/>
@@ -182,8 +253,8 @@
                     <span>CLASS</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:ROOT">ROOT</a></h4>
-                      <span></span>
-                      <span></span>
+                      <span/>
+                      <span/>
                     </code>
                   </header>
                   <pre>Root DOM node, practically equivalent to a &quot;document&quot;.</pre>
@@ -195,11 +266,24 @@
                     <span>CLASS</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:TEXT-NODE">TEXT-NODE</a></h4>
-                      <span></span>
-                      <span></span>
+                      <span/>
+                      <span/>
                     </code>
                   </header>
                   <pre>Text node that can only contain a single text string.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:XML-HEADER"/>
+                <article>
+                  <header>
+                    <span>CLASS</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:XML-HEADER">XML-HEADER</a></h4>
+                      <span/>
+                      <span/>
+                    </code>
+                  </header>
+                  <pre>XML header element</pre>
                 </article>
               </li><li>
                 <a name="PLUMP-DOM:APPEND-CHILD"/>
@@ -208,7 +292,7 @@
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:APPEND-CHILD">APPEND-CHILD</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(PARENT CHILD)</span>
                     </code>
                   </header>
@@ -222,7 +306,7 @@ Returns the child.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:ATTRIBUTE">ATTRIBUTE</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(ELEMENT ATTRIBUTE)</span>
                     </code>
                   </header>
@@ -237,7 +321,7 @@ second return value is set to NIL.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:CHILD-ELEMENTS">CHILD-ELEMENTS</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(NESTING-NODE)</span>
                     </code>
                   </header>
@@ -250,7 +334,7 @@ second return value is set to NIL.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:CHILD-POSITION">CHILD-POSITION</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(CHILD)</span>
                     </code>
                   </header>
@@ -263,7 +347,7 @@ second return value is set to NIL.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:CLEAR">CLEAR</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(NESTING-NODE)</span>
                     </code>
                   </header>
@@ -278,7 +362,7 @@ Noe that the PARENT of all child elements is set to NIL.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:CLONE-ATTRIBUTES">CLONE-ATTRIBUTES</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(NODE)</span>
                     </code>
                   </header>
@@ -292,13 +376,13 @@ Note that keys and values are NOT copied/cloned.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:CLONE-CHILDREN">CLONE-CHILDREN</a></h4>
-                      <span></span>
-                      <span>(NODE &amp;KEY DEEP)</span>
+                      <span/>
+                      <span>(NODE &amp;OPTIONAL DEEP NEW-PARENT)</span>
                     </code>
                   </header>
                   <pre>Clone the array of children.
-If DEEP is non-NIL, each child is cloned as per
- (CLONE-NODE :DEEP T) </pre>
+If DEEP is non-NIL, each child is cloned as per (CLONE-NODE NODE T).
+When copying deeply, you can also pass a NEW-PARENT to set on each child.</pre>
                 </article>
               </li><li>
                 <a name="PLUMP-DOM:COMMENT-P"/>
@@ -307,7 +391,7 @@ If DEEP is non-NIL, each child is cloned as per
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:COMMENT-P">COMMENT-P</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(OBJECT)</span>
                     </code>
                   </header>
@@ -320,7 +404,7 @@ If DEEP is non-NIL, each child is cloned as per
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:ELEMENT-P">ELEMENT-P</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(OBJECT)</span>
                     </code>
                   </header>
@@ -333,7 +417,7 @@ If DEEP is non-NIL, each child is cloned as per
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:ELEMENT-POSITION">ELEMENT-POSITION</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(CHILD)</span>
                     </code>
                   </header>
@@ -347,7 +431,7 @@ This excludes comments, text-nodes and the like.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:FAMILY">FAMILY</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(CHILD)</span>
                     </code>
                   </header>
@@ -361,7 +445,7 @@ Note that modifying this array directly modifies that of the parent.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:FAMILY-ELEMENTS">FAMILY-ELEMENTS</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(CHILD)</span>
                     </code>
                   </header>
@@ -376,7 +460,7 @@ This excludes comments, text-nodes and the like.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:FIRST-CHILD">FIRST-CHILD</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(ELEMENT)</span>
                     </code>
                   </header>
@@ -390,7 +474,7 @@ if the parent is empty.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:FIRST-ELEMENT">FIRST-ELEMENT</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(ELEMENT)</span>
                     </code>
                   </header>
@@ -404,7 +488,7 @@ if the parent is empty. This excludes comments, text-nodes and the like.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:FULLTEXT-ELEMENT-P">FULLTEXT-ELEMENT-P</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(OBJECT)</span>
                     </code>
                   </header>
@@ -417,7 +501,7 @@ if the parent is empty. This excludes comments, text-nodes and the like.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:GET-ATTRIBUTE">GET-ATTRIBUTE</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(ELEMENT ATTRIBUTE)</span>
                     </code>
                   </header>
@@ -430,7 +514,7 @@ if the parent is empty. This excludes comments, text-nodes and the like.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:GET-ELEMENT-BY-ID">GET-ELEMENT-BY-ID</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(NODE ID)</span>
                     </code>
                   </header>
@@ -445,7 +529,7 @@ attribute.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:HAS-ATTRIBUTE">HAS-ATTRIBUTE</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(ELEMENT ATTRIBUTE)</span>
                     </code>
                   </header>
@@ -458,7 +542,7 @@ attribute.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:HAS-CHILD-NODES">HAS-CHILD-NODES</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(NODE)</span>
                     </code>
                   </header>
@@ -472,7 +556,7 @@ the child array is not empty.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:INSERT-AFTER">INSERT-AFTER</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(ELEMENT NEW-CHILD)</span>
                     </code>
                   </header>
@@ -489,7 +573,7 @@ See VECTOR-PUSH-EXTEND-POSITION</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:INSERT-BEFORE">INSERT-BEFORE</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(ELEMENT NEW-CHILD)</span>
                     </code>
                   </header>
@@ -506,7 +590,7 @@ See VECTOR-PUSH-EXTEND-POSITION</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:LAST-CHILD">LAST-CHILD</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(ELEMENT)</span>
                     </code>
                   </header>
@@ -520,7 +604,7 @@ if the parent is empty.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:LAST-ELEMENT">LAST-ELEMENT</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(ELEMENT)</span>
                     </code>
                   </header>
@@ -534,11 +618,26 @@ if the parent is empty. This excludes comments, text-nodes and the like.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:MAKE-ATTRIBUTE-MAP">MAKE-ATTRIBUTE-MAP</a></h4>
-                      <span></span>
-                      <span></span>
+                      <span/>
+                      <span/>
                     </code>
                   </header>
                   <pre>Creates a map to contain attributes.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:MAKE-CDATA"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:MAKE-CDATA">MAKE-CDATA</a></h4>
+                      <span/>
+                      <span>(PARENT &amp;KEY (TEXT ))</span>
+                    </code>
+                  </header>
+                  <pre>Creates an XML CDATA section under the parent.
+
+Note that the element is automatically appended to the parent's child list.</pre>
                 </article>
               </li><li>
                 <a name="PLUMP-DOM:MAKE-CHILD-ARRAY"/>
@@ -547,8 +646,8 @@ if the parent is empty. This excludes comments, text-nodes and the like.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:MAKE-CHILD-ARRAY">MAKE-CHILD-ARRAY</a></h4>
-                      <span></span>
-                      <span></span>
+                      <span/>
+                      <span/>
                     </code>
                   </header>
                   <pre>Creates an array to contain child elements</pre>
@@ -560,7 +659,7 @@ if the parent is empty. This excludes comments, text-nodes and the like.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:MAKE-COMMENT">MAKE-COMMENT</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(PARENT &amp;OPTIONAL (TEXT ))</span>
                     </code>
                   </header>
@@ -575,7 +674,7 @@ Note that the node is automatically appended to the parent's child list.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:MAKE-DOCTYPE">MAKE-DOCTYPE</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(PARENT DOCTYPE)</span>
                     </code>
                   </header>
@@ -590,7 +689,7 @@ Note that the node is automatically appended to the parent's child list.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:MAKE-ELEMENT">MAKE-ELEMENT</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(PARENT TAG &amp;KEY (CHILDREN (MAKE-CHILD-ARRAY))
         (ATTRIBUTES (MAKE-ATTRIBUTE-MAP)))</span>
                     </code>
@@ -608,7 +707,7 @@ Note that the element is automatically appended to the parent's child list.</pre
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:MAKE-FULLTEXT-ELEMENT">MAKE-FULLTEXT-ELEMENT</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(PARENT TAG &amp;KEY TEXT (ATTRIBUTES (MAKE-ATTRIBUTE-MAP)))</span>
                     </code>
                   </header>
@@ -619,13 +718,28 @@ can be supplied.
 Note that the element is automatically appended to the parent's child list.</pre>
                 </article>
               </li><li>
+                <a name="PLUMP-DOM:MAKE-PROCESSING-INSTRUCTION"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:MAKE-PROCESSING-INSTRUCTION">MAKE-PROCESSING-INSTRUCTION</a></h4>
+                      <span/>
+                      <span>(PARENT &amp;KEY NAME (TEXT ))</span>
+                    </code>
+                  </header>
+                  <pre>Creates an XML processing instruction under the parent.
+
+Note that the element is automatically appended to the parent's child list.</pre>
+                </article>
+              </li><li>
                 <a name="PLUMP-DOM:MAKE-ROOT"/>
                 <article>
                   <header>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:MAKE-ROOT">MAKE-ROOT</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(&amp;OPTIONAL (CHILDREN (MAKE-CHILD-ARRAY)))</span>
                     </code>
                   </header>
@@ -639,7 +753,7 @@ Children should be a vector with fill-pointer.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:MAKE-TEXT-NODE">MAKE-TEXT-NODE</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(PARENT &amp;OPTIONAL (TEXT ))</span>
                     </code>
                   </header>
@@ -648,13 +762,28 @@ Children should be a vector with fill-pointer.</pre>
 Note that the node is automatically appended to the parent's child list.</pre>
                 </article>
               </li><li>
+                <a name="PLUMP-DOM:MAKE-XML-HEADER"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:MAKE-XML-HEADER">MAKE-XML-HEADER</a></h4>
+                      <span/>
+                      <span>(PARENT &amp;KEY (ATTRIBUTES (MAKE-ATTRIBUTE-MAP)))</span>
+                    </code>
+                  </header>
+                  <pre>Creates an XML header object under the parent.
+
+Note that the element is automatically appended to the parent's child list.</pre>
+                </article>
+              </li><li>
                 <a name="PLUMP-DOM:NESTING-NODE-P"/>
                 <article>
                   <header>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:NESTING-NODE-P">NESTING-NODE-P</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(OBJECT)</span>
                     </code>
                   </header>
@@ -667,7 +796,7 @@ Note that the node is automatically appended to the parent's child list.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:NEXT-ELEMENT">NEXT-ELEMENT</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(CHILD)</span>
                     </code>
                   </header>
@@ -681,7 +810,7 @@ it is already last. This excludes comments, text-nodes and the like.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:NEXT-SIBLING">NEXT-SIBLING</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(CHILD)</span>
                     </code>
                   </header>
@@ -695,7 +824,7 @@ it is already the last.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:NODE-P">NODE-P</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(OBJECT)</span>
                     </code>
                   </header>
@@ -708,7 +837,7 @@ it is already the last.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:PREPEND-CHILD">PREPEND-CHILD</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(PARENT CHILD)</span>
                     </code>
                   </header>
@@ -724,7 +853,7 @@ Note that this operation is costly, see VECTOR-PUSH-EXTEND-FRONT</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:PREVIOUS-ELEMENT">PREVIOUS-ELEMENT</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(CHILD)</span>
                     </code>
                   </header>
@@ -738,7 +867,7 @@ it is already last. This excludes comments, text-nodes and the like.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:PREVIOUS-SIBLING">PREVIOUS-SIBLING</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(CHILD)</span>
                     </code>
                   </header>
@@ -752,7 +881,7 @@ it is already the first.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:REMOVE-ATTRIBUTE">REMOVE-ATTRIBUTE</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(ELEMENT ATTRIBUTE)</span>
                     </code>
                   </header>
@@ -766,7 +895,7 @@ Returns NIL.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:REMOVE-CHILD">REMOVE-CHILD</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(CHILD)</span>
                     </code>
                   </header>
@@ -783,7 +912,7 @@ See VECTOR-POP-POSITION</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:REPLACE-CHILD">REPLACE-CHILD</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(OLD-CHILD NEW-CHILD)</span>
                     </code>
                   </header>
@@ -797,11 +926,25 @@ Returns the old child.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:ROOT-P">ROOT-P</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(OBJECT)</span>
                     </code>
                   </header>
                   <pre>Returns T if the given object is a ROOT.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:SERIALIZE"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:SERIALIZE">SERIALIZE</a></h4>
+                      <span/>
+                      <span>(NODE &amp;OPTIONAL (STREAM T))</span>
+                    </code>
+                  </header>
+                  <pre>Serializes NODE to STREAM.
+STREAM can be a stream, T for *standard-output* or NIL to serialize to string.</pre>
                 </article>
               </li><li>
                 <a name="PLUMP-DOM:SET-ATTRIBUTE"/>
@@ -810,7 +953,7 @@ Returns the old child.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:SET-ATTRIBUTE">SET-ATTRIBUTE</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(ELEMENT ATTRIBUTE VALUE)</span>
                     </code>
                   </header>
@@ -823,7 +966,7 @@ Returns the old child.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:SIBLING-ELEMENTS">SIBLING-ELEMENTS</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(CHILD)</span>
                     </code>
                   </header>
@@ -838,7 +981,7 @@ This excludes comments, text-nodes and the like.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:SIBLINGS">SIBLINGS</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(CHILD)</span>
                     </code>
                   </header>
@@ -852,7 +995,7 @@ Note that this is a copy of the array, modifying it is safe.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:TEXT-NODE-P">TEXT-NODE-P</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(OBJECT)</span>
                     </code>
                   </header>
@@ -865,11 +1008,11 @@ Note that this is a copy of the array, modifying it is safe.</pre>
                     <span>GENERIC</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:ATTRIBUTES">ATTRIBUTES</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(OBJECT)</span>
                     </code>
                   </header>
-                  <pre></pre>
+                  <pre>Returns an EQUALP hash-table of the element's attributes.</pre>
                 </article>
               </li><li>
                 <a name="PLUMP-DOM:CHILDREN"/>
@@ -878,11 +1021,11 @@ Note that this is a copy of the array, modifying it is safe.</pre>
                     <span>GENERIC</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:CHILDREN">CHILDREN</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(OBJECT)</span>
                     </code>
                   </header>
-                  <pre></pre>
+                  <pre>Returns a vector of child-nodes that are contained within the node.</pre>
                 </article>
               </li><li>
                 <a name="PLUMP-DOM:CLONE-NODE"/>
@@ -891,14 +1034,14 @@ Note that this is a copy of the array, modifying it is safe.</pre>
                     <span>GENERIC</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:CLONE-NODE">CLONE-NODE</a></h4>
-                      <span></span>
-                      <span>(NODE &amp;KEY DEEP (DEEP T))</span>
+                      <span/>
+                      <span>(NODE &amp;OPTIONAL DEEP)</span>
                     </code>
                   </header>
                   <pre>Clone the given node, creating a new instance with the same contents.
 If DEEP is non-NIL, the following applies:
 The text of COMMENT and TEXT-NODEs is copied as per COPY-SEQ.
-The children of NESTING-NODEs are copied as per (CLONE-CHILDREN :DEEP T)</pre>
+The children of NESTING-NODEs are copied as per (CLONE-CHILDREN CHILD T)</pre>
                 </article>
               </li><li>
                 <a name="PLUMP-DOM:DOCTYPE"/>
@@ -907,11 +1050,11 @@ The children of NESTING-NODEs are copied as per (CLONE-CHILDREN :DEEP T)</pre>
                     <span>GENERIC</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:DOCTYPE">DOCTYPE</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(OBJECT)</span>
                     </code>
                   </header>
-                  <pre></pre>
+                  <pre>Returns the doctype node's actual doctype string.</pre>
                 </article>
               </li><li>
                 <a name="PLUMP-DOM:PARENT"/>
@@ -920,24 +1063,24 @@ The children of NESTING-NODEs are copied as per (CLONE-CHILDREN :DEEP T)</pre>
                     <span>GENERIC</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:PARENT">PARENT</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(OBJECT)</span>
                     </code>
                   </header>
-                  <pre></pre>
+                  <pre>Returns the node's parent that should contain this element as a child.</pre>
                 </article>
               </li><li>
-                <a name="PLUMP-DOM:SERIALIZE"/>
+                <a name="PLUMP-DOM:SERIALIZE-OBJECT"/>
                 <article>
                   <header>
                     <span>GENERIC</span>
                     <code>
-                      <h4><a href="#PLUMP-DOM:SERIALIZE">SERIALIZE</a></h4>
-                      <span></span>
-                      <span>(NODE &amp;OPTIONAL STREAM)</span>
+                      <h4><a href="#PLUMP-DOM:SERIALIZE-OBJECT">SERIALIZE-OBJECT</a></h4>
+                      <span/>
+                      <span>(NODE)</span>
                     </code>
                   </header>
-                  <pre>Serialize the given node and print it to the stream.</pre>
+                  <pre>Serialize the given node and print it to *stream*.</pre>
                 </article>
               </li><li>
                 <a name="PLUMP-DOM:TAG-NAME"/>
@@ -946,11 +1089,11 @@ The children of NESTING-NODEs are copied as per (CLONE-CHILDREN :DEEP T)</pre>
                     <span>GENERIC</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:TAG-NAME">TAG-NAME</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(OBJECT)</span>
                     </code>
                   </header>
-                  <pre></pre>
+                  <pre>Returns the element's tag name.</pre>
                 </article>
               </li><li>
                 <a name="PLUMP-DOM:TEXT"/>
@@ -959,13 +1102,27 @@ The children of NESTING-NODEs are copied as per (CLONE-CHILDREN :DEEP T)</pre>
                     <span>GENERIC</span>
                     <code>
                       <h4><a href="#PLUMP-DOM:TEXT">TEXT</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(OBJECT)</span>
                     </code>
                   </header>
-                  <pre></pre>
+                  <pre>Returns the node's textual content.</pre>
                 </article>
-              </li></ul></li><li class="package">
+              </li><li>
+                <a name="PLUMP-DOM:*STREAM*"/>
+                <article>
+                  <header>
+                    <span>SPECIAL</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:*STREAM*">*STREAM*</a></h4>
+                      <span/>
+                      <span/>
+                    </code>
+                  </header>
+                  <pre>The stream to serialize to during SERIALIZE-OBJECT.</pre>
+                </article>
+              </li></ul>
+          </li><li class="package">
             <h3>
               <a name="PLUMP-PARSER" href="#PLUMP-PARSER">PLUMP-PARSER</a>
               <span class="nicknames">(ORG.TYMOONNEXT.PLUMP.PARSER)</span>
@@ -977,8 +1134,8 @@ The children of NESTING-NODEs are copied as per (CLONE-CHILDREN :DEEP T)</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:ADVANCE">ADVANCE</a></h4>
-                      <span></span>
-                      <span></span>
+                      <span/>
+                      <span/>
                     </code>
                   </header>
                   <pre>Skips a chracter if possible.
@@ -991,7 +1148,7 @@ Returns the new index or NIL.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:ADVANCE-N">ADVANCE-N</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(N)</span>
                     </code>
                   </header>
@@ -1005,8 +1162,8 @@ Returns the new *INDEX*.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:CONSUME">CONSUME</a></h4>
-                      <span></span>
-                      <span></span>
+                      <span/>
+                      <span/>
                     </code>
                   </header>
                   <pre>Consumes a single character if possible and returns it.
@@ -1019,7 +1176,7 @@ Otherwise returns NIL.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:CONSUME-UNTIL">CONSUME-UNTIL</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(MATCHER)</span>
                     </code>
                   </header>
@@ -1033,7 +1190,7 @@ Returns the substring that was consumed.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:DECODE-ENTITIES">DECODE-ENTITIES</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(TEXT &amp;OPTIONAL REMOVE-INVALID)</span>
                     </code>
                   </header>
@@ -1047,7 +1204,7 @@ If an entity does not match, it is left in place unless REMOVE-INVALID is non-NI
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:MATCHER-AND">MATCHER-AND</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(&amp;REST MATCHERS)</span>
                     </code>
                   </header>
@@ -1061,7 +1218,7 @@ return successfully. The last match is returned, if all.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:MATCHER-CHARACTER">MATCHER-CHARACTER</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(CHARACTER)</span>
                     </code>
                   </header>
@@ -1074,7 +1231,7 @@ return successfully. The last match is returned, if all.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:MATCHER-FIND">MATCHER-FIND</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(LIST)</span>
                     </code>
                   </header>
@@ -1087,7 +1244,7 @@ return successfully. The last match is returned, if all.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:MATCHER-NEXT">MATCHER-NEXT</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(MATCHER)</span>
                     </code>
                   </header>
@@ -1100,7 +1257,7 @@ return successfully. The last match is returned, if all.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:MATCHER-NOT">MATCHER-NOT</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(MATCHER)</span>
                     </code>
                   </header>
@@ -1113,12 +1270,25 @@ return successfully. The last match is returned, if all.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:MATCHER-OR">MATCHER-OR</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(&amp;REST MATCHERS)</span>
                     </code>
                   </header>
                   <pre>Creates a matcher function that returns successfully if any of the
 sub-expressions return successfully. The first match is returned, if any.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:MATCHER-PREV"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:MATCHER-PREV">MATCHER-PREV</a></h4>
+                      <span/>
+                      <span>(MATCHER)</span>
+                    </code>
+                  </header>
+                  <pre>Creates a matcher environment that peeks behind.</pre>
                 </article>
               </li><li>
                 <a name="PLUMP-PARSER:MATCHER-RANGE"/>
@@ -1127,7 +1297,7 @@ sub-expressions return successfully. The first match is returned, if any.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:MATCHER-RANGE">MATCHER-RANGE</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(FROM TO)</span>
                     </code>
                   </header>
@@ -1140,7 +1310,7 @@ sub-expressions return successfully. The first match is returned, if any.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:MATCHER-STRING">MATCHER-STRING</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(STRING)</span>
                     </code>
                   </header>
@@ -1153,11 +1323,24 @@ sub-expressions return successfully. The first match is returned, if any.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:PEEK">PEEK</a></h4>
-                      <span></span>
-                      <span></span>
+                      <span/>
+                      <span/>
                     </code>
                   </header>
                   <pre>Returns the next character, if any.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:PROCESSING-PARSER"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:PROCESSING-PARSER">PROCESSING-PARSER</a></h4>
+                      <span/>
+                      <span>(PROCESS-NAME)</span>
+                    </code>
+                  </header>
+                  <pre>Return the processing-parser function for PROCESS-NAME. SETF-able.</pre>
                 </article>
               </li><li>
                 <a name="PLUMP-PARSER:READ-ATTRIBUTE"/>
@@ -1166,8 +1349,8 @@ sub-expressions return successfully. The first match is returned, if any.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:READ-ATTRIBUTE">READ-ATTRIBUTE</a></h4>
-                      <span></span>
-                      <span></span>
+                      <span/>
+                      <span/>
                     </code>
                   </header>
                   <pre>Reads an attribute and returns it as a key value cons.</pre>
@@ -1179,8 +1362,8 @@ sub-expressions return successfully. The first match is returned, if any.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:READ-ATTRIBUTE-NAME">READ-ATTRIBUTE-NAME</a></h4>
-                      <span></span>
-                      <span></span>
+                      <span/>
+                      <span/>
                     </code>
                   </header>
                   <pre>Reads an attribute name.</pre>
@@ -1192,8 +1375,8 @@ sub-expressions return successfully. The first match is returned, if any.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:READ-ATTRIBUTE-VALUE">READ-ATTRIBUTE-VALUE</a></h4>
-                      <span></span>
-                      <span></span>
+                      <span/>
+                      <span/>
                     </code>
                   </header>
                   <pre>Reads an attribute value, either enclosed in quotation marks or until a space or tag end.</pre>
@@ -1205,8 +1388,8 @@ sub-expressions return successfully. The first match is returned, if any.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:READ-ATTRIBUTES">READ-ATTRIBUTES</a></h4>
-                      <span></span>
-                      <span></span>
+                      <span/>
+                      <span/>
                     </code>
                   </header>
                   <pre>Reads as many attributes as possible from a tag and returns them as an attribute map.</pre>
@@ -1218,11 +1401,11 @@ sub-expressions return successfully. The first match is returned, if any.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:READ-CHILDREN">READ-CHILDREN</a></h4>
-                      <span></span>
-                      <span></span>
+                      <span/>
+                      <span/>
                     </code>
                   </header>
-                  <pre></pre>
+                  <pre>Read all children of the current *root* until the closing tag for *root* is encountered.</pre>
                 </article>
               </li><li>
                 <a name="PLUMP-PARSER:READ-NAME"/>
@@ -1231,8 +1414,8 @@ sub-expressions return successfully. The first match is returned, if any.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:READ-NAME">READ-NAME</a></h4>
-                      <span></span>
-                      <span></span>
+                      <span/>
+                      <span/>
                     </code>
                   </header>
                   <pre>Reads and returns a tag name.</pre>
@@ -1244,7 +1427,7 @@ sub-expressions return successfully. The first match is returned, if any.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:READ-ROOT">READ-ROOT</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(&amp;OPTIONAL (ROOT (MAKE-ROOT)))</span>
                     </code>
                   </header>
@@ -1259,7 +1442,7 @@ Returns the root.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:READ-STANDARD-TAG">READ-STANDARD-TAG</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(NAME)</span>
                     </code>
                   </header>
@@ -1273,8 +1456,8 @@ This recurses with READ-CHILDREN.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:READ-TAG">READ-TAG</a></h4>
-                      <span></span>
-                      <span></span>
+                      <span/>
+                      <span/>
                     </code>
                   </header>
                   <pre>Attempts to read a tag and dispatches or defaults to READ-STANDARD-TAG.
@@ -1287,11 +1470,11 @@ Returns the completed node if one can be read.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:READ-TAG-CONTENTS">READ-TAG-CONTENTS</a></h4>
-                      <span></span>
-                      <span></span>
+                      <span/>
+                      <span/>
                     </code>
                   </header>
-                  <pre>Reads and reuturns all tag contents. 
+                  <pre>Reads and returns all tag contents. 
 E.g. &lt;foo bar baz&gt; =&gt; bar baz</pre>
                 </article>
               </li><li>
@@ -1301,11 +1484,51 @@ E.g. &lt;foo bar baz&gt; =&gt; bar baz</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:READ-TEXT">READ-TEXT</a></h4>
-                      <span></span>
-                      <span></span>
+                      <span/>
+                      <span/>
                     </code>
                   </header>
                   <pre>Reads and returns a text-node.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:REMOVE-PROCESSING-PARSER"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:REMOVE-PROCESSING-PARSER">REMOVE-PROCESSING-PARSER</a></h4>
+                      <span/>
+                      <span>(PROCESS-NAME)</span>
+                    </code>
+                  </header>
+                  <pre>Remove the processing-parser for PROCESS-NAME.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:REMOVE-TAG-DISPATCHER"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:REMOVE-TAG-DISPATCHER">REMOVE-TAG-DISPATCHER</a></h4>
+                      <span/>
+                      <span>(NAME)</span>
+                    </code>
+                  </header>
+                  <pre>Removes the tag dispatcher of NAME.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:TAG-DISPATCHER"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:TAG-DISPATCHER">TAG-DISPATCHER</a></h4>
+                      <span/>
+                      <span>(NAME &amp;OPTIONAL (LIST *TAG-DISPATCHERS*))</span>
+                    </code>
+                  </header>
+                  <pre>Returns the tag-dispatcher form of NAME from LIST, if any.
+A tag dispatcher form is a list made up of NAME, TEST-FUNCTION and DISPATCHER-FUNCTION.</pre>
                 </article>
               </li><li>
                 <a name="PLUMP-PARSER:TRANSLATE-ENTITY"/>
@@ -1314,7 +1537,7 @@ E.g. &lt;foo bar baz&gt; =&gt; bar baz</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:TRANSLATE-ENTITY">TRANSLATE-ENTITY</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(ENTITY)</span>
                     </code>
                   </header>
@@ -1328,8 +1551,8 @@ Otherwise returns NIL.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:UNREAD">UNREAD</a></h4>
-                      <span></span>
-                      <span></span>
+                      <span/>
+                      <span/>
                     </code>
                   </header>
                   <pre>Steps back a single character if possible.
@@ -1342,7 +1565,7 @@ Returns the new *INDEX*.</pre>
                     <span>FUNCTION</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:UNREAD-N">UNREAD-N</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(N)</span>
                     </code>
                   </header>
@@ -1356,7 +1579,7 @@ Returns the new *INDEX*.</pre>
                     <span>GENERIC</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:PARSE">PARSE</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(INPUT &amp;KEY ROOT)</span>
                     </code>
                   </header>
@@ -1372,11 +1595,13 @@ Returns the root.</pre>
                     <span>MACRO</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:DEFINE-FULLTEXT-ELEMENT">DEFINE-FULLTEXT-ELEMENT</a></h4>
-                      <span></span>
-                      <span>(TAG)</span>
+                      <span/>
+                      <span>(TAG &amp;REST LISTS)</span>
                     </code>
                   </header>
-                  <pre></pre>
+                  <pre>Defines an element to be read as a full-text element.
+This means that it cannot contain any child-nodes and everything up until its closing
+tag is used as its text.</pre>
                 </article>
               </li><li>
                 <a name="PLUMP-PARSER:DEFINE-MATCHER"/>
@@ -1385,11 +1610,28 @@ Returns the root.</pre>
                     <span>MACRO</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:DEFINE-MATCHER">DEFINE-MATCHER</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(NAME FORM)</span>
                     </code>
                   </header>
-                  <pre></pre>
+                  <pre>Associates NAME as a keyword to the matcher form. You can then use the keyword in further matcher rules.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:DEFINE-PROCESSING-PARSER"/>
+                <article>
+                  <header>
+                    <span>MACRO</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:DEFINE-PROCESSING-PARSER">DEFINE-PROCESSING-PARSER</a></h4>
+                      <span/>
+                      <span>(PROCESS-NAME NIL &amp;BODY BODY)</span>
+                    </code>
+                  </header>
+                  <pre>Defines a new processing-instruction parser. 
+It is invoked if a processing-instruction (&lt;?) with PROCESS-NAME is encountered.
+The lexer will be at the point straight after reading in the PROCESS-NAME.
+Expected return value is a string to use as the processing-instructions' TEXT.
+The closing tag (?&gt;) should NOT be consumed by a processing-parser.</pre>
                 </article>
               </li><li>
                 <a name="PLUMP-PARSER:DEFINE-SELF-CLOSING-ELEMENT"/>
@@ -1398,11 +1640,11 @@ Returns the root.</pre>
                     <span>MACRO</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:DEFINE-SELF-CLOSING-ELEMENT">DEFINE-SELF-CLOSING-ELEMENT</a></h4>
-                      <span></span>
-                      <span>(TAG)</span>
+                      <span/>
+                      <span>(TAG &amp;REST LISTS)</span>
                     </code>
                   </header>
-                  <pre></pre>
+                  <pre>Defines an element that does not need to be closed with /&gt; and cannot contain child nodes.</pre>
                 </article>
               </li><li>
                 <a name="PLUMP-PARSER:DEFINE-TAG-DISPATCHER"/>
@@ -1411,12 +1653,32 @@ Returns the root.</pre>
                     <span>MACRO</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:DEFINE-TAG-DISPATCHER">DEFINE-TAG-DISPATCHER</a></h4>
-                      <span></span>
-                      <span>(NAME (TAGVAR) TEST-FORM &amp;BODY BODY)</span>
+                      <span/>
+                      <span>((NAME &amp;REST LISTS) (TAGVAR) TEST-FORM &amp;BODY BODY)</span>
                     </code>
                   </header>
                   <pre>Defines a new tag dispatcher. It is invoked if TEST-FORM passes.
-TAGVAR is bound to the matched name of the tag.</pre>
+
+NAME      --- Name to discern the dispatcher with.
+LISTS     --- Symbols of lists to which the dispatcher should be added.
+TAGVAR    --- Symbol bound to the tag name.
+TEST-FORM --- Form that should return non-NIL if the dispatcher should
+              be invoked.
+BODY      ::= form*</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:DO-TAG-DISPATCHERS"/>
+                <article>
+                  <header>
+                    <span>MACRO</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:DO-TAG-DISPATCHERS">DO-TAG-DISPATCHERS</a></h4>
+                      <span/>
+                      <span>((TEST DISPATCHER &amp;OPTIONAL RESULT-FORM) &amp;BODY BODY)</span>
+                    </code>
+                  </header>
+                  <pre>Iterates over the current *TAG-DISPATCHERS*, binding the TEST and DISPATCHER functions.
+Returns RESULT-FORM's evaluated value.</pre>
                 </article>
               </li><li>
                 <a name="PLUMP-PARSER:MAKE-MATCHER"/>
@@ -1425,7 +1687,7 @@ TAGVAR is bound to the matched name of the tag.</pre>
                     <span>MACRO</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:MAKE-MATCHER">MAKE-MATCHER</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(FORM)</span>
                     </code>
                   </header>
@@ -1438,11 +1700,24 @@ TAGVAR is bound to the matched name of the tag.</pre>
                     <span>MACRO</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:MATCHER-ANY">MATCHER-ANY</a></h4>
-                      <span></span>
+                      <span/>
                       <span>(&amp;REST IS)</span>
                     </code>
                   </header>
                   <pre>Shorthand for (or (is a) (is b)..)</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:SET-TAG-DISPATCHER"/>
+                <article>
+                  <header>
+                    <span>MACRO</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:SET-TAG-DISPATCHER">SET-TAG-DISPATCHER</a></h4>
+                      <span/>
+                      <span>(NAME TEST-FUNC DISPATCH-FUNC &amp;OPTIONAL (LIST '*TAG-DISPATCHERS*))</span>
+                    </code>
+                  </header>
+                  <pre>Adds or updates the DISPATCHER-FORM for NAME on LIST.</pre>
                 </article>
               </li><li>
                 <a name="PLUMP-PARSER:WITH-LEXER-ENVIRONMENT"/>
@@ -1451,7 +1726,7 @@ TAGVAR is bound to the matched name of the tag.</pre>
                     <span>MACRO</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:WITH-LEXER-ENVIRONMENT">WITH-LEXER-ENVIRONMENT</a></h4>
-                      <span></span>
+                      <span/>
                       <span>((STRING) &amp;BODY BODY)</span>
                     </code>
                   </header>
@@ -1464,11 +1739,50 @@ TAGVAR is bound to the matched name of the tag.</pre>
                     <span>SPECIAL</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:*ENTITY-MAP*">*ENTITY-MAP*</a></h4>
-                      <span></span>
-                      <span></span>
+                      <span/>
+                      <span/>
                     </code>
                   </header>
                   <pre>String hash-table containing the entity names and mapping them to their respective characters.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:*HTML-TAGS*"/>
+                <article>
+                  <header>
+                    <span>SPECIAL</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:*HTML-TAGS*">*HTML-TAGS*</a></h4>
+                      <span/>
+                      <span/>
+                    </code>
+                  </header>
+                  <pre>List of HTML tag dispatchers</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:*INDEX*"/>
+                <article>
+                  <header>
+                    <span>SPECIAL</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:*INDEX*">*INDEX*</a></h4>
+                      <span/>
+                      <span/>
+                    </code>
+                  </header>
+                  <pre>Set to the current reading index.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:*LENGTH*"/>
+                <article>
+                  <header>
+                    <span>SPECIAL</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:*LENGTH*">*LENGTH*</a></h4>
+                      <span/>
+                      <span/>
+                    </code>
+                  </header>
+                  <pre>Set to the length of the string for bounds checking.</pre>
                 </article>
               </li><li>
                 <a name="PLUMP-PARSER:*ROOT*"/>
@@ -1477,11 +1791,24 @@ TAGVAR is bound to the matched name of the tag.</pre>
                     <span>SPECIAL</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:*ROOT*">*ROOT*</a></h4>
-                      <span></span>
-                      <span></span>
+                      <span/>
+                      <span/>
                     </code>
                   </header>
-                  <pre></pre>
+                  <pre>Object containing the current node to set as parent.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-PARSER:*STRING*"/>
+                <article>
+                  <header>
+                    <span>SPECIAL</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:*STRING*">*STRING*</a></h4>
+                      <span/>
+                      <span/>
+                    </code>
+                  </header>
+                  <pre>Contains the current string to lex.</pre>
                 </article>
               </li><li>
                 <a name="PLUMP-PARSER:*TAG-DISPATCHERS*"/>
@@ -1490,10 +1817,28 @@ TAGVAR is bound to the matched name of the tag.</pre>
                     <span>SPECIAL</span>
                     <code>
                       <h4><a href="#PLUMP-PARSER:*TAG-DISPATCHERS*">*TAG-DISPATCHERS*</a></h4>
-                      <span></span>
-                      <span></span>
+                      <span/>
+                      <span/>
                     </code>
                   </header>
-                  <pre>Tag dispatcher functions</pre>
+                  <pre>Active tag dispatcher functions</pre>
                 </article>
-              </li></ul></li></ul></article></div></body></html>
+              </li><li>
+                <a name="PLUMP-PARSER:*XML-TAGS*"/>
+                <article>
+                  <header>
+                    <span>SPECIAL</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:*XML-TAGS*">*XML-TAGS*</a></h4>
+                      <span/>
+                      <span/>
+                    </code>
+                  </header>
+                  <pre>List of XML tag dispatchers</pre>
+                </article>
+              </li></ul>
+          </li></ul>
+      </article>
+    </div>
+  </body>
+</html>
