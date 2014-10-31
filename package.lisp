@@ -78,6 +78,7 @@
    #:root-p
    #:nesting-node-p
    #:fulltext-element-p
+   #:*stream*
    #:serialize
    #:serialize-object))
 
@@ -133,7 +134,6 @@
    #:parse)
   ;; processing.lisp
   (:export
-   #:*processing-parsers*
    #:processing-parser
    #:remove-processing-parser
    #:define-processing-parser)
