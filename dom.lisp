@@ -13,10 +13,12 @@
 (defclass nesting-node (node)
   ((%children :initarg :children :initform (make-child-array) :accessor children :type vector))
   (:documentation "Node class that can contain child nodes."))
+(setf (documentation 'children 'function) "Returns a vector of child-nodes that are contained within the node.")
 
 (defclass child-node (node)
   ((%parent :initarg :parent :initform (error "Parent required.") :accessor parent :type (or null node)))
   (:documentation "Node class that is a child and thus has a parent."))
+(setf (documentation 'parent 'function) "Returns the node's parent that should contain this element as a child.")
 
 (defclass root (nesting-node)
   ()
@@ -25,6 +27,7 @@
 (defclass text-node (child-node)
   ((%text :initarg :text :initform "" :accessor text :type string))
   (:documentation "Text node that can only contain a single text string."))
+(setf (documentation 'text 'function) "Returns the node's textual content.")
 
 (defclass comment (child-node)
   ((%text :initarg :text :initform "" :accessor text :type string))
@@ -34,6 +37,8 @@
   ((%tag-name :initarg :tag-name :initform (error "Tag name required.") :accessor tag-name :type string)
    (%attributes :initarg :attributes :initform (make-attribute-map) :accessor attributes :type hash-table))
   (:documentation "Standard DOM element/block including attributes, tag-name, parent and children."))
+(setf (documentation 'tag-name 'function) "Returns the element's tag name.")
+(setf (documentation 'attributes 'function) "Returns an EQUALP hash-table of the element's attributes.")
 
 (defmethod print-object ((node element) stream)
   (print-unreadable-object (node stream :type T :identity T)
@@ -43,6 +48,7 @@
 (defclass doctype (child-node)
   ((%doctype :initarg :doctype :initform (error "Doctype declaration required.") :accessor doctype :type string))
   (:documentation "Special DOM node for the doctype declaration."))
+(setf (documentation 'doctype 'function) "Returns the doctype node's actual doctype string.")
 
 (defmethod print-object ((node doctype) stream)
   (print-unreadable-object (node stream :type T)
