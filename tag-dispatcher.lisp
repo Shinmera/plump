@@ -4,7 +4,7 @@
  Author: Nicolas Hafner <shinmera@tymoon.eu>
 |#
 
-(in-package #:org.tymoonnext.plump)
+(in-package #:org.shirakumo.plump.parser)
 
 (defvar *tag-dispatchers* () "Active tag dispatcher functions")
 (defvar *xml-tags* () "List of XML tag dispatchers")
@@ -40,6 +40,7 @@ BODY      ::= form*"
            (,disp #'(lambda (,tagvar) (declare (ignorable name)) ,@body)))
        ,@(loop for list in lists
                collect `(set-tag-dispatcher ',name ,test ,disp ,list)))))
+(indent:define-indentation define-tag-dispatcher (4 4 6 &body))
 
 (defun remove-tag-dispatcher (name)
   "Removes the tag dispatcher of NAME."

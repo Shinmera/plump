@@ -4,7 +4,7 @@
  Author: Nicolas Hafner <shinmera@tymoon.eu>
 |#
 
-(in-package #:org.tymoonnext.plump)
+(in-package #:org.shirakumo.plump.parser)
 
 ;; We simply ignore closing tags.
 ;; We can do this because the matching of the proper

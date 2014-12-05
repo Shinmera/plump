@@ -4,7 +4,7 @@
  Author: Nicolas Hafner <shinmera@tymoon.eu>
 |#
 
-(in-package #:org.tymoonnext.plump)
+(in-package #:org.shirakumo.plump.parser)
 
 (defvar *processing-parsers* (make-hash-table :test 'equalp))
 

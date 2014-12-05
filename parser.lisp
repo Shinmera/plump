@@ -4,7 +4,7 @@
  Author: Nicolas Hafner <shinmera@tymoon.eu>
 |#
 
-(in-package #:org.tymoonnext.plump)
+(in-package #:org.shirakumo.plump.parser)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defvar *whitespace* '(#\Space #\Newline #\Tab #\Return #\Linefeed #\Page)
