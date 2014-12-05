@@ -4,7 +4,8 @@
  Author: Nicolas Hafner <shinmera@tymoon.eu>
 |#
 
-(in-package #:org.tymoonnext.plump)
+(in-package #:org.shirakumo.plump.lexer)
+
 (defvar *string*)
 (defvar *length*)
 (defvar *index*)
@@ -19,6 +20,9 @@
 (defmacro with-lexer-environment ((string) &body body)
   "Sets up the required lexing environment for the given string."
   `(let* ((*string* ,string)
+          (*string* (etypecase *string*
+                      (simple-string *string*)
+                      (string (copy-seq *string*))))
           (*length* (length *string*))
           (*index* 0))
      (handler-bind ((error #'(lambda (err)
@@ -186,7 +190,7 @@ return successfully. The last match is returned, if all."
                (atom form)
                (T
                 (cons
-                 (case (find-symbol (string (car form)) "PLUMP")
+                 (case (find-symbol (string (car form)) "PLUMP-LEXER")
                    (not 'matcher-not)
                    (and 'matcher-and)
                    (or 'matcher-or)
