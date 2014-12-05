@@ -18,7 +18,7 @@
   </head>
   <body>
     <header>
-      <h1>plump</h1>
+      <h1><img src="plump-logo.png" alt="plump"/></h1>
       <span>0.1.14</span>
       <p>An X/HTML parser that aims to be as lenient as possible.</p>
     </header>
@@ -64,8 +64,8 @@
 <pre><code>(<a href="#PLUMP-PARSER:DEFINE-TAG-DISPATCHER">plump:define-tag-dispatcher</a> (my-dispatcher *tag-dispatchers*) (name)
     (<a href="http://l1sp.org/cl/string-equal">string-equal</a> name &quot;my-tag&quot;)
   (<a href="http://l1sp.org/cl/let">let</a> ((attrs (<a href="#PLUMP-PARSER:READ-ATTRIBUTES">plump:read-attributes</a>)))
-    (<a href="http://l1sp.org/cl/when">when</a> (<a href="http://l1sp.org/cl/char=">char=</a> (<a href="#PLUMP-PARSER:CONSUME">plump:consume</a>) #\/)
-      (<a href="#PLUMP-PARSER:CONSUME">plump:consume</a>)) ;; Consume closing
+    (<a href="http://l1sp.org/cl/when">when</a> (<a href="http://l1sp.org/cl/char=">char=</a> (<a href="#PLUMP-LEXER:CONSUME">plump:consume</a>) #\/)
+      (<a href="#PLUMP-LEXER:CONSUME">plump:consume</a>)) ;; Consume closing
     (<a href="http://l1sp.org/cl/make-instance">make-instance</a> 'my-tag :parent plump:*root* :attributes attrs)))
 </code></pre>
 
@@ -85,20 +85,20 @@
 
 <p>Since parser generators are good for strict grammars and Plump needed to be fast and lenient, it comes with its own primitive reading/lexing mechanisms. All the lexer primitives are defined in <code>lexer.lisp</code> and you can leverage them for your own projects as well, if you so desire.</p>
 
-<p>In order to allow the lexing to work, you'll have to wrap your processing code in <code><a href="#PLUMP-PARSER:WITH-LEXER-ENVIRONMENT">with-lexer-environment</a></code>. You can then use functions like <code><a href="#PLUMP-PARSER:CONSUME">consume</a></code>, <code><a href="#PLUMP-PARSER:ADVANCE">advance</a></code>, <code><a href="#PLUMP-PARSER:UNREAD">unread</a></code>, <code><a href="#PLUMP-PARSER:PEEK">peek</a></code> and <code><a href="#PLUMP-PARSER:CONSUME-UNTIL">consume-until</a></code> to process the input.</p>
+<p>In order to allow the lexing to work, you'll have to wrap your processing code in <code><a href="#PLUMP-LEXER:WITH-LEXER-ENVIRONMENT">with-lexer-environment</a></code>. You can then use functions like <code><a href="#PLUMP-LEXER:CONSUME">consume</a></code>, <code><a href="#PLUMP-LEXER:ADVANCE">advance</a></code>, <code><a href="#PLUMP-LEXER:UNREAD">unread</a></code>, <code><a href="#PLUMP-LEXER:PEEK">peek</a></code> and <code><a href="#PLUMP-LEXER:CONSUME-UNTIL">consume-until</a></code> to process the input.</p>
 
-<p><code><a href="#PLUMP-PARSER:MAKE-MATCHER">make-matcher</a></code> allows you to use a very simple language to define matching operations. This will evaluate to a function with no arguments that should return <code>T</code> if it matches and <code>NIL</code> otherwise. Combining matchers with <code><a href="#PLUMP-PARSER:CONSUME-UNTIL">consume-until</a></code> allows you to easily make sequence readers:</p>
+<p><code><a href="#PLUMP-LEXER:MAKE-MATCHER">make-matcher</a></code> allows you to use a very simple language to define matching operations. This will evaluate to a function with no arguments that should return <code>T</code> if it matches and <code>NIL</code> otherwise. Combining matchers with <code><a href="#PLUMP-LEXER:CONSUME-UNTIL">consume-until</a></code> allows you to easily make sequence readers:</p>
 
-<pre><code>(<a href="#PLUMP-PARSER:WITH-LEXER-ENVIRONMENT">plump:with-lexer-environment</a> (&quot;&lt;foo&gt;&quot;)
-  (<a href="http://l1sp.org/cl/when">when</a> (<a href="http://l1sp.org/cl/char=">char=</a> #\&lt; (<a href="#PLUMP-PARSER:CONSUME">plump:consume</a>))
-    (<a href="#PLUMP-PARSER:CONSUME-UNTIL">plump:consume-until</a> (<a href="#PLUMP-PARSER:MAKE-MATCHER">plump:make-matcher</a> (is #\&gt;)))))
+<pre><code>(<a href="#PLUMP-LEXER:WITH-LEXER-ENVIRONMENT">plump:with-lexer-environment</a> (&quot;&lt;foo&gt;&quot;)
+  (<a href="http://l1sp.org/cl/when">when</a> (<a href="http://l1sp.org/cl/char=">char=</a> #\&lt; (<a href="#PLUMP-LEXER:CONSUME">plump:consume</a>))
+    (<a href="#PLUMP-LEXER:CONSUME-UNTIL">plump:consume-until</a> (<a href="#PLUMP-LEXER:MAKE-MATCHER">plump:make-matcher</a> (is #\&gt;)))))
 </code></pre>
 
-<p>Available matcher constructs are <code><a href="http://l1sp.org/cl/not">not</a></code>, <code><a href="http://l1sp.org/cl/and">and</a></code>, <code><a href="http://l1sp.org/cl/or">or</a></code>, <code>is</code>, <code>in</code>, <code>next</code>, <code>prev</code>, <code>any</code>, and <code><a href="http://l1sp.org/cl/find">find</a></code>. <code><a href="#PLUMP-PARSER:DEFINE-MATCHER">define-matcher</a></code> allows you to associate keywords to matchers, which you can then use as a matcher rule in <code><a href="#PLUMP-PARSER:MAKE-MATCHER">make-matcher</a></code>. Regular symbols act as variables:</p>
+<p>Available matcher constructs are <code><a href="http://l1sp.org/cl/not">not</a></code>, <code><a href="http://l1sp.org/cl/and">and</a></code>, <code><a href="http://l1sp.org/cl/or">or</a></code>, <code>is</code>, <code>in</code>, <code>next</code>, <code>prev</code>, <code>any</code>, and <code><a href="http://l1sp.org/cl/find">find</a></code>. <code><a href="#PLUMP-LEXER:DEFINE-MATCHER">define-matcher</a></code> allows you to associate keywords to matchers, which you can then use as a matcher rule in <code><a href="#PLUMP-LEXER:MAKE-MATCHER">make-matcher</a></code>. Regular symbols act as variables:</p>
 
 <pre><code>(<a href="http://l1sp.org/cl/let">let</a> ((find &quot;baz&quot;))
-  (<a href="#PLUMP-PARSER:WITH-LEXER-ENVIRONMENT">plump:with-lexer-environment</a> (&quot;foo bar baz&quot;)
-     (<a href="#PLUMP-PARSER:CONSUME-UNTIL">plump:consume-until</a> (<a href="#PLUMP-PARSER:MAKE-MATCHER">plump:make-matcher</a> (is find)))))
+  (<a href="#PLUMP-LEXER:WITH-LEXER-ENVIRONMENT">plump:with-lexer-environment</a> (&quot;foo bar baz&quot;)
+     (<a href="#PLUMP-LEXER:CONSUME-UNTIL">plump:consume-until</a> (<a href="#PLUMP-LEXER:MAKE-MATCHER">plump:make-matcher</a> (is find)))))
 </code></pre>
 
 <h2>Speed</h2>
@@ -127,7 +127,7 @@
         <ul><li class="package">
             <h3>
               <a name="PLUMP-DOM" href="#PLUMP-DOM">PLUMP-DOM</a>
-              <span class="nicknames">(ORG.TYMOONNEXT.PLUMP.DOM)</span>
+              <span class="nicknames">(ORG.SHIRAKUMO.PLUMP.DOM)</span>
             </h3>
             <ul><li>
                 <a name="PLUMP-DOM:CDATA"/>
@@ -398,6 +398,20 @@ When copying deeply, you can also pass a NEW-PARENT to set on each child.</pre>
                   <pre>Returns T if the given object is a COMMENT.</pre>
                 </article>
               </li><li>
+                <a name="PLUMP-DOM:DECODE-ENTITIES"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:DECODE-ENTITIES">DECODE-ENTITIES</a></h4>
+                      <span/>
+                      <span>(TEXT &amp;OPTIONAL REMOVE-INVALID)</span>
+                    </code>
+                  </header>
+                  <pre>Translates all entities in the text into their character counterparts if possible.
+If an entity does not match, it is left in place unless REMOVE-INVALID is non-NIL.</pre>
+                </article>
+              </li><li>
                 <a name="PLUMP-DOM:ELEMENT-P"/>
                 <article>
                   <header>
@@ -423,6 +437,48 @@ When copying deeply, you can also pass a NEW-PARENT to set on each child.</pre>
                   </header>
                   <pre>Returns the index of the child within its parent, counting only elements.
 This excludes comments, text-nodes and the like.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:ENCODE-ENTITIES"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:ENCODE-ENTITIES">ENCODE-ENTITIES</a></h4>
+                      <span/>
+                      <span>(TEXT)</span>
+                    </code>
+                  </header>
+                  <pre>Encodes the characters &lt; &gt; &amp; &quot; with their XML entity equivalents.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:ENSURE-ATTRIBUTE-MAP"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:ENSURE-ATTRIBUTE-MAP">ENSURE-ATTRIBUTE-MAP</a></h4>
+                      <span/>
+                      <span>(TABLE)</span>
+                    </code>
+                  </header>
+                  <pre>Ensures that the TABLE is suitable as an attribute-map.
+If it is not, the table is copied into a proper attribute-map.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-DOM:ENSURE-CHILD-ARRAY"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:ENSURE-CHILD-ARRAY">ENSURE-CHILD-ARRAY</a></h4>
+                      <span/>
+                      <span>(ARRAY)</span>
+                    </code>
+                  </header>
+                  <pre>If the ARRAY is suitable as a child-array, it is returned.
+Otherwise the array's elements are copied over into a proper
+child-array.</pre>
                 </article>
               </li><li>
                 <a name="PLUMP-DOM:FAMILY"/>
@@ -647,7 +703,7 @@ Note that the element is automatically appended to the parent's child list.</pre
                     <code>
                       <h4><a href="#PLUMP-DOM:MAKE-CHILD-ARRAY">MAKE-CHILD-ARRAY</a></h4>
                       <span/>
-                      <span/>
+                      <span>(&amp;OPTIONAL (SIZE 0))</span>
                     </code>
                   </header>
                   <pre>Creates an array to contain child elements</pre>
@@ -1002,6 +1058,20 @@ Note that this is a copy of the array, modifying it is safe.</pre>
                   <pre>Returns T if the given object is a TEXT-NODE.</pre>
                 </article>
               </li><li>
+                <a name="PLUMP-DOM:TRANSLATE-ENTITY"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:TRANSLATE-ENTITY">TRANSLATE-ENTITY</a></h4>
+                      <span/>
+                      <span>(ENTITY)</span>
+                    </code>
+                  </header>
+                  <pre>Translates the given entity identifier (a name, #Dec or #xHex) into their respective strings if possible.
+Otherwise returns NIL.</pre>
+                </article>
+              </li><li>
                 <a name="PLUMP-DOM:ATTRIBUTES"/>
                 <article>
                   <header>
@@ -1109,6 +1179,19 @@ The children of NESTING-NODEs are copied as per (CLONE-CHILDREN CHILD T)</pre>
                   <pre>Returns the node's textual content.</pre>
                 </article>
               </li><li>
+                <a name="PLUMP-DOM:*ENTITY-MAP*"/>
+                <article>
+                  <header>
+                    <span>SPECIAL</span>
+                    <code>
+                      <h4><a href="#PLUMP-DOM:*ENTITY-MAP*">*ENTITY-MAP*</a></h4>
+                      <span/>
+                      <span/>
+                    </code>
+                  </header>
+                  <pre>String hash-table containing the entity names and mapping them to their respective characters.</pre>
+                </article>
+              </li><li>
                 <a name="PLUMP-DOM:*STREAM*"/>
                 <article>
                   <header>
@@ -1124,16 +1207,16 @@ The children of NESTING-NODEs are copied as per (CLONE-CHILDREN CHILD T)</pre>
               </li></ul>
           </li><li class="package">
             <h3>
-              <a name="PLUMP-PARSER" href="#PLUMP-PARSER">PLUMP-PARSER</a>
-              <span class="nicknames">(ORG.TYMOONNEXT.PLUMP.PARSER)</span>
+              <a name="PLUMP-LEXER" href="#PLUMP-LEXER">PLUMP-LEXER</a>
+              <span class="nicknames">(ORG.SHIRAKUMO.PLUMP.LEXER)</span>
             </h3>
             <ul><li>
-                <a name="PLUMP-PARSER:ADVANCE"/>
+                <a name="PLUMP-LEXER:ADVANCE"/>
                 <article>
                   <header>
                     <span>FUNCTION</span>
                     <code>
-                      <h4><a href="#PLUMP-PARSER:ADVANCE">ADVANCE</a></h4>
+                      <h4><a href="#PLUMP-LEXER:ADVANCE">ADVANCE</a></h4>
                       <span/>
                       <span/>
                     </code>
@@ -1142,12 +1225,12 @@ The children of NESTING-NODEs are copied as per (CLONE-CHILDREN CHILD T)</pre>
 Returns the new index or NIL.</pre>
                 </article>
               </li><li>
-                <a name="PLUMP-PARSER:ADVANCE-N"/>
+                <a name="PLUMP-LEXER:ADVANCE-N"/>
                 <article>
                   <header>
                     <span>FUNCTION</span>
                     <code>
-                      <h4><a href="#PLUMP-PARSER:ADVANCE-N">ADVANCE-N</a></h4>
+                      <h4><a href="#PLUMP-LEXER:ADVANCE-N">ADVANCE-N</a></h4>
                       <span/>
                       <span>(N)</span>
                     </code>
@@ -1156,12 +1239,12 @@ Returns the new index or NIL.</pre>
 Returns the new *INDEX*.</pre>
                 </article>
               </li><li>
-                <a name="PLUMP-PARSER:CONSUME"/>
+                <a name="PLUMP-LEXER:CONSUME"/>
                 <article>
                   <header>
                     <span>FUNCTION</span>
                     <code>
-                      <h4><a href="#PLUMP-PARSER:CONSUME">CONSUME</a></h4>
+                      <h4><a href="#PLUMP-LEXER:CONSUME">CONSUME</a></h4>
                       <span/>
                       <span/>
                     </code>
@@ -1170,12 +1253,12 @@ Returns the new *INDEX*.</pre>
 Otherwise returns NIL.</pre>
                 </article>
               </li><li>
-                <a name="PLUMP-PARSER:CONSUME-UNTIL"/>
+                <a name="PLUMP-LEXER:CONSUME-UNTIL"/>
                 <article>
                   <header>
                     <span>FUNCTION</span>
                     <code>
-                      <h4><a href="#PLUMP-PARSER:CONSUME-UNTIL">CONSUME-UNTIL</a></h4>
+                      <h4><a href="#PLUMP-LEXER:CONSUME-UNTIL">CONSUME-UNTIL</a></h4>
                       <span/>
                       <span>(MATCHER)</span>
                     </code>
@@ -1184,26 +1267,12 @@ Otherwise returns NIL.</pre>
 Returns the substring that was consumed.</pre>
                 </article>
               </li><li>
-                <a name="PLUMP-PARSER:DECODE-ENTITIES"/>
+                <a name="PLUMP-LEXER:MATCHER-AND"/>
                 <article>
                   <header>
                     <span>FUNCTION</span>
                     <code>
-                      <h4><a href="#PLUMP-PARSER:DECODE-ENTITIES">DECODE-ENTITIES</a></h4>
-                      <span/>
-                      <span>(TEXT &amp;OPTIONAL REMOVE-INVALID)</span>
-                    </code>
-                  </header>
-                  <pre>Translates all entities in the text into their character counterparts if possible.
-If an entity does not match, it is left in place unless REMOVE-INVALID is non-NIL.</pre>
-                </article>
-              </li><li>
-                <a name="PLUMP-PARSER:MATCHER-AND"/>
-                <article>
-                  <header>
-                    <span>FUNCTION</span>
-                    <code>
-                      <h4><a href="#PLUMP-PARSER:MATCHER-AND">MATCHER-AND</a></h4>
+                      <h4><a href="#PLUMP-LEXER:MATCHER-AND">MATCHER-AND</a></h4>
                       <span/>
                       <span>(&amp;REST MATCHERS)</span>
                     </code>
@@ -1212,12 +1281,12 @@ If an entity does not match, it is left in place unless REMOVE-INVALID is non-NI
 return successfully. The last match is returned, if all.</pre>
                 </article>
               </li><li>
-                <a name="PLUMP-PARSER:MATCHER-CHARACTER"/>
+                <a name="PLUMP-LEXER:MATCHER-CHARACTER"/>
                 <article>
                   <header>
                     <span>FUNCTION</span>
                     <code>
-                      <h4><a href="#PLUMP-PARSER:MATCHER-CHARACTER">MATCHER-CHARACTER</a></h4>
+                      <h4><a href="#PLUMP-LEXER:MATCHER-CHARACTER">MATCHER-CHARACTER</a></h4>
                       <span/>
                       <span>(CHARACTER)</span>
                     </code>
@@ -1225,12 +1294,12 @@ return successfully. The last match is returned, if all.</pre>
                   <pre>Creates a matcher function that attempts to match the given character.</pre>
                 </article>
               </li><li>
-                <a name="PLUMP-PARSER:MATCHER-FIND"/>
+                <a name="PLUMP-LEXER:MATCHER-FIND"/>
                 <article>
                   <header>
                     <span>FUNCTION</span>
                     <code>
-                      <h4><a href="#PLUMP-PARSER:MATCHER-FIND">MATCHER-FIND</a></h4>
+                      <h4><a href="#PLUMP-LEXER:MATCHER-FIND">MATCHER-FIND</a></h4>
                       <span/>
                       <span>(LIST)</span>
                     </code>
@@ -1238,12 +1307,12 @@ return successfully. The last match is returned, if all.</pre>
                   <pre>Creates a matcher function that returns T if the character is found in the given list.</pre>
                 </article>
               </li><li>
-                <a name="PLUMP-PARSER:MATCHER-NEXT"/>
+                <a name="PLUMP-LEXER:MATCHER-NEXT"/>
                 <article>
                   <header>
                     <span>FUNCTION</span>
                     <code>
-                      <h4><a href="#PLUMP-PARSER:MATCHER-NEXT">MATCHER-NEXT</a></h4>
+                      <h4><a href="#PLUMP-LEXER:MATCHER-NEXT">MATCHER-NEXT</a></h4>
                       <span/>
                       <span>(MATCHER)</span>
                     </code>
@@ -1251,12 +1320,12 @@ return successfully. The last match is returned, if all.</pre>
                   <pre>Creates a matcher environment that peeks ahead one farther.</pre>
                 </article>
               </li><li>
-                <a name="PLUMP-PARSER:MATCHER-NOT"/>
+                <a name="PLUMP-LEXER:MATCHER-NOT"/>
                 <article>
                   <header>
                     <span>FUNCTION</span>
                     <code>
-                      <h4><a href="#PLUMP-PARSER:MATCHER-NOT">MATCHER-NOT</a></h4>
+                      <h4><a href="#PLUMP-LEXER:MATCHER-NOT">MATCHER-NOT</a></h4>
                       <span/>
                       <span>(MATCHER)</span>
                     </code>
@@ -1264,12 +1333,12 @@ return successfully. The last match is returned, if all.</pre>
                   <pre>Creates a matcher function that inverts the result of the sub-expression.</pre>
                 </article>
               </li><li>
-                <a name="PLUMP-PARSER:MATCHER-OR"/>
+                <a name="PLUMP-LEXER:MATCHER-OR"/>
                 <article>
                   <header>
                     <span>FUNCTION</span>
                     <code>
-                      <h4><a href="#PLUMP-PARSER:MATCHER-OR">MATCHER-OR</a></h4>
+                      <h4><a href="#PLUMP-LEXER:MATCHER-OR">MATCHER-OR</a></h4>
                       <span/>
                       <span>(&amp;REST MATCHERS)</span>
                     </code>
@@ -1278,12 +1347,12 @@ return successfully. The last match is returned, if all.</pre>
 sub-expressions return successfully. The first match is returned, if any.</pre>
                 </article>
               </li><li>
-                <a name="PLUMP-PARSER:MATCHER-PREV"/>
+                <a name="PLUMP-LEXER:MATCHER-PREV"/>
                 <article>
                   <header>
                     <span>FUNCTION</span>
                     <code>
-                      <h4><a href="#PLUMP-PARSER:MATCHER-PREV">MATCHER-PREV</a></h4>
+                      <h4><a href="#PLUMP-LEXER:MATCHER-PREV">MATCHER-PREV</a></h4>
                       <span/>
                       <span>(MATCHER)</span>
                     </code>
@@ -1291,12 +1360,12 @@ sub-expressions return successfully. The first match is returned, if any.</pre>
                   <pre>Creates a matcher environment that peeks behind.</pre>
                 </article>
               </li><li>
-                <a name="PLUMP-PARSER:MATCHER-RANGE"/>
+                <a name="PLUMP-LEXER:MATCHER-RANGE"/>
                 <article>
                   <header>
                     <span>FUNCTION</span>
                     <code>
-                      <h4><a href="#PLUMP-PARSER:MATCHER-RANGE">MATCHER-RANGE</a></h4>
+                      <h4><a href="#PLUMP-LEXER:MATCHER-RANGE">MATCHER-RANGE</a></h4>
                       <span/>
                       <span>(FROM TO)</span>
                     </code>
@@ -1304,12 +1373,12 @@ sub-expressions return successfully. The first match is returned, if any.</pre>
                   <pre>Creates a matcher that checks a range according to the next character's CHAR-CODE.</pre>
                 </article>
               </li><li>
-                <a name="PLUMP-PARSER:MATCHER-STRING"/>
+                <a name="PLUMP-LEXER:MATCHER-STRING"/>
                 <article>
                   <header>
                     <span>FUNCTION</span>
                     <code>
-                      <h4><a href="#PLUMP-PARSER:MATCHER-STRING">MATCHER-STRING</a></h4>
+                      <h4><a href="#PLUMP-LEXER:MATCHER-STRING">MATCHER-STRING</a></h4>
                       <span/>
                       <span>(STRING)</span>
                     </code>
@@ -1317,12 +1386,12 @@ sub-expressions return successfully. The first match is returned, if any.</pre>
                   <pre>Creates a matcher function that attempts to match the given string.</pre>
                 </article>
               </li><li>
-                <a name="PLUMP-PARSER:PEEK"/>
+                <a name="PLUMP-LEXER:PEEK"/>
                 <article>
                   <header>
                     <span>FUNCTION</span>
                     <code>
-                      <h4><a href="#PLUMP-PARSER:PEEK">PEEK</a></h4>
+                      <h4><a href="#PLUMP-LEXER:PEEK">PEEK</a></h4>
                       <span/>
                       <span/>
                     </code>
@@ -1330,6 +1399,131 @@ sub-expressions return successfully. The first match is returned, if any.</pre>
                   <pre>Returns the next character, if any.</pre>
                 </article>
               </li><li>
+                <a name="PLUMP-LEXER:UNREAD"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-LEXER:UNREAD">UNREAD</a></h4>
+                      <span/>
+                      <span/>
+                    </code>
+                  </header>
+                  <pre>Steps back a single character if possible.
+Returns the new *INDEX*.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-LEXER:UNREAD-N"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-LEXER:UNREAD-N">UNREAD-N</a></h4>
+                      <span/>
+                      <span>(N)</span>
+                    </code>
+                  </header>
+                  <pre>Steps back by N characters if possible.
+Returns the new *INDEX*.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-LEXER:DEFINE-MATCHER"/>
+                <article>
+                  <header>
+                    <span>MACRO</span>
+                    <code>
+                      <h4><a href="#PLUMP-LEXER:DEFINE-MATCHER">DEFINE-MATCHER</a></h4>
+                      <span/>
+                      <span>(NAME FORM)</span>
+                    </code>
+                  </header>
+                  <pre>Associates NAME as a keyword to the matcher form. You can then use the keyword in further matcher rules.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-LEXER:MAKE-MATCHER"/>
+                <article>
+                  <header>
+                    <span>MACRO</span>
+                    <code>
+                      <h4><a href="#PLUMP-LEXER:MAKE-MATCHER">MAKE-MATCHER</a></h4>
+                      <span/>
+                      <span>(FORM)</span>
+                    </code>
+                  </header>
+                  <pre>Macro to create a matcher chain.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-LEXER:MATCHER-ANY"/>
+                <article>
+                  <header>
+                    <span>MACRO</span>
+                    <code>
+                      <h4><a href="#PLUMP-LEXER:MATCHER-ANY">MATCHER-ANY</a></h4>
+                      <span/>
+                      <span>(&amp;REST IS)</span>
+                    </code>
+                  </header>
+                  <pre>Shorthand for (or (is a) (is b)..)</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-LEXER:WITH-LEXER-ENVIRONMENT"/>
+                <article>
+                  <header>
+                    <span>MACRO</span>
+                    <code>
+                      <h4><a href="#PLUMP-LEXER:WITH-LEXER-ENVIRONMENT">WITH-LEXER-ENVIRONMENT</a></h4>
+                      <span/>
+                      <span>((STRING) &amp;BODY BODY)</span>
+                    </code>
+                  </header>
+                  <pre>Sets up the required lexing environment for the given string.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-LEXER:*INDEX*"/>
+                <article>
+                  <header>
+                    <span>SPECIAL</span>
+                    <code>
+                      <h4><a href="#PLUMP-LEXER:*INDEX*">*INDEX*</a></h4>
+                      <span/>
+                      <span/>
+                    </code>
+                  </header>
+                  <pre>Set to the current reading index.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-LEXER:*LENGTH*"/>
+                <article>
+                  <header>
+                    <span>SPECIAL</span>
+                    <code>
+                      <h4><a href="#PLUMP-LEXER:*LENGTH*">*LENGTH*</a></h4>
+                      <span/>
+                      <span/>
+                    </code>
+                  </header>
+                  <pre>Set to the length of the string for bounds checking.</pre>
+                </article>
+              </li><li>
+                <a name="PLUMP-LEXER:*STRING*"/>
+                <article>
+                  <header>
+                    <span>SPECIAL</span>
+                    <code>
+                      <h4><a href="#PLUMP-LEXER:*STRING*">*STRING*</a></h4>
+                      <span/>
+                      <span/>
+                    </code>
+                  </header>
+                  <pre>Contains the current string to lex.</pre>
+                </article>
+              </li></ul>
+          </li><li class="package">
+            <h3>
+              <a name="PLUMP-PARSER" href="#PLUMP-PARSER">PLUMP-PARSER</a>
+              <span class="nicknames">(ORG.SHIRAKUMO.PLUMP.PARSER)</span>
+            </h3>
+            <ul><li>
                 <a name="PLUMP-PARSER:PROCESSING-PARSER"/>
                 <article>
                   <header>
@@ -1517,6 +1711,19 @@ E.g. &lt;foo bar baz&gt; =&gt; bar baz</pre>
                   <pre>Removes the tag dispatcher of NAME.</pre>
                 </article>
               </li><li>
+                <a name="PLUMP-PARSER:SLURP-STREAM"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#PLUMP-PARSER:SLURP-STREAM">SLURP-STREAM</a></h4>
+                      <span/>
+                      <span>(STREAM)</span>
+                    </code>
+                  </header>
+                  <pre>Quickly slurps the stream's contents into an array with fill pointer.</pre>
+                </article>
+              </li><li>
                 <a name="PLUMP-PARSER:TAG-DISPATCHER"/>
                 <article>
                   <header>
@@ -1529,48 +1736,6 @@ E.g. &lt;foo bar baz&gt; =&gt; bar baz</pre>
                   </header>
                   <pre>Returns the tag-dispatcher form of NAME from LIST, if any.
 A tag dispatcher form is a list made up of NAME, TEST-FUNCTION and DISPATCHER-FUNCTION.</pre>
-                </article>
-              </li><li>
-                <a name="PLUMP-PARSER:TRANSLATE-ENTITY"/>
-                <article>
-                  <header>
-                    <span>FUNCTION</span>
-                    <code>
-                      <h4><a href="#PLUMP-PARSER:TRANSLATE-ENTITY">TRANSLATE-ENTITY</a></h4>
-                      <span/>
-                      <span>(ENTITY)</span>
-                    </code>
-                  </header>
-                  <pre>Translates the given entity identifier (a name, #Dec or #xHex) into their respective strings if possible.
-Otherwise returns NIL.</pre>
-                </article>
-              </li><li>
-                <a name="PLUMP-PARSER:UNREAD"/>
-                <article>
-                  <header>
-                    <span>FUNCTION</span>
-                    <code>
-                      <h4><a href="#PLUMP-PARSER:UNREAD">UNREAD</a></h4>
-                      <span/>
-                      <span/>
-                    </code>
-                  </header>
-                  <pre>Steps back a single character if possible.
-Returns the new *INDEX*.</pre>
-                </article>
-              </li><li>
-                <a name="PLUMP-PARSER:UNREAD-N"/>
-                <article>
-                  <header>
-                    <span>FUNCTION</span>
-                    <code>
-                      <h4><a href="#PLUMP-PARSER:UNREAD-N">UNREAD-N</a></h4>
-                      <span/>
-                      <span>(N)</span>
-                    </code>
-                  </header>
-                  <pre>Steps back by N characters if possible.
-Returns the new *INDEX*.</pre>
                 </article>
               </li><li>
                 <a name="PLUMP-PARSER:PARSE"/>
@@ -1602,19 +1767,6 @@ Returns the root.</pre>
                   <pre>Defines an element to be read as a full-text element.
 This means that it cannot contain any child-nodes and everything up until its closing
 tag is used as its text.</pre>
-                </article>
-              </li><li>
-                <a name="PLUMP-PARSER:DEFINE-MATCHER"/>
-                <article>
-                  <header>
-                    <span>MACRO</span>
-                    <code>
-                      <h4><a href="#PLUMP-PARSER:DEFINE-MATCHER">DEFINE-MATCHER</a></h4>
-                      <span/>
-                      <span>(NAME FORM)</span>
-                    </code>
-                  </header>
-                  <pre>Associates NAME as a keyword to the matcher form. You can then use the keyword in further matcher rules.</pre>
                 </article>
               </li><li>
                 <a name="PLUMP-PARSER:DEFINE-PROCESSING-PARSER"/>
@@ -1681,32 +1833,6 @@ BODY      ::= form*</pre>
 Returns RESULT-FORM's evaluated value.</pre>
                 </article>
               </li><li>
-                <a name="PLUMP-PARSER:MAKE-MATCHER"/>
-                <article>
-                  <header>
-                    <span>MACRO</span>
-                    <code>
-                      <h4><a href="#PLUMP-PARSER:MAKE-MATCHER">MAKE-MATCHER</a></h4>
-                      <span/>
-                      <span>(FORM)</span>
-                    </code>
-                  </header>
-                  <pre>Macro to create a matcher chain.</pre>
-                </article>
-              </li><li>
-                <a name="PLUMP-PARSER:MATCHER-ANY"/>
-                <article>
-                  <header>
-                    <span>MACRO</span>
-                    <code>
-                      <h4><a href="#PLUMP-PARSER:MATCHER-ANY">MATCHER-ANY</a></h4>
-                      <span/>
-                      <span>(&amp;REST IS)</span>
-                    </code>
-                  </header>
-                  <pre>Shorthand for (or (is a) (is b)..)</pre>
-                </article>
-              </li><li>
                 <a name="PLUMP-PARSER:SET-TAG-DISPATCHER"/>
                 <article>
                   <header>
@@ -1718,32 +1844,6 @@ Returns RESULT-FORM's evaluated value.</pre>
                     </code>
                   </header>
                   <pre>Adds or updates the DISPATCHER-FORM for NAME on LIST.</pre>
-                </article>
-              </li><li>
-                <a name="PLUMP-PARSER:WITH-LEXER-ENVIRONMENT"/>
-                <article>
-                  <header>
-                    <span>MACRO</span>
-                    <code>
-                      <h4><a href="#PLUMP-PARSER:WITH-LEXER-ENVIRONMENT">WITH-LEXER-ENVIRONMENT</a></h4>
-                      <span/>
-                      <span>((STRING) &amp;BODY BODY)</span>
-                    </code>
-                  </header>
-                  <pre>Sets up the required lexing environment for the given string.</pre>
-                </article>
-              </li><li>
-                <a name="PLUMP-PARSER:*ENTITY-MAP*"/>
-                <article>
-                  <header>
-                    <span>SPECIAL</span>
-                    <code>
-                      <h4><a href="#PLUMP-PARSER:*ENTITY-MAP*">*ENTITY-MAP*</a></h4>
-                      <span/>
-                      <span/>
-                    </code>
-                  </header>
-                  <pre>String hash-table containing the entity names and mapping them to their respective characters.</pre>
                 </article>
               </li><li>
                 <a name="PLUMP-PARSER:*HTML-TAGS*"/>
@@ -1759,32 +1859,6 @@ Returns RESULT-FORM's evaluated value.</pre>
                   <pre>List of HTML tag dispatchers</pre>
                 </article>
               </li><li>
-                <a name="PLUMP-PARSER:*INDEX*"/>
-                <article>
-                  <header>
-                    <span>SPECIAL</span>
-                    <code>
-                      <h4><a href="#PLUMP-PARSER:*INDEX*">*INDEX*</a></h4>
-                      <span/>
-                      <span/>
-                    </code>
-                  </header>
-                  <pre>Set to the current reading index.</pre>
-                </article>
-              </li><li>
-                <a name="PLUMP-PARSER:*LENGTH*"/>
-                <article>
-                  <header>
-                    <span>SPECIAL</span>
-                    <code>
-                      <h4><a href="#PLUMP-PARSER:*LENGTH*">*LENGTH*</a></h4>
-                      <span/>
-                      <span/>
-                    </code>
-                  </header>
-                  <pre>Set to the length of the string for bounds checking.</pre>
-                </article>
-              </li><li>
                 <a name="PLUMP-PARSER:*ROOT*"/>
                 <article>
                   <header>
@@ -1796,19 +1870,6 @@ Returns RESULT-FORM's evaluated value.</pre>
                     </code>
                   </header>
                   <pre>Object containing the current node to set as parent.</pre>
-                </article>
-              </li><li>
-                <a name="PLUMP-PARSER:*STRING*"/>
-                <article>
-                  <header>
-                    <span>SPECIAL</span>
-                    <code>
-                      <h4><a href="#PLUMP-PARSER:*STRING*">*STRING*</a></h4>
-                      <span/>
-                      <span/>
-                    </code>
-                  </header>
-                  <pre>Contains the current string to lex.</pre>
                 </article>
               </li><li>
                 <a name="PLUMP-PARSER:*TAG-DISPATCHERS*"/>
