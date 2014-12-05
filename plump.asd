@@ -4,27 +4,17 @@
   Author: Nicolas Hafner <shinmera@tymoon.eu>
 |#
 
-(defpackage org.tymoonnext.plump.asdf
-  (:use :cl :asdf))
-(in-package :org.tymoonnext.plump.asdf)
-
-(defsystem plump
+(in-package #:cl-user)
+(asdf:defsystem plump
   :name "Practically Lenient and Unimpressive Markup Parser"
-  :version "0.1.14"
+  :version "0.2.0"
   :license "Artistic"
   :author "Nicolas Hafner <shinmera@tymoon.eu>"
   :maintainer "Nicolas Hafner <shinmera@tymoon.eu>"
   :description "An X/HTML parser that aims to be as lenient as possible."
   :homepage "https://github.com/Shinmera/plump"
   :serial T
-  :components ((:file "package")
-               (:file "array")
-               (:file "indent")
-               (:file "dom")
-               (:file "entities")
-               (:file "lexer")
-               (:file "tag-dispatcher")
-               (:file "parser")
-               (:file "processing")
-               (:file "special-tags"))
-  :depends-on (:cl-ppcre))
+  :components ((:file "package"))
+  :depends-on (:plump-dom
+               :plump-lexer
+               :plump-parser))
