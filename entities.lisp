@@ -4,7 +4,7 @@
  Author: Nicolas Hafner <shinmera@tymoon.eu>
 |#
 
-(in-package #:org.tymoonnext.plump)
+(in-package #:org.shirakumo.plump.dom)
 
 ;; According to http://en.wikipedia.org/wiki/List_of_XML_and_HTML_character_entity_references
 (defparameter *entity-map*

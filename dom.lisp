@@ -4,7 +4,7 @@
  Author: Nicolas Hafner <shinmera@tymoon.eu>
 |#
 
-(in-package #:org.tymoonnext.plump)
+(in-package #:org.shirakumo.plump.dom)
 
 (defclass node ()
   ()
@@ -85,18 +85,45 @@
     (format stream "~@[~a~]" (tag-name node)))
   node)
 
-(defun make-child-array ()
+(defun make-child-array (&optional (size 0))
   "Creates an array to contain child elements"
-  (make-array 0 :adjustable T :fill-pointer 0))
+  (make-array size :adjustable T :fill-pointer 0))
+
+(defun ensure-child-array (array)
+  "If the ARRAY is suitable as a child-array, it is returned.
+Otherwise the array's elements are copied over into a proper
+child-array."
+  (etypecase array
+    ((and vector (not simple-array))
+     array)
+    (vector
+     (let ((proper (make-child-array (length array))))
+       (loop for item across array
+             do (vector-push item proper))
+       proper))))
 
 (defun make-attribute-map ()
   "Creates a map to contain attributes."
   (make-hash-table :test 'equalp))
 
+(defun ensure-attribute-map (table)
+  "Ensures that the TABLE is suitable as an attribute-map.
+If it is not, the table is copied into a proper attribute-map."
+  (if (eql (hash-table-test table) 'equalp)
+      table
+      (let ((proper (make-attribute-map)))
+        (maphash #'(lambda (k v) (setf (gethash k proper) v)) table)
+        proper)))
+
 (defun make-root (&optional (children (make-child-array)))
   "Creates a root node with the given children.
 Children should be a vector with fill-pointer."
   (make-instance 'root :children children))
+
+(defmacro make-appending ((class parent) &body properties)
+  `(append-child
+    ,parent
+    (make-instance ',class :parent ,parent ,@properties)))
 
 (defun make-element (parent tag &key (children (make-child-array)) (attributes (make-attribute-map)))
   "Creates a standard DOM element with the given tag name and parent.
@@ -104,25 +131,31 @@ Optionally a vector (with fill-pointer) containing children and an
 attribute-map (a hash-table with equalp test) can be supplied.
 
 Note that the element is automatically appended to the parent's child list."
-  (append-child parent (make-instance 'element :tag-name tag :parent parent :children children :attributes attributes)))
+  (make-appending (element parent)
+    :tag-name tag
+    :children children
+    :attributes attributes))
 
 (defun make-text-node (parent &optional (text ""))
   "Creates a new text node under the parent.
 
 Note that the node is automatically appended to the parent's child list."
-  (append-child parent (make-instance 'text-node :text text :parent parent)))
+  (make-appending (text-node parent)
+    :text text))
 
 (defun make-comment (parent &optional (text ""))
   "Creates a new comment node under the parent.
 
 Note that the node is automatically appended to the parent's child list."
-  (append-child parent (make-instance 'comment :text text :parent parent)))
+  (make-appending (comment parent)
+    :text text))
 
 (defun make-doctype (parent doctype)
   "Creates a new doctype node under the parent.
 
 Note that the node is automatically appended to the parent's child list."
-  (append-child parent (make-instance 'doctype :doctype doctype :parent parent)))
+  (make-appending (doctype parent)
+    :doctype doctype))
 
 (defun make-fulltext-element (parent tag &key text (attributes (make-attribute-map)))
   "Creates a fulltext element under the parent.
@@ -130,7 +163,9 @@ Optionally a text and an attribute-map (a hash-table with equalp test)
 can be supplied.
 
 Note that the element is automatically appended to the parent's child list."
-  (let ((element (make-instance 'fulltext-element :tag-name tag :parent parent :attributes attributes)))
+  (let ((element (make-instance 'fulltext-element :tag-name tag
+                                                  :parent parent
+                                                  :attributes attributes)))
     (when text
       (make-text-node element text))
     (append-child parent element)))
@@ -139,19 +174,23 @@ Note that the element is automatically appended to the parent's child list."
   "Creates an XML header object under the parent.
 
 Note that the element is automatically appended to the parent's child list."
-  (append-child parent (make-instance 'xml-header :attributes attributes :parent parent)))
+  (make-appending (xml-header parent)
+    :attributes attributes))
 
 (defun make-cdata (parent &key (text ""))
   "Creates an XML CDATA section under the parent.
 
 Note that the element is automatically appended to the parent's child list."
-  (append-child parent (make-instance 'cdata :text text :parent parent)))
+  (make-appending (cdata parent)
+    :text text))
 
 (defun make-processing-instruction (parent &key name (text ""))
   "Creates an XML processing instruction under the parent.
 
 Note that the element is automatically appended to the parent's child list."
-  (append-child parent (make-instance 'processing-instruction :tag-name name :text text :parent parent)))
+  (make-appending (processing-instruction parent)
+    :tag-name name
+    :text text))
 
 (defun clear (nesting-node)
   "Clears all children from the node.
