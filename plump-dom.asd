@@ -17,5 +17,4 @@
   :components ((:file "package-dom")
                (:file "entities")
                (:file "dom"))
-  :depends-on (:array-utils
-               :cl-ppcre))
+  :depends-on (:array-utils))

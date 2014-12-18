@@ -19,7 +19,6 @@
                (:file "parser")
                (:file "processing")
                (:file "special-tags"))
-  :depends-on (:cl-ppcre
-               :trivial-indent
+  :depends-on (:trivial-indent
                :plump-dom
                :plump-lexer))
