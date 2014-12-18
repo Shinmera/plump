@@ -192,6 +192,35 @@ Note that the element is automatically appended to the parent's child list."
     :tag-name name
     :text text))
 
+(declaim (inline node-p element-p text-node-p comment-p root-p nesting-node-p))
+(defun node-p (object)
+  "Returns T if the given object is a NODE."
+  (typep object 'node))
+
+(defun element-p (object)
+  "Returns T if the given object is an ELEMENT."
+  (typep object 'element))
+
+(defun text-node-p (object)
+  "Returns T if the given object is a TEXT-NODE."
+  (typep object 'text-node))
+
+(defun comment-p (object)
+  "Returns T if the given object is a COMMENT."
+  (typep object 'comment))
+
+(defun root-p (object)
+  "Returns T if the given object is a ROOT."
+  (typep object 'root))
+
+(defun nesting-node-p (object)
+  "Returns T if the given object is a NESTING-NODE."
+  (typep object 'nesting-node))
+
+(defun fulltext-element-p (object)
+  "Returns T If the given object is a FULLTEXT-ELEMENT."
+  (typep object 'fulltext-element))
+
 (defun clear (nesting-node)
   "Clears all children from the node.
 
@@ -498,35 +527,6 @@ attribute."
                         (scanren child)))))
     (scanren node))
   NIL)
-
-(declaim (inline node-p element-p text-node-p comment-p root-p nesting-node-p))
-(defun node-p (object)
-  "Returns T if the given object is a NODE."
-  (typep object 'node))
-
-(defun element-p (object)
-  "Returns T if the given object is an ELEMENT."
-  (typep object 'element))
-
-(defun text-node-p (object)
-  "Returns T if the given object is a TEXT-NODE."
-  (typep object 'text-node))
-
-(defun comment-p (object)
-  "Returns T if the given object is a COMMENT."
-  (typep object 'comment))
-
-(defun root-p (object)
-  "Returns T if the given object is a ROOT."
-  (typep object 'root))
-
-(defun nesting-node-p (object)
-  "Returns T if the given object is a NESTING-NODE."
-  (typep object 'nesting-node))
-
-(defun fulltext-element-p (object)
-  "Returns T If the given object is a FULLTEXT-ELEMENT."
-  (typep object 'fulltext-element))
 
 (defvar *stream* *standard-output*
   "The stream to serialize to during SERIALIZE-OBJECT.")
