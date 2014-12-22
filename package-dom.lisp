@@ -84,7 +84,10 @@
    #:fulltext-element-p
    #:*stream*
    #:serialize
-   #:serialize-object)
+   #:serialize-object
+   #:traverse
+   #:trim
+   #:strip)
   ;; entities.lisp
   (:export
    #:*entity-map*

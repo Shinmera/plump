@@ -591,3 +591,39 @@ STREAM can be a stream, T for *standard-output* or NIL to serialize to string."
   (:method ((nodes vector))
     (loop for child across nodes
           do (serialize child *stream*))))
+
+(defgeneric traverse (node function &key test)
+  (:documentation "Traverse the NODE and all its children recursively,
+calling FUNCTION on the current node if calling TEST on the current node
+returns a non-NIL value. It is safe to modify the child array of the
+parent of each node passed to FUNCTION.
+
+NODE is returned." )
+  (:method ((node node) function &key (test (constantly T)))
+    (when (funcall test node)
+      (funcall function node))
+    node)
+  (:method ((node nesting-node) function &key (test (constantly T)))
+    (call-next-method)
+    (loop for child across (copy-seq (children node))
+          do (traverse child function :test test))
+    node))
+
+(defun trim (node)
+  "Trim all text-nodes within NODE (at any depth) of leading and trailing whitespace."
+  (traverse
+   node
+   #'(lambda (node)
+       (setf (text node) (string-trim '(#\Space #\Newline #\Tab #\Return #\Linefeed #\Page) (text node))))
+   :test #'text-node-p))
+
+(defun strip (node)
+  "Trim all text-nodes within NODE (at any depth) of leading and trailing whitespace. 
+If their TEXT should be an empty string after trimming, remove them."
+  (traverse
+   node
+   #'(lambda (node)
+       (setf (text node) (string-trim '(#\Space #\Newline #\Tab #\Return #\Linefeed #\Page) (text node)))
+       (when (string= (text node) "")
+         (remove-child node)))
+   :test #'text-node-p))
