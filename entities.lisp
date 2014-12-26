@@ -267,16 +267,16 @@
         finally (return table))
   "String hash-table containing the entity names and mapping them to their respective characters.")
 
-(defun translate-entity (entity)
+(defun translate-entity (text &key (start 0) (end (length text)))
   "Translates the given entity identifier (a name, #Dec or #xHex) into their respective strings if possible.
 Otherwise returns NIL."
-  (if (char= (elt entity 0) #\#)
-      (when (<= 2 (length entity))
+  (if (char= (elt text start) #\#)
+      (when (<= 2 (- end start))
         (code-char
-         (if (char= (elt entity 1) #\x)
-             (parse-integer (subseq entity 2) :radix 16)
-             (parse-integer (subseq entity 1)))))
-      (gethash entity *entity-map*)))
+         (if (char= (elt text (+ start 1)) #\x)
+             (parse-integer text :start (+ start 2) :end end :radix 16)
+             (parse-integer text :start (+ start 1) :end end))))
+      (gethash (subseq text start end) *entity-map*)))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defvar *alpha-chars* '(#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\#
@@ -297,7 +297,7 @@ If an entity does not match, it is left in place unless REMOVE-INVALID is non-NI
                           (#.*alpha-chars*
                            T)
                           (#\;
-                           (let ((entity (translate-entity (subseq text (1+ start) i))))
+                           (let ((entity (translate-entity text :start (+ start 1) :end i)))
                              (cond
                                (entity (write-char entity output))
                                (remove-invalid NIL)
