@@ -10,11 +10,14 @@
   ()
   (:documentation "Base DOM node class."))
 
+
+(declaim (ftype (function (nesting-node) (and (vector plump:child-node) (not simple-array))) children))
 (defclass nesting-node (node)
   ((%children :initarg :children :initform (make-child-array) :accessor children :type vector))
   (:documentation "Node class that can contain child nodes."))
 (setf (documentation 'children 'function) "Returns a vector of child-nodes that are contained within the node.")
 
+(declaim (ftype (function (child-node) nesting-node) parent))
 (defclass child-node (node)
   ((%parent :initarg :parent :initform (error "Parent required.") :accessor parent :type (or null node)))
   (:documentation "Node class that is a child and thus has a parent."))
@@ -85,10 +88,12 @@
     (format stream "~@[~a~]" (tag-name node)))
   node)
 
+(declaim (ftype (function (&optional fixnum) (and (vector plump:child-node) (not simple-array))) make-child-array))
 (defun make-child-array (&optional (size 0))
   "Creates an array to contain child elements"
-  (make-array size :adjustable T :fill-pointer 0))
+  (make-array size :adjustable T :fill-pointer 0 :element-type 'child-node))
 
+(declaim (ftype (function (&optional fixnum) (and (vector plump:child-node) (not simple-array))) ensure-child-array))
 (defun ensure-child-array (array)
   "If the ARRAY is suitable as a child-array, it is returned.
 Otherwise the array's elements are copied over into a proper
@@ -242,7 +247,7 @@ Note that modifying this array directly modifies that of the parent."
 
 (defun child-position (child)
   "Returns the index of the child within its parent."
-  (position child (family child)))
+  (the fixnum (position child (family child))))
 
 (defun append-child (parent child)
   "Appends the given child onto the parent's child list.
@@ -308,7 +313,7 @@ See VECTOR-PUSH-EXTEND-POSITION"
   "Clone the array of children.
 If DEEP is non-NIL, each child is cloned as per (CLONE-NODE NODE T).
 When copying deeply, you can also pass a NEW-PARENT to set on each child."
-  (loop with array = (make-array (length (children node)) :adjustable T :fill-pointer 0)
+  (loop with array = (make-child-array (length (children node)))
         for child across (children node)
         do (vector-push (if deep
                             (let ((child (clone-node child T)))
