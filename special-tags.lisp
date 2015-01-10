@@ -56,8 +56,17 @@
 (define-tag-dispatcher (cdata *tag-dispatchers* *xml-tags*) (name)
       (and (<= 8 (length name))
            (string-equal name "![CDATA[" :end1 8))
-  (let ((text (consume-until (make-matcher (is "]]>")))))
-    (advance-n 3)
+  ;; KLUDGE: Since tag names can contain [ and ] we need to
+  ;; take special care of cases where there is a token in the
+  ;; cdata without any characters that would stop the tag
+  ;; name reading.
+  (let ((text (if (string= name "]]" :start1 (- (length name) 2))
+                  (prog1 (subseq name 8 (- (length name) 2))
+                    (advance-n 1))
+                  (prog1 (concatenate 'string
+                                      (subseq name 8)
+                                      (consume-until (make-matcher (is "]]>"))))
+                    (advance-n 3)))))
     (make-cdata *root* :text text)))
 
 ;; Shorthand macro to define self-closing elements
