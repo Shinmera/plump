@@ -10,17 +10,16 @@
   ()
   (:documentation "Base DOM node class."))
 
-
-(declaim (ftype (function (nesting-node) (and (vector plump:child-node) (not simple-array))) children))
 (defclass nesting-node (node)
   ((%children :initarg :children :initform (make-child-array) :accessor children :type vector))
   (:documentation "Node class that can contain child nodes."))
+(declaim (ftype (function (nesting-node) (and (vector child-node) (not simple-array))) children))
 (setf (documentation 'children 'function) "Returns a vector of child-nodes that are contained within the node.")
 
-(declaim (ftype (function (child-node) nesting-node) parent))
 (defclass child-node (node)
   ((%parent :initarg :parent :initform (error "Parent required.") :accessor parent :type (or null node)))
   (:documentation "Node class that is a child and thus has a parent."))
+(declaim (ftype (function (child-node) nesting-node) parent))
 (setf (documentation 'parent 'function) "Returns the node's parent that should contain this element as a child.")
 
 (defclass root (nesting-node)
@@ -88,12 +87,12 @@
     (format stream "~@[~a~]" (tag-name node)))
   node)
 
-(declaim (ftype (function (&optional fixnum) (and (vector plump:child-node) (not simple-array))) make-child-array))
+(declaim (ftype (function (&optional fixnum) (and (vector child-node) (not simple-array))) make-child-array))
 (defun make-child-array (&optional (size 0))
   "Creates an array to contain child elements"
   (make-array size :adjustable T :fill-pointer 0 :element-type 'child-node))
 
-(declaim (ftype (function (&optional fixnum) (and (vector plump:child-node) (not simple-array))) ensure-child-array))
+(declaim (ftype (function (array) (and (vector child-node) (not simple-array))) ensure-child-array))
 (defun ensure-child-array (array)
   "If the ARRAY is suitable as a child-array, it is returned.
 Otherwise the array's elements are copied over into a proper
