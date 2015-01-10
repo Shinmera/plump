@@ -74,7 +74,10 @@
   (:documentation "XML CDATA section node."))
 
 (defmethod print-object ((node cdata) stream)
-  (print-unreadable-object (node stream :type T))
+  (print-unreadable-object (node stream :type T)
+    (if (< 20 (length (text node)))
+        (format stream "~s..." (subseq (text node) 0 20))
+        (format stream "~s" (text node))))
   node)
 
 (defclass processing-instruction (child-node)
