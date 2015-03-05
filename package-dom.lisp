@@ -15,11 +15,11 @@
    #:children
    #:child-node
    #:parent
+   #:textual-node
+   #:text
    #:root
    #:text-node
-   #:text
    #:comment
-   #:text
    #:element
    #:tag-name
    #:attributes
@@ -76,12 +76,18 @@
    #:ge-elements-by-tag-name
    #:get-element-by-id
    #:node-p
-   #:element-p
+   #:nesting-node-p
+   #:child-node-p
+   #:textual-node-p
+   #:root-p
    #:text-node-p
    #:comment-p
-   #:root-p
-   #:nesting-node-p
+   #:element-p
+   #:doctype-p
    #:fulltext-element-p
+   #:xml-header-p
+   #:processing-instruction-p
+   #:cdata-p
    #:*stream*
    #:serialize
    #:serialize-object

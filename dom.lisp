@@ -22,17 +22,21 @@
 (declaim (ftype (function (child-node) nesting-node) parent))
 (setf (documentation 'parent 'function) "Returns the node's parent that should contain this element as a child.")
 
+(defclass textual-node (node)
+  ((%text :initarg :text :initform "" :accessor text :type string))
+  (:documentation "Node class that represents a textual node and thus contains a TEXT field."))
+(setf (documentation 'text 'function) "Returns the node's textual content.")
+
 (defclass root (nesting-node)
   ()
   (:documentation "Root DOM node, practically equivalent to a \"document\"."))
 
-(defclass text-node (child-node)
-  ((%text :initarg :text :initform "" :accessor text :type string))
+(defclass text-node (child-node textual-node)
+  ()
   (:documentation "Text node that can only contain a single text string."))
-(setf (documentation 'text 'function) "Returns the node's textual content.")
 
-(defclass comment (child-node)
-  ((%text :initarg :text :initform "" :accessor text :type string))
+(defclass comment (child-node textual-node)
+  ()
   (:documentation "Comment node that can only contain a single comment string."))
 
 (defclass element (nesting-node child-node)
@@ -69,8 +73,8 @@
     (format stream "version ~a" (attribute node "version")))
   node)
 
-(defclass cdata (child-node)
-  ((%text :initarg :text :initform "" :accessor text :type string))
+(defclass cdata (child-node textual-node)
+  ()
   (:documentation "XML CDATA section node."))
 
 (defmethod print-object ((node cdata) stream)
@@ -80,9 +84,8 @@
         (format stream "~s" (text node))))
   node)
 
-(defclass processing-instruction (child-node)
-  ((%tag-name :initarg :tag-name :initform NIL :accessor tag-name :type (or null string))
-   (%text :initarg :text :initform "" :accessor text :type string))
+(defclass processing-instruction (child-node textual-node)
+  ((%tag-name :initarg :tag-name :initform NIL :accessor tag-name :type (or null string)))
   (:documentation "XML processing instruction node."))
 
 (defmethod print-object ((node processing-instruction) stream)
@@ -109,9 +112,9 @@ child-array."
              do (vector-push item proper))
        proper))))
 
-(defun make-attribute-map ()
+(defun make-attribute-map (&optional (size 0))
   "Creates a map to contain attributes."
-  (make-hash-table :test 'equalp))
+  (make-hash-table :test 'equalp :size size))
 
 (defun ensure-attribute-map (table)
   "Ensures that the TABLE is suitable as an attribute-map.
@@ -199,34 +202,33 @@ Note that the element is automatically appended to the parent's child list."
     :tag-name name
     :text text))
 
-(declaim (inline node-p element-p text-node-p comment-p root-p nesting-node-p))
-(defun node-p (object)
-  "Returns T if the given object is a NODE."
-  (typep object 'node))
 
-(defun element-p (object)
-  "Returns T if the given object is an ELEMENT."
-  (typep object 'element))
+(defmacro define-predicates (&rest classes)
+  `(progn
+     ,@(loop for class in classes
+             for predicate = (intern (format NIL "~a-P" class))
+             for docstring = (format NIL "Returns T if the given OBJECT is of type ~a" class)
+             collect `(defun ,predicate (object)
+                        ,docstring
+                        (typep object ',class)) into definitions
+             collect predicate into predicates
+             finally (return `((declaim (inline ,@predicates))
+                               ,@definitions)))))
 
-(defun text-node-p (object)
-  "Returns T if the given object is a TEXT-NODE."
-  (typep object 'text-node))
-
-(defun comment-p (object)
-  "Returns T if the given object is a COMMENT."
-  (typep object 'comment))
-
-(defun root-p (object)
-  "Returns T if the given object is a ROOT."
-  (typep object 'root))
-
-(defun nesting-node-p (object)
-  "Returns T if the given object is a NESTING-NODE."
-  (typep object 'nesting-node))
-
-(defun fulltext-element-p (object)
-  "Returns T If the given object is a FULLTEXT-ELEMENT."
-  (typep object 'fulltext-element))
+(define-predicates
+  node
+  nesting-node
+  child-node
+  textual-node
+  root
+  text-node
+  comment
+  element
+  doctype
+  fulltext-element
+  xml-header
+  processing-instruction
+  cdata)
 
 (defun clear (nesting-node)
   "Clears all children from the node.
