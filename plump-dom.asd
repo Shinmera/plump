@@ -7,7 +7,7 @@
 (in-package #:cl-user)
 (asdf:defsystem plump-dom
   :name "Plump-DOM"
-  :version "1.1.2"
+  :version "1.2.1"
   :license "Artistic"
   :author "Nicolas Hafner <shinmera@tymoon.eu>"
   :maintainer "Nicolas Hafner <shinmera@tymoon.eu>"
