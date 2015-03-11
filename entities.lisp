@@ -266,10 +266,14 @@
         do (setf (gethash key table) val)
         finally (return table))
   "String hash-table containing the entity names and mapping them to their respective characters.")
+(declaim (type hash-table *entity-map*))
 
 (defun translate-entity (text &key (start 0) (end (length text)))
   "Translates the given entity identifier (a name, #Dec or #xHex) into their respective strings if possible.
 Otherwise returns NIL."
+  (declare (optimize (speed 3)))
+  (declare (type simple-string text)
+           (type fixnum start end))
   (if (char= (elt text start) #\#)
       (when (<= 2 (- end start))
         (code-char
@@ -279,13 +283,15 @@ Otherwise returns NIL."
       (gethash (subseq text start end) *entity-map*)))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (defvar *alpha-chars* '(#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\#
-                          #\a #\b #\c #\d #\e #\f #\g #\h #\i #\j #\k #\l #\m #\n #\o #\p #\q #\r #\s #\t #\u #\v #\w #\x #\y #\z
-                          #\A #\B #\C #\D #\E #\F #\G #\H #\I #\J #\K #\L #\M #\N #\O #\P #\Q #\R #\S #\T #\U #\V #\W #\X #\Y #\Z)))
+  (defvar *alpha-chars* "0123456789#abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+  (declaim (type (simple-base-string 63) *alpha-chars*)))
 
 (defun decode-entities (text &optional remove-invalid)
   "Translates all entities in the text into their character counterparts if possible.
 If an entity does not match, it is left in place unless REMOVE-INVALID is non-NIL."
+  (declare (optimize (speed 3))
+           (type simple-string text)
+           (type boolean remove-invalid))
   (with-output-to-string (output)
     (loop with start = 0
           for i from 0 below (length text)
@@ -310,6 +316,8 @@ If an entity does not match, it is left in place unless REMOVE-INVALID is non-NI
 
 (defun encode-entities (text)
   "Encodes the characters < > & \" with their XML entity equivalents."
+  (declare (optimize (speed 3))
+           (type simple-string text))
   (with-output-to-string (output)
     (loop for c across text
           do (case c

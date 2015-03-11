@@ -30,6 +30,8 @@
                                (format T "Error during lexing at index ~a~%" *index*))))
        ,@body)))
 
+(declaim (ftype (function () (or character null)) consume)
+         (inline consume))
 (defun consume ()
   "Consumes a single character if possible and returns it.
 Otherwise returns NIL."
@@ -39,6 +41,8 @@ Otherwise returns NIL."
       #+plump-debug-lexer (format T "~a +~%" *index*)
       (incf *index*))))
 
+(declaim (ftype (function () (or fixnum null)) advance)
+         (inline advance))
 (defun advance ()
   "Skips a chracter if possible.
 Returns the new index or NIL."
@@ -47,6 +51,8 @@ Returns the new index or NIL."
     #+plump-debug-lexer (format T "~a +~%" *index*)
     (incf *index*)))
 
+(declaim (ftype (function () fixnum) unread)
+         (inline unread))
 (defun unread ()
   "Steps back a single character if possible.
 Returns the new *INDEX*."
@@ -56,6 +62,8 @@ Returns the new *INDEX*."
     (decf *index*))
   *index*)
 
+(declaim (ftype (function () (or character null)) peek)
+         (inline peek))
 (defun peek ()
   "Returns the next character, if any."
   (declare (optimize (speed 3) (safety 0)))
@@ -63,6 +71,8 @@ Returns the new *INDEX*."
     #+plump-debug-lexer (format T "~a ?~%" *index*)
     (aref *string* *index*)))
 
+(declaim (ftype (function (fixnum) fixnum) advance-n)
+         (inline advance-n))
 (defun advance-n (n)
   "Advances by N characters if possible.
 Returns the new *INDEX*."
@@ -74,6 +84,8 @@ Returns the new *INDEX*."
     (setf *index* *length*))
   *index*)
 
+(declaim (ftype (function (fixnum) fixnum) unread-n)
+         (inline unread-n))
 (defun unread-n (n)
   "Steps back by N characters if possible.
 Returns the new *INDEX*."
