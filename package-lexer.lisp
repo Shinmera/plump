@@ -12,6 +12,7 @@
    #:*string*
    #:*length*
    #:*index*
+   #:declare-optimize
    #:with-lexer-environment
    #:consume
    #:advance
