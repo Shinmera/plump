@@ -283,8 +283,8 @@ Otherwise returns NIL."
       (gethash (subseq text start end) *entity-map*)))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (defvar *alpha-chars* "0123456789#abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-  (declaim (type (simple-base-string 63) *alpha-chars*)))
+  (defparameter *alpha-chars* (coerce "0123456789#abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" 'list))
+  (declaim (type list *alpha-chars*)))
 
 (defun decode-entities (text &optional remove-invalid)
   "Translates all entities in the text into their character counterparts if possible.
