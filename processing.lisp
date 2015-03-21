@@ -8,10 +8,9 @@
 
 (defvar *processing-parsers* (make-hash-table :test 'equalp))
 
-(declaim (ftype (function (simple-string) (or function null)) processing-parser))
 (defun processing-parser (process-name)
   "Return the processing-parser function for PROCESS-NAME. SETF-able."
-  (values (gethash process-name *processing-parsers*)))
+  (gethash process-name *processing-parsers*))
 
 (defun (setf processing-parser) (func process-name)
   "Set the processing-parser function for PROCESS-NAME."
@@ -35,13 +34,10 @@ The closing tag (?>) should NOT be consumed by a processing-parser."
 (define-tag-dispatcher (process *xml-tags* *html-tags*) (name)
       (and (<= 1 (length name))
            (char= (aref name 0) #\?))
-  #.(declare-optimize)
-  (let* ((name (the simple-string (subseq name 1)))
-         (text (funcall
-                (the function
-                     (or (processing-parser name)
-                         (progn (warn "Don't know how to properly parse processing instructions of type ~a!" name)
-                                (processing-parser "")))))))
+  (let* ((name (subseq name 1))
+         (text (funcall (or (processing-parser name)
+                            (progn (warn "Don't know how to properly parse processing instructions of type ~a!" name)
+                                   (processing-parser ""))))))
     (advance-n 2)
     (make-processing-instruction *root* :text text :name (when (string/= "" name) name))))
 

@@ -5,10 +5,6 @@
 |#
 
 (in-package #:org.shirakumo.plump.lexer)
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (defun declare-optimize ()
-    '(declare (optimize (speed 3) (safety 0) (space 0) (debug 0)
-               (compilation-speed 0)))))
 
 (defvar *string*)
 (defvar *length*)
@@ -39,7 +35,7 @@
 (defun consume ()
   "Consumes a single character if possible and returns it.
 Otherwise returns NIL."
-  #.(declare-optimize)
+  (declare (optimize (speed 3) (safety 0)))
   (when (< *index* *length*)
     (prog1 (aref *string* *index*)
       #+plump-debug-lexer (format T "~a +~%" *index*)
@@ -50,7 +46,7 @@ Otherwise returns NIL."
 (defun advance ()
   "Skips a chracter if possible.
 Returns the new index or NIL."
-  #.(declare-optimize)
+  (declare (optimize (speed 3) (safety 0)))
   (when (< *index* *length*)
     #+plump-debug-lexer (format T "~a +~%" *index*)
     (incf *index*)))
@@ -60,7 +56,7 @@ Returns the new index or NIL."
 (defun unread ()
   "Steps back a single character if possible.
 Returns the new *INDEX*."
-  #.(declare-optimize)
+  (declare (optimize (speed 3) (safety 0)))
   (when (< 0 *index*)
     #+plump-debug-lexer (format T "~a -~%" *index*)
     (decf *index*))
@@ -70,7 +66,7 @@ Returns the new *INDEX*."
          (inline peek))
 (defun peek ()
   "Returns the next character, if any."
-  #.(declare-optimize)
+  (declare (optimize (speed 3) (safety 0)))
   (when (< *index* *length*)
     #+plump-debug-lexer (format T "~a ?~%" *index*)
     (aref *string* *index*)))
@@ -80,7 +76,8 @@ Returns the new *INDEX*."
 (defun advance-n (n)
   "Advances by N characters if possible.
 Returns the new *INDEX*."
-  #.(declare-optimize)
+  (declare (optimize (speed 3) (safety 0)))
+  (declare (fixnum n))
   #+plump-debug-lexer (format T "~a +~d~%" *index* n)
   (incf *index* n)
   (when (<= *length* *index*)
@@ -92,7 +89,8 @@ Returns the new *INDEX*."
 (defun unread-n (n)
   "Steps back by N characters if possible.
 Returns the new *INDEX*."
-  #.(declare-optimize)
+  (declare (optimize (speed 3) (safety 0)))
+  (declare (fixnum n))
   #+plump-debug-lexer (format T "~a -~d~%" *index* n)
   (decf *index* n)
   (when (< *index* 0)
@@ -103,7 +101,7 @@ Returns the new *INDEX*."
 (defun consume-until (matcher)
   "Consumes until the provided matcher function returns positively.
 Returns the substring that was consumed."
-  #.(declare-optimize)
+  (declare (function matcher))
   (loop with start = *index*
         until (funcall matcher)
         while (advance)
@@ -112,21 +110,17 @@ Returns the substring that was consumed."
 (declaim (ftype (function (character) function) matcher-character))
 (defun matcher-character (character)
   "Creates a matcher function that attempts to match the given character."
-  #.(declare-optimize)
   #'(lambda ()
-      #.(declare-optimize)
       (let ((char (peek)))
         (when char
-          (char= (the character char)
-                 (the character character))))))
+          (char= char character)))))
 
 (declaim (ftype (function (simple-string) function) matcher-string))
 (defun matcher-string (string)
   "Creates a matcher function that attempts to match the given string."
-  #.(declare-optimize)
+  (declare (simple-string string))
   (let ((len (length string)))
     #'(lambda ()
-        #.(declare-optimize)
         (let ((len (+ *index* len)))
           (and (<= len *length*)
                (string= string *string* :start2 *index* :end2 len))))))
@@ -134,15 +128,13 @@ Returns the substring that was consumed."
 (declaim (ftype (function ((or fixnum character string) (or fixnum character string)) function) matcher-range))
 (defun matcher-range (from to)
   "Creates a matcher that checks a range according to the next character's CHAR-CODE."
-  #.(declare-optimize)
   (flet ((normalize (in) (etypecase in
                            (fixnum in)
                            (character (char-code in))
-                           (simple-string (char-code (aref in 0))))))
+                           (string (char-code (aref in 0))))))
     (let ((from (normalize from))
           (to (normalize to)))
       #'(lambda ()
-          #.(declare-optimize)
           (let ((char (peek)))
             (when char
               (<= from (char-code char) to)))))))
@@ -150,9 +142,7 @@ Returns the substring that was consumed."
 (declaim (ftype (function (list) function) matcher-find))
 (defun matcher-find (list)
   "Creates a matcher function that returns T if the character is found in the given list."
-  #.(declare-optimize)
   #'(lambda ()
-      #.(declare-optimize)
       (let ((char (peek)))
         (and char (member char list :test #'char=)))))
 
@@ -160,36 +150,29 @@ Returns the substring that was consumed."
 (defun matcher-or (&rest matchers)
   "Creates a matcher function that returns successfully if any of the
 sub-expressions return successfully. The first match is returned, if any."
-  #.(declare-optimize)
   #'(lambda ()
-      #.(declare-optimize)
       (loop for matcher of-type function in matchers
-            thereis (funcall (the function matcher)))))
+            thereis (funcall matcher))))
 
 (declaim (ftype (function (&rest function) function) matcher-and))
 (defun matcher-and (&rest matchers)
   "Creates a matcher function that returns if all of the sub-expressions
 return successfully. The last match is returned, if all."
-  #.(declare-optimize)
   #'(lambda ()
-      #.(declare-optimize)
       (loop for matcher of-type function in matchers
-            always (funcall (the function matcher)))))
+            always (funcall matcher))))
 
 (declaim (ftype (function (function) function) matcher-not))
 (defun matcher-not (matcher)
   "Creates a matcher function that inverts the result of the sub-expression."
-  #.(declare-optimize)
+  (declare (function matcher))
   #'(lambda ()
-      #.(declare-optimize)
       (not (funcall matcher))))
 
 (declaim (ftype (function (function) function) matcher-next))
 (defun matcher-next (matcher)
   "Creates a matcher environment that peeks ahead one farther."
-  #.(declare-optimize)
   #'(lambda ()
-      #.(declare-optimize)
       (let ((*index* (1+ *index*)))
 	(when (< *index* *length*))
         (funcall matcher))))
@@ -197,9 +180,7 @@ return successfully. The last match is returned, if all."
 (declaim (ftype (function (function) function) matcher-prev))
 (defun matcher-prev (matcher)
   "Creates a matcher environment that peeks behind."
-  #.(declare-optimize)
   #'(lambda ()
-      #.(declare-optimize)
       (let ((*index* (1- *index*)))
 	(when (<= 0 *index*)
 	  (funcall matcher)))))

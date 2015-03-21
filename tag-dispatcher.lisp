@@ -10,13 +10,9 @@
 (defvar *xml-tags* () "List of XML tag dispatchers")
 (defvar *html-tags* () "List of HTML tag dispatchers")
 
-(declaim (ftype (function (simple-string &optional list) (or function null))))
 (defun tag-dispatcher (name &optional (list *tag-dispatchers*))
   "Returns the tag-dispatcher form of NAME from LIST, if any.
 A tag dispatcher form is a list made up of NAME, TEST-FUNCTION and DISPATCHER-FUNCTION."
-  #.(declare-optimize)
-  (declare (type simple-string name)
-           (type list list))
   (find name list :key #'first))
 
 (defmacro set-tag-dispatcher (name test-func dispatch-func &optional (list '*tag-dispatchers*))
@@ -40,17 +36,10 @@ TEST-FORM --- Form that should return non-NIL if the dispatcher should
 BODY      ::= form*"
   (let ((test (gensym "TEST"))
         (disp (gensym "DISP")))
-    `(let ((,test #'(lambda (,tagvar) 
-                      #.(declare-optimize)
-                      (declare (type simple-string ,tagvar))
-                      ,test-form))
-           (,disp #'(lambda (,tagvar)
-                      (declare (ignorable name))
-                      (declare (type simple-string ,tagvar))
-                      ,@body)))
+    `(let ((,test #'(lambda (,tagvar) ,test-form))
+           (,disp #'(lambda (,tagvar) (declare (ignorable name)) ,@body)))
        ,@(loop for list in lists
                collect `(set-tag-dispatcher ',name ,test ,disp ,list)))))
-
 (indent:define-indentation define-tag-dispatcher (4 4 6 &body))
 
 (defun remove-tag-dispatcher (name)
@@ -65,7 +54,6 @@ Returns RESULT-FORM's evaluated value."
         (name (gensym "NAME")))
     `(loop for ,disp in *tag-dispatchers*
            do (destructuring-bind (,name ,test ,dispatcher) ,disp
-                (declare (ignore ,name)
-                         (type function ,test ,dispatcher))
+                (declare (ignore ,name))
                 ,@body)
            finally (return ,result-form))))
