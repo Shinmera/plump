@@ -476,10 +476,9 @@ or NIL. If the attribute could not be found, the
 second return value is set to NIL."
   (gethash attribute (attributes element)))
 
-(defgeneric (setf attribute) (value element attribute)
-  (:documentation "Set an attribute on an element to the given value.")
-  (:method (value (element element) attribute)
-    (setf (gethash attribute (attributes element)) value)))
+(defun (setf attribute) (value element attribute)
+  "Set an attribute on an element to the given value."
+  (setf (gethash attribute (attributes element)) value))
 
 (defun get-attribute (element attribute)
   "Synonymous to ATTRIBUTE."
