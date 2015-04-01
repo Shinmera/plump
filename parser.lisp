@@ -41,12 +41,7 @@ E.g. <foo bar baz> => bar baz"
          (*tagstack* (cons close-tag *tagstack*)))
     (catch close-tag
       (loop while (peek)
-            for match = (funcall (make-matcher (is close-tag)))
-            until match
-            do (or (read-tag) (read-text))
-            finally (when match
-                      (loop for char = (consume)
-                            until (or (not char) (char= char #\>))))))))
+            do (or (read-tag) (read-text))))))
 
 (defun read-attribute-value ()
   "Reads an attribute value, either enclosed in quotation marks or until a space or tag end."
