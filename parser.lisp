@@ -10,6 +10,7 @@
   (defvar *whitespace* '(#\Space #\Newline #\Tab #\Return #\Linefeed #\Page)
     "List containing all whitespace characters."))
 (defvar *root*)
+(defvar *tagstack* ())
 (setf (documentation '*root* 'variable) "Object containing the current node to set as parent.")
 
 (define-matcher whitespace (find *whitespace*))
@@ -36,14 +37,16 @@ E.g. <foo bar baz> => bar baz"
 
 (defun read-children ()
   "Read all children of the current *root* until the closing tag for *root* is encountered."
-  (let ((close-tag (concatenate 'string "</" (tag-name *root*))))
-    (loop while (peek)
-          for match = (funcall (make-matcher (is close-tag)))
-          until match
-          do (or (read-tag) (read-text))
-          finally (when match
-                    (loop for char = (consume)
-                          until (or (not char) (char= char #\>)))))))
+  (let* ((close-tag (concatenate 'string "</" (tag-name *root*)))
+         (*tagstack* (cons close-tag *tagstack*)))
+    (catch close-tag
+      (loop while (peek)
+            for match = (funcall (make-matcher (is close-tag)))
+            until match
+            do (or (read-tag) (read-text))
+            finally (when match
+                      (loop for char = (consume)
+                            until (or (not char) (char= char #\>))))))))
 
 (defun read-attribute-value ()
   "Reads an attribute value, either enclosed in quotation marks or until a space or tag end."

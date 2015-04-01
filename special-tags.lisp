@@ -18,6 +18,9 @@
       (and (< 0 (length name)) (char= (elt name 0) #\/))
   (consume-until (make-matcher (is #\>)))
   (advance)
+  (dolist (tag *tagstack*)
+    (when (string-equal name tag :start2 1)
+      (throw tag NIL)))
   NIL)
 
 ;; Comments are special nodes. We try to handle them
