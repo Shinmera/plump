@@ -23,6 +23,13 @@
       (throw tag NIL)))
   NIL)
 
+(defun starts-with (find string &key (start 0))
+  (string= find string :start2 start :end2 (length find)))
+
+(defun ends-with (find string &key (end (length string)))
+  (when (<= (length find) end)
+    (string= find string :start2 (- end (length find)) :end2 end)))
+
 ;; Comments are special nodes. We try to handle them
 ;; with a bit of grace, but having the inner content
 ;; be read in the best way possible is hard to get
@@ -30,13 +37,17 @@
 (define-tag-dispatcher (comment *tag-dispatchers* *xml-tags* *html-tags*) (name)
       (and (<= 3 (length name))
            (string= name "!--" :end1 3))
-  (prog1 (make-comment
-          *root*
-          (decode-entities
-           (concatenate
-            'string (subseq name 3)
-            (consume-until (make-matcher (is "-->"))))))
-    (advance-n 3)))
+  (make-comment
+   *root*
+   (decode-entities
+    (if (and (ends-with "--" name)
+             (char= (or (peek) #\!) #\>))
+        (prog1 (subseq name 3 (- (length name) 2))
+          (advance))
+        (prog1 (concatenate
+                'string (subseq name 3)
+                (consume-until (make-matcher (is "-->"))))
+          (advance-n 3))))))
 
 ;; Special handling for the doctype tag
 (define-tag-dispatcher (doctype *tag-dispatchers* *xml-tags* *html-tags*) (name)
