@@ -11,7 +11,7 @@
   :license "Artistic"
   :author "Nicolas Hafner <shinmera@tymoon.eu>"
   :maintainer "Nicolas Hafner <shinmera@tymoon.eu>"
-  :description "An X/HTML parser that aims to be as lenient as possible."
+  :description "An XML / XHTML / HTML parser that aims to be as lenient as possible."
   :homepage "https://github.com/Shinmera/plump"
   :serial T
   :components ((:file "package"))
