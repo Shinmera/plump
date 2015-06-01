@@ -11,7 +11,7 @@
   :license "Artistic"
   :author "Nicolas Hafner <shinmera@tymoon.eu>"
   :maintainer "Nicolas Hafner <shinmera@tymoon.eu>"
-  :description "A very simple toolkit to help with lexing."
+  :description "A very simple toolkit to help with lexing used mainly in Plump."
   :homepage "https://github.com/Shinmera/plump"
   :serial T
   :components ((:file "package-lexer")
