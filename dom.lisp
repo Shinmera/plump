@@ -313,6 +313,29 @@ See VECTOR-PUSH-EXTEND-POSITION"
    (1+ (child-position element)))
   new-child)
 
+(defun splice (element)
+  "Splices the contents of element into the position of the element in its parent.
+Returns the parent.
+
+Note that this operation is potentially very costly.
+See ARRAY-SHIFT"
+  (let* ((parent (parent element))
+         (family (children parent))
+         (count (length (children element)))
+         (position (child-position element)))
+    (cond ((= 0 count)
+           (vector-pop-position family position)
+           parent)
+          (T
+           (array-shift (children parent) :n (1- count) :from position)
+           (loop repeat count
+                 for i from position
+                 for child across (children element)
+                 do (setf (aref family i) child)
+                    (setf (parent child) parent))))
+    (setf (parent element) NIL)
+    parent))
+
 (defun clone-children (node &optional deep new-parent)
   "Clone the array of children.
 If DEEP is non-NIL, each child is cloned as per (CLONE-NODE NODE T).

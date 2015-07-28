@@ -52,6 +52,7 @@
    #:replace-child
    #:insert-before
    #:insert-after
+   #:splice
    #:clone-children
    #:clone-attributes
    #:clone-node
