@@ -17,6 +17,11 @@
 (define-matcher name (or (in #\a #\z) (in #\? #\Z) (in #\- #\:) (any #\\ #\_ #\! #\# #\[ #\])))
 (define-matcher tag-end (or (and (is #\/) (next (is #\>))) (is #\>)))
 
+(defun skip-whitespace ()
+  ""
+  (loop while (find (peek) *whitespace*)
+        do (advance)))
+
 (defun read-name ()
   "Reads and returns a tag name."
   (consume-until (make-matcher (or (not :name) :tag-end))))
@@ -63,15 +68,17 @@ E.g. <foo bar baz> => bar baz"
 (defun read-attribute ()
   "Reads an attribute and returns it as a key value cons."
   (let ((name (read-attribute-name))
-        (next (consume))
         (value ""))
-    (cond
-      ((and next (char= next #\=))
-       (setf value (read-attribute-value)))
-      ((not next)
-       (cons name NIL))
-      (T
-       (unread)))
+    (skip-whitespace)
+    (let ((next (consume)))
+      (cond
+        ((and next (char= next #\=))
+         (skip-whitespace)
+         (setf value (read-attribute-value)))
+        ((not next)
+         (cons name NIL))
+        (T
+         (unread))))
     (cons name value)))
 
 (defun read-attributes ()
