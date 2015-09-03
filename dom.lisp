@@ -555,7 +555,7 @@ Returns NIL."
     (labels ((r (node)
                (loop for child across (children node)
                      do (typecase child
-                          (text-node (write-string (text child) stream))
+                          (textual-node (write-string (text child) stream))
                           (nesting-node (r child))))))
       (r node))))
 
