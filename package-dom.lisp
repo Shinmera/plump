@@ -94,7 +94,8 @@
    #:serialize-object
    #:traverse
    #:trim
-   #:strip)
+   #:strip
+   #:xml-character-p)
   ;; entities.lisp
   (:export
    #:*entity-map*

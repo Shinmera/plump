@@ -603,14 +603,61 @@ STREAM can be a stream, T for *standard-output* or NIL to serialize to string."
          (let ((*stream* stream))
            (serialize-object node)))))
 
+(defun write-sans-substring (string substring stream)
+  "Write string to STREAM, guarding against any occurrence of
+FORBIDDEN-SUBSTRING."
+  (loop with start = 0
+        for end = (search substring string :start2 start)
+        if (null end)
+          do (write-string string stream :start start)
+             (loop-finish)
+        else do
+          (write-string string stream :start start :end end)
+          (cerror "Skip the forbidden substring"
+                  "Forbidden substring ~s at position ~a" substring end)
+          (setf start (+ end (length substring)))))
+
+(defconstant +utf-16?+ (< char-code-limit 70000)
+  "Does this Lisp use UTF-16 to encode strings?")
+
+(declaim (inline xml-character-p))
+(defun xml-character-p (char)
+  "Is CHAR a valid (allowed, not discouraged) XML character?"
+  (let ((code (char-code char)))
+    (if (< code #xa0)
+        (or (= code 9)
+            (= code 10)
+            (= code 13)
+            (<= #x20 code #x7e)
+            (= code #x85))
+        (or (<= #xa0 code #xd7ff)
+            (and +utf-16?+ (<= #xd800 c #xdfff))
+            (<= #xe000 code #xfffd)
+            (and (not +utf-16?+) (<= #x10000 code #x10ffff))))))
+
+(defun require-xml-chars (string)
+  "Return STRING without any invalid XML characters."
+  (with-output-to-string (s)
+    (loop for c across string
+          if (xml-character-p c)
+            do (write-char c s)
+          else do
+            (cerror "Skip the invalid character"
+                    "~c is not a valid XML character" c))))
+
 (defgeneric serialize-object (node)
   (:documentation "Serialize the given node and print it to *stream*.")
   (:method ((node text-node))
-    (format *stream* "~a" (encode-entities (text node))))
+    (format *stream* "~a"
+            (require-xml-chars
+             (encode-entities
+              (text node)))))
   (:method ((node doctype))
     (format *stream* "<!DOCTYPE ~a>" (doctype node)))
   (:method ((node comment))
-    (format *stream* "<!--~a-->" (text node)))
+    (format *stream* "<!--")
+    (write-sans-substring (text node) "--" *stream*)
+    (format *stream* "-->"))
   (:method ((node element))
     (format *stream* "<~a" (tag-name node))
     (serialize (attributes node) *stream*)
@@ -629,7 +676,9 @@ STREAM can be a stream, T for *standard-output* or NIL to serialize to string."
           (format *stream* ">")
           (loop for child across (children node)
                 when (text-node-p child)
-                  do (format *stream* "~a" (text child)))
+                  do (format *stream* "~a"
+                             (require-xml-chars
+                              (text child))))
           (format *stream* "</~a>" (tag-name node)))
         (format *stream* "/>")))
   (:method ((node xml-header))
@@ -637,13 +686,18 @@ STREAM can be a stream, T for *standard-output* or NIL to serialize to string."
     (serialize (attributes node) *stream*)
     (format *stream* "?>"))
   (:method ((node cdata))
-    (format *stream* "<![CDATA[~a]]>" (text node)))
+    (format *stream* "<![CDATA[")
+    (write-sans-substring (text node) "]]>" *stream*)
+    (format *stream* "]]>"))
   (:method ((node processing-instruction))
     (format *stream* "<?~@[~a~]~a ?>" (tag-name node) (text node)))
   (:method ((table hash-table))
     (loop for key being the hash-keys of table
           for val being the hash-values of table
-          do (format *stream* " ~a~@[=~s~]" key (when val (encode-entities val)))))
+          do (format *stream* " ~a~@[=~s~]" key
+                     (when val
+                       (require-xml-chars
+                        (encode-entities val))))))
   (:method ((node nesting-node))
     (loop for child across (children node)
           do (serialize child *stream*)))
