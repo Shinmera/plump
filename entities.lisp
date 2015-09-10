@@ -314,15 +314,21 @@ If an entity does not match, it is left in place unless REMOVE-INVALID is non-NI
                            (return)))))
           finally (write-string text output :start start))))
 
-(defun encode-entities (text)
-  "Encodes the characters < > & \" with their XML entity equivalents."
+(defun encode-entities (text &optional stream)
+  "Encodes the characters < > & \" with their XML entity equivalents.
+
+If no STREAM is given, it encodes to a new string."
   (declare (optimize (speed 3))
            (type simple-string text))
-  (with-output-to-string (output)
-    (loop for c across text
-          do (case c
-               (#\< (write-string "&lt;" output))
-               (#\> (write-string "&gt;" output))
-               (#\" (write-string "&quot;" output))
-               (#\& (write-string "&amp;" output))
-               (t (write-char c output))))))
+  (flet ((encode-to (output)
+           (loop for c across text
+                 do (case c
+                      (#\< (write-string "&lt;" output))
+                      (#\> (write-string "&gt;" output))
+                      (#\" (write-string "&quot;" output))
+                      (#\& (write-string "&amp;" output))
+                      (t (write-char c output))))))
+    (if stream
+        (encode-to stream)
+        (with-output-to-string (stream)
+          (encode-to stream)))))

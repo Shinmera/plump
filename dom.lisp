@@ -606,7 +606,7 @@ STREAM can be a stream, T for *standard-output* or NIL to serialize to string."
 (defgeneric serialize-object (node)
   (:documentation "Serialize the given node and print it to *stream*.")
   (:method ((node text-node))
-    (format *stream* "~a" (encode-entities (text node))))
+    (encode-entities (text node) *stream*))
   (:method ((node doctype))
     (format *stream* "<!DOCTYPE ~a>" (doctype node)))
   (:method ((node comment))
@@ -643,7 +643,11 @@ STREAM can be a stream, T for *standard-output* or NIL to serialize to string."
   (:method ((table hash-table))
     (loop for key being the hash-keys of table
           for val being the hash-values of table
-          do (format *stream* " ~a~@[=~s~]" key (when val (encode-entities val)))))
+          do (write-string key *stream*)
+             (when val
+               (write-string "=\"" *stream*)
+               (encode-entities val *stream*)
+               (write-string "\"" *stream*))))
   (:method ((node nesting-node))
     (loop for child across (children node)
           do (serialize child *stream*)))
