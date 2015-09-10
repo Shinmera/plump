@@ -321,20 +321,89 @@ If an entity does not match, it is left in place unless REMOVE-INVALID is non-NI
                            (return)))))
           finally (write-string text output :start start))))
 
+(defun allowed-char-p (char)
+  (declare (optimize speed))
+  (let ((c (char-code char)))
+    (declare (type fixnum c))
+    (or (= c #x9)
+        (= c #xA)
+        (= c #xD)
+        (<= #x20 c #xD7FF)
+        (<= #xE000 c #xFFFD)
+        #+plump-utf-32 (<= #x10000 c #x10FFFF))))
+
+(defun discouraged-char-p (char)
+  (declare (optimize speed))
+  (let ((c (char-code char)))
+    (declare (type fixnum c))
+    (or (<= #x7F c #x84)
+        (<= #x86 c #x9F)
+        (<= #xFDD0 c #xFDEF)
+        #+plump-utf-32
+        (or
+         (<= #x1FFFE c #x1FFFF)
+         (<= #x2FFFE c #x2FFFF)
+         (<= #x3FFFE c #x3FFFF)
+         (<= #x4FFFE c #x4FFFF)
+         (<= #x5FFFE c #x5FFFF)
+         (<= #x6FFFE c #x6FFFF)
+         (<= #x7FFFE c #x7FFFF)
+         (<= #x8FFFE c #x8FFFF)
+         (<= #x9FFFE c #x9FFFF)
+         (<= #xAFFFE c #xAFFFF)
+         (<= #xBFFFE c #xBFFFF)
+         (<= #xCFFFE c #xCFFFF)
+         (<= #xDFFFE c #xDFFFF)
+         (<= #xEFFFE c #xEFFFF)
+         (<= #xFFFFE c #xFFFFF)
+         (<= #x10FFFE c #x10FFFF)))))
+
+(define-condition invalid-xml-character (error)
+  ((faulty-char :initarg :faulty-char :accessor faulty-char))
+  (:report (lambda (e s) (format s "Outputting ~s is disallowed, as U+~v,'0x is not within the range of valid XML characters."
+                                 (faulty-char e) #+plump-utf-32 6 #-plump-utf-32 4 (char-code (faulty-char e))))))
+
+(define-condition discouraged-xml-character (warning)
+  ((faulty-char :initarg :faulty-char :accessor faulty-char))
+  (:report (lambda (e s) (format s "Outputting ~s is discouraged, as U+~v,'0x is within the range of discouraged XML characters. Not all parsers may recognise it or handle it correctly."
+                                 (faulty-char e) #+plump-utf-32 6 #-plump-utf-32 4 (char-code (faulty-char e))))))
+
+(defun write-encode-char (char stream)
+  (declare (optimize speed))
+  (case char
+    (#\< (write-string "&lt;" stream))
+    (#\> (write-string "&gt;" stream))
+    (#\" (write-string "&quot;" stream))
+    (#\& (write-string "&amp;" stream))
+    (t
+     (restart-case
+         (progn
+           (unless (allowed-char-p char)
+             (error 'invalid-xml-character :faulty-char char))
+           (when (discouraged-char-p char)
+             (warn 'discouraged-xml-character :faulty-char char))
+           (write-char char stream))
+       (abort ()
+         :report "Do not output the faulty character.")
+       (use-new-character (new-char)
+         :report "Output a replacement character instead."
+         :interactive (lambda ()
+                        (write-string "Enter replacement character: " *query-io*)
+                        (list (read-char *query-io*)))
+         (write-char new-char stream))
+       (continue ()
+         :report "Continue and output the faulty character anyway."
+         (write-char char stream))))))
+
 (defun encode-entities (text &optional stream)
   "Encodes the characters < > & \" with their XML entity equivalents.
 
 If no STREAM is given, it encodes to a new string."
-  (declare (optimize (speed 3))
+  (declare (optimize speed)
            (type simple-string text))
   (flet ((encode-to (output)
            (loop for c across text
-                 do (case c
-                      (#\< (write-string "&lt;" output))
-                      (#\> (write-string "&gt;" output))
-                      (#\" (write-string "&quot;" output))
-                      (#\& (write-string "&amp;" output))
-                      (t (write-char c output))))))
+                 do (write-encode-char c output))))
     (if stream
         (encode-to stream)
         (with-output-to-string (stream)
