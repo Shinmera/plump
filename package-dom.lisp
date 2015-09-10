@@ -100,4 +100,11 @@
    #:*entity-map*
    #:translate-entity
    #:decode-entities
+   #:allowed-char-p
+   #:discouraged-char-p
+   #:invalid-xml-character
+   #:discouraged-xml-character
+   #:faulty-char
+   #:write-encode-char
+   #:use-new-character
    #:encode-entities))
