@@ -587,21 +587,17 @@ attribute."
     (scanren node))
   NIL)
 
-(defvar *stream* *standard-output*
+(defvar *stream* (make-synonym-stream 'cl:*standard-output*)
   "The stream to serialize to during SERIALIZE-OBJECT.")
 
-(defun serialize (node &optional (stream T))
+(defun serialize (node &optional (stream *stream*))
   "Serializes NODE to STREAM.
 STREAM can be a stream, T for *standard-output* or NIL to serialize to string."
-  (cond ((eql stream T)
-         (let ((*stream* *standard-output*))
-           (serialize-object node)))
-        ((eql stream NIL)
-         (with-output-to-string (*stream*)
-           (serialize-object node)))
-        (T
-         (let ((*stream* stream))
-           (serialize-object node)))))
+  (if (null stream)
+      (with-output-to-string (*stream*)
+        (serialize-object node))
+      (let ((*stream* *stream*))
+        (serialize-object node))))
 
 (macrolet ((wrs (&rest strings)
               `(progn
