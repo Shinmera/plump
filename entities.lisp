@@ -322,6 +322,7 @@ If an entity does not match, it is left in place unless REMOVE-INVALID is non-NI
           finally (write-string text output :start start))))
 
 (defun allowed-char-p (char)
+  "Returns T if the character is a permitted XML character."
   (declare (optimize speed))
   (let ((c (char-code char)))
     (declare (type fixnum c))
@@ -333,6 +334,7 @@ If an entity does not match, it is left in place unless REMOVE-INVALID is non-NI
         #+plump-utf-32 (<= #x10000 c #x10FFFF))))
 
 (defun discouraged-char-p (char)
+  "Returns T if the character is a discouraged XML character."
   (declare (optimize speed))
   (let ((c (char-code char)))
     (declare (type fixnum c))
@@ -361,14 +363,29 @@ If an entity does not match, it is left in place unless REMOVE-INVALID is non-NI
 (define-condition invalid-xml-character (error)
   ((faulty-char :initarg :faulty-char :accessor faulty-char))
   (:report (lambda (e s) (format s "Outputting ~s is disallowed, as U+~v,'0x is not within the range of valid XML characters."
-                                 (faulty-char e) #+plump-utf-32 6 #-plump-utf-32 4 (char-code (faulty-char e))))))
+                                 (faulty-char e) #+plump-utf-32 6 #-plump-utf-32 4 (char-code (faulty-char e)))))
+  (:documentation "Error signalled when an invalid XML character is encountered during WRITE-ENCODE-CHAR."))
 
 (define-condition discouraged-xml-character (warning)
   ((faulty-char :initarg :faulty-char :accessor faulty-char))
   (:report (lambda (e s) (format s "Outputting ~s is discouraged, as U+~v,'0x is within the range of discouraged XML characters. Not all parsers may recognise it or handle it correctly."
-                                 (faulty-char e) #+plump-utf-32 6 #-plump-utf-32 4 (char-code (faulty-char e))))))
+                                 (faulty-char e) #+plump-utf-32 6 #-plump-utf-32 4 (char-code (faulty-char e)))))
+  (:documentation "Warning signalled when a discouraged XML character is encountered during WRITE-ENCODE-CHAR."))
+
+(setf (documentation 'faulty-char 'function)
+      "Returns the faulty char that caused the signal.")
 
 (defun write-encode-char (char stream)
+  "Write and possibly encode the CHAR to STREAM.
+This also properly handles detection of invalid or discouraged XML characters.
+
+The following restarts are available in the case of a faulty character:
+  ABORT              Do not output the faulty character at all.
+  USE-NEW-CHARACTER  Output a replacement character instead.
+  CONTINUE           Continue and output the faulty character anyway.
+
+See INVALID-XML-CHARACTER
+See DISCOURAGED-XML-CHARACTER"
   (declare (optimize speed))
   (case char
     (#\< (write-string "&lt;" stream))
