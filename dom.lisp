@@ -587,8 +587,9 @@ attribute."
     (scanren node))
   NIL)
 
-(defvar *stream* *standard-output*
-  "The stream to serialize to during SERIALIZE-OBJECT.")
+(defvar *stream*)
+(setf (documentation '*stream* 'variable)
+      "The stream to serialize to during SERIALIZE-OBJECT.")
 
 (defun serialize (node &optional (stream T))
   "Serializes NODE to STREAM.
