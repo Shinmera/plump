@@ -11,15 +11,15 @@
   (:documentation "Base DOM node class."))
 
 (defclass nesting-node (node)
-  ((%children :initarg :children :initform (make-child-array) :accessor children :type vector))
+  ((%children :initarg :children :initform (make-child-array) :accessor children :type (and (vector child-node) (not simple-array))))
   (:documentation "Node class that can contain child nodes."))
 (declaim (ftype (function (nesting-node) (and (vector child-node) (not simple-array))) children))
 (setf (documentation 'children 'function) "Returns a vector of child-nodes that are contained within the node.")
 
 (defclass child-node (node)
-  ((%parent :initarg :parent :initform (error "Parent required.") :accessor parent :type (or null node)))
+  ((%parent :initarg :parent :initform (error "Parent required.") :accessor parent :type (or null nesting-node)))
   (:documentation "Node class that is a child and thus has a parent."))
-(declaim (ftype (function (child-node) nesting-node) parent))
+(declaim (ftype (function (child-node) (or null nesting-node)) parent))
 (setf (documentation 'parent 'function) "Returns the node's parent that should contain this element as a child.")
 
 (defclass textual-node (node)
