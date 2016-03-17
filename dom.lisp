@@ -206,7 +206,7 @@ Note that the element is automatically appended to the parent's child list."
 (defmacro define-predicates (&rest classes)
   `(progn
      ,@(loop for class in classes
-             for predicate = (intern (format NIL "~a-P" class))
+             for predicate = (intern (format NIL "~a-~a" (string class) (string 'p)))
              for docstring = (format NIL "Returns T if the given OBJECT is of type ~a" class)
              collect `(defun ,predicate (object)
                         ,docstring
