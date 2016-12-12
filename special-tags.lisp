@@ -99,6 +99,24 @@
              `(progn ,@(loop for tag in tags collect `(define-self-closing-element ,tag *tag-dispatchers* *html-tags*)))))
   (define-all area base br col embed hr img input keygen link menuitem meta param source track wbr))
 
+(defun read-fulltext-element-content (name)
+  (with-output-to-string (out)
+    (tagbody
+     start (case (peek)
+             ((NIL) (go end))
+             (#\< (advance) (go tag))
+             (T (write-char (consume) out) (go start)))
+     tag (case (peek)
+           (#\/ (advance) (go name))
+           (T (write-char #\< out) (go start)))
+     name (let ((tag (consume-until (make-matcher (not :name)))))
+            (cond ((and (string-equal tag name) (eql #\> (peek)))
+                   (advance) (go end))
+                  (T
+                   (write-string "</" out)
+                   (write-string tag out) (go start))))
+     end)))
+
 ;; Some tags accept arbitrary text and no sub-elements.
 (defmacro define-fulltext-element (tag &rest lists)
   "Defines an element to be read as a full-text element.
@@ -116,9 +134,9 @@ tag is used as its text."
             (advance)
             (make-element *root* ,name :attributes attrs))
            (#\>
-            (let ((*root* (make-fulltext-element *root* ,name :attributes attrs)))
-              (make-text-node *root* (consume-until (make-matcher (is ,(format NIL "</~a>" name)))))
-              (advance-n ,(length (format NIL "</~a>" name)))
+            (let ((*root* (make-fulltext-element *root* ,name :attributes attrs))
+                  (string (read-fulltext-element-content name)))
+              (make-text-node *root* string)
               *root*)))))))
 
 (define-fulltext-element style *tag-dispatchers* *html-tags*)
