@@ -4,7 +4,7 @@
  Author: Nicolas Hafner <shinmera@tymoon.eu>
 |#
 
-(in-package #:cl-user)
+
 (asdf:defsystem plump-parser
   :name "Practically Lenient and Unimpressive Markup Parser"
   :version "0.9.0"
