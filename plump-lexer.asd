@@ -6,14 +6,12 @@
 
 
 (asdf:defsystem plump-lexer
-  :name "Plump-Lexer"
-  :version "1.0.2"
+  :version "2.0.0"
   :license "Artistic"
   :author "Nicolas Hafner <shinmera@tymoon.eu>"
   :maintainer "Nicolas Hafner <shinmera@tymoon.eu>"
   :description "A very simple toolkit to help with lexing used mainly in Plump."
   :homepage "https://github.com/Shinmera/plump"
   :serial T
-  :components ((:file "package-lexer")
-               (:file "lexer"))
-  :depends-on ())
+  :components ()
+  :depends-on (:plump))

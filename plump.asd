@@ -6,15 +6,23 @@
 
 
 (asdf:defsystem plump
-  :name "Practically Lenient and Unimpressive Markup Parser"
-  :version "1.0.0"
+  :version "2.0.0"
   :license "Artistic"
   :author "Nicolas Hafner <shinmera@tymoon.eu>"
   :maintainer "Nicolas Hafner <shinmera@tymoon.eu>"
   :description "An XML / XHTML / HTML parser that aims to be as lenient as possible."
   :homepage "https://github.com/Shinmera/plump"
   :serial T
-  :components ((:file "package"))
-  :depends-on (:plump-dom
-               :plump-lexer
-               :plump-parser))
+  :components ((:file "package")
+               ;; Dom
+               (:file "entities")
+               (:file "dom")
+               ;; Lexer
+               (:file "lexer")
+               ;; Parser
+               (:file "tag-dispatcher")
+               (:file "parser")
+               (:file "processing")
+               (:file "special-tags"))
+  :depends-on (:array-utils
+               :trivial-indent))

@@ -6,15 +6,12 @@
 
 
 (asdf:defsystem plump-dom
-  :name "Plump-DOM"
-  :version "1.3.1"
+  :version "2.0.0"
   :license "Artistic"
   :author "Nicolas Hafner <shinmera@tymoon.eu>"
   :maintainer "Nicolas Hafner <shinmera@tymoon.eu>"
   :description "A DOM for use with the Plump parser."
   :homepage "https://github.com/Shinmera/plump"
   :serial T
-  :components ((:file "package-dom")
-               (:file "entities")
-               (:file "dom"))
-  :depends-on (:array-utils))
+  :components ()
+  :depends-on (:plump))
