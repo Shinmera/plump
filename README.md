@@ -1,9 +1,7 @@
-What is Plump?
---------------
+## What is Plump?
 Plump is a parser for HTML/XML like documents, focusing on being lenient towards invalid markup. It can handle things like invalid attributes, bad closing tag order, unencoded entities, inexistent tag types, self-closing tags and so on. It parses documents to a class representation and offers a small set of DOM functions to manipulate it. You are free to change it to parse to your own classes though.
 
-How To
-------
+## How To
 Load Plump through Quicklisp or ASDF:
 
     (ql:quickload :plump)
@@ -25,12 +23,15 @@ By default plump includes a few special tag dispatchers to catch HTML oddities l
 
     (let ((plump:*tag-dispatchers* plump:*xml-tags*)) (plump:parse "<link>foo</link>"))
 
-Extending Plump
----------------
+This will also influence the serialization. By default self-closing tags will be printed in "HTML-fashion," but if you require full XML support, the above should be the way to go. This behaviour is new in Plump2, as previously everything was always serialized in XML mode.
+
+## Extending Plump
 If you want to handle a certain tag in a special way, you can write your own tag-dispatcher. For example comments, the doctype and self-closing tags are handled in this fashion. In order to properly hook in, you will have to learn to use Plump's lexer (see next section).
 
     (plump:define-tag-dispatcher (my-dispatcher *tag-dispatchers*) (name)
-        (string-equal name "my-tag")
+      (string-equal name "my-tag"))
+    
+    (plump:define-tag-parser my-dispatcher (name)
       (let ((attrs (plump:read-attributes)))
         (when (char= (plump:consume) #\/)
           (plump:consume)) ;; Consume closing
@@ -47,8 +48,7 @@ During parsing, all elements are created through `MAKE-*` functions like `MAKE-R
 
 If you subclass the DOM classes, you might want to define a method on `SERIALIZE-OBJECT` to produce the right output.
 
-Plump's Lexer
--------------
+## Plump's Lexer
 Since parser generators are good for strict grammars and Plump needed to be fast and lenient, it comes with its own primitive reading/lexing mechanisms. All the lexer primitives are defined in `lexer.lisp` and you can leverage them for your own projects as well, if you so desire.
 
 In order to allow the lexing to work, you'll have to wrap your processing code in `with-lexer-environment`. You can then use functions like `consume`, `advance`, `unread`, `peek` and `consume-until` to process the input.
@@ -65,16 +65,12 @@ Available matcher constructs are `not`, `and`, `or`, `is`, `in`, `next`, `prev`,
       (plump:with-lexer-environment ("foo bar baz")
          (plump:consume-until (plump:make-matcher (is find)))))
 
-
-
-Speed
------
+## Speed
 ![benchmark](http://shinmera.tymoon.eu/public/plump-benchmark.png)
 
 If you know of other native-lisp libraries that beat Plump, please do let me know, I would be very interested!
 
-See Also
---------
+## See Also
 * [lQuery](https://shinmera.github.io/lquery/) Dissect and manipulate the DOM with jQuery-like commands.
 * [CLSS](https://shinmera.github.io/CLSS/) Traverse the DOM by CSS selectors.
 * [plump-tex](https://github.com/Shinmera/plump-tex) Serialize between TeX and the Plump DOM.
