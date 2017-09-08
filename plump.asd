@@ -20,5 +20,7 @@
                (:file "dom")
                (:file "parser")
                (:file "processing")
-               (:file "special-tags"))
-  :depends-on (:array-utils))
+               (:file "special-tags")
+               (:file "documentation"))
+  :depends-on (:array-utils
+               :documentation-utils))

@@ -6,10 +6,10 @@
 
 (in-package #:org.shirakumo.plump.parser)
 
-(defvar *all-tag-dispatchers* () "All defined tag dispatchers")
-(defvar *tag-dispatchers* () "Active tag dispatcher functions")
-(defvar *xml-tags* () "List of XML tag dispatchers")
-(defvar *html-tags* () "List of HTML tag dispatchers")
+(defvar *all-tag-dispatchers* ())
+(defvar *tag-dispatchers* ())
+(defvar *xml-tags* ())
+(defvar *html-tags* ())
 
 (defstruct tag-dispatcher
   (name (error "NAME required") :type symbol)
@@ -18,8 +18,6 @@
   (printer (lambda (a) (declare (ignore a))) :type (function (node) boolean)))
 
 (defun tag-dispatcher (name &optional (list *all-tag-dispatchers*))
-  "Returns the tag-dispatcher form of NAME from LIST, if any.
-A tag dispatcher form is a list made up of NAME, TEST-FUNCTION and DISPATCHER-FUNCTION."
   (find name list :key #'tag-dispatcher-name))
 
 (define-setf-expander tag-dispatcher (name &optional (list '*all-tag-dispatchers*))
@@ -37,12 +35,6 @@ A tag dispatcher form is a list made up of NAME, TEST-FUNCTION and DISPATCHER-FU
   (setf (symbol-value list) (remove name (symbol-value list) :key #'tag-dispatcher-name)))
 
 (defmacro define-tag-dispatcher ((name &rest lists) (tagvar) &body body)
-  "Defines a new tag dispatcher. It is invoked if TEST-FORM passes.
-
-NAME      --- Name to discern the dispatcher with.
-LISTS     --- Symbols of lists to which the dispatcher should be added.
-TAGVAR    --- Symbol bound to the tag name.
-BODY      --- Body forms describing the test to match the tag."
   (let ((test (gensym "TEST"))
         (disp (gensym "DISP")))
     `(let ((,test (lambda (,tagvar) ,@body))
@@ -53,12 +45,6 @@ BODY      --- Body forms describing the test to match the tag."
                           (setf (tag-dispatcher-test ,disp) ,test))))))
 
 (defmacro define-tag-parser (name (tagvar) &body body)
-  "Defines the parser function for a tag dispatcher.
-
-NAME    --- The name of the tag dispatcher. If one with this name 
-            cannot be found, an error is signalled.
-TAGVAR  --- Symbol bound to the tag name.
-BODY    --- Body forms describing the tag parsing behaviour."
   `(setf (tag-dispatcher-parser
           (or (tag-dispatcher ',name)
               (error "No tag dispatcher with name ~s is defined." ',name)))
@@ -67,13 +53,6 @@ BODY    --- Body forms describing the tag parsing behaviour."
            ,@body)))
 
 (defmacro define-tag-printer (name (nodevar) &body body)
-  "Defines the printer function for a tag dispatcher.
-
-NAME    --- The name of the tag dispatcher. If one with this name 
-            cannot be found, an error is signalled.
-TAGVAR  --- Symbol bound to the tag name.
-BODY    --- Body forms describing the printing behaviour. Write to
-            the stream bound to PLUMP-DOM:*STREAM*."
   `(setf (tag-dispatcher-printer
           (or (tag-dispatcher ',name)
               (error "No tag dispatcher with name ~s is defined." ',name)))
@@ -81,8 +60,6 @@ BODY    --- Body forms describing the printing behaviour. Write to
            ,@body)))
 
 (defmacro do-tag-parsers ((test parser &optional result-form) &body body)
-  "Iterates over the current *TAG-DISPATCHERS*, binding the TEST and PARSER functions.
-Returns RESULT-FORM's evaluated value."
   (let ((disp (gensym "DISPATCHER")))
     `(dolist (,disp *tag-dispatchers* ,result-form)
        (let ((,test (tag-dispatcher-test ,disp))
@@ -90,8 +67,6 @@ Returns RESULT-FORM's evaluated value."
          ,@body))))
 
 (defmacro do-tag-printers ((test printer &optional result-form) &body body)
-  "Iterates over the current *TAG-DISPATCHERS*, binding the TEST and PRINTER functions.
-Returns RESULT-FORM's evaluated value."
   (let ((disp (gensym "DISPATCHER")))
     `(dolist (,disp *tag-dispatchers* ,result-form)
        (let ((,test (tag-dispatcher-test ,disp))

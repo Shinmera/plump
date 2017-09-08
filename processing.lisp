@@ -9,24 +9,16 @@
 (defvar *processing-parsers* (make-hash-table :test 'equalp))
 
 (defun processing-parser (process-name)
-  "Return the processing-parser function for PROCESS-NAME. SETF-able."
   (gethash process-name *processing-parsers*))
 
 (defun (setf processing-parser) (func process-name)
-  "Set the processing-parser function for PROCESS-NAME."
   (setf (gethash process-name *processing-parsers*)
         func))
 
 (defun remove-processing-parser (process-name)
-  "Remove the processing-parser for PROCESS-NAME."
   (remhash process-name *processing-parsers*))
 
 (defmacro define-processing-parser (process-name () &body body)
-  "Defines a new processing-instruction parser. 
-It is invoked if a processing-instruction (<?) with PROCESS-NAME is encountered.
-The lexer will be at the point straight after reading in the PROCESS-NAME.
-Expected return value is a string to use as the processing-instructions' TEXT.
-The closing tag (?>) should NOT be consumed by a processing-parser."
   `(setf (processing-parser ,(string process-name))
          (lambda () ,@body)))
 

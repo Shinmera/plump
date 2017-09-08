@@ -7,27 +7,22 @@
 (in-package #:org.shirakumo.plump.parser)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (defvar *whitespace* '(#\Space #\Newline #\Tab #\Return #\Linefeed #\Page)
-    "List containing all whitespace characters."))
+  (defvar *whitespace* '(#\Space #\Newline #\Tab #\Return #\Linefeed #\Page)))
 (defvar *root*)
 (defvar *tagstack* ())
-(setf (documentation '*root* 'variable) "Object containing the current node to set as parent.")
 
 (define-matcher whitespace (find *whitespace*))
 (define-matcher name (or (in #\a #\z) (in #\? #\Z) (in #\- #\:) (any #\\ #\_ #\! #\# #\[ #\])))
 (define-matcher tag-end (or (and (is #\/) (next (is #\>))) (is #\>)))
 
 (defun skip-whitespace ()
-  ""
   (loop while (find (peek) *whitespace*)
         do (advance)))
 
 (defun read-name ()
-  "Reads and returns a tag name."
   (consume-until (make-matcher (or (not :name) :tag-end))))
 
 (defun read-text ()
-  "Reads and returns a text-node."
   (make-text-node
    *root*
    (decode-entities
@@ -35,13 +30,10 @@
 
 ;; Robustify against strings inside containing >
 (defun read-tag-contents ()
-  "Reads and returns all tag contents. 
-E.g. <foo bar baz> => bar baz"
   (decode-entities
    (consume-until (make-matcher :tag-end))))
 
 (defun read-children ()
-  "Read all children of the current *root* until the closing tag for *root* is encountered."
   (let* ((close-tag (concatenate 'string "</" (tag-name *root*)))
          (*tagstack* (cons close-tag *tagstack*)))
     (catch close-tag
@@ -49,7 +41,6 @@ E.g. <foo bar baz> => bar baz"
             do (or (read-tag) (read-text))))))
 
 (defun read-attribute-value ()
-  "Reads an attribute value, either enclosed in quotation marks or until a space or tag end."
   (decode-entities
    (let ((first (peek)))
      (case first
@@ -62,11 +53,9 @@ E.g. <foo bar baz> => bar baz"
        (T (consume-until (make-matcher (or :whitespace :tag-end))))))))
 
 (defun read-attribute-name ()
-  "Reads an attribute name."
   (consume-until (make-matcher (or (is #\=) :whitespace :tag-end))))
 
 (defun read-attribute ()
-  "Reads an attribute and returns it as a key value cons."
   (let ((name (read-attribute-name))
         (value ""))
     (skip-whitespace)
@@ -82,7 +71,6 @@ E.g. <foo bar baz> => bar baz"
     (cons name value)))
 
 (defun read-attributes ()
-  "Reads as many attributes as possible from a tag and returns them as an attribute map."
   (loop with table = (make-attribute-map)
         for char = (peek)
         do (case char
@@ -95,8 +83,6 @@ E.g. <foo bar baz> => bar baz"
                 (setf (gethash (car entry) table) (cdr entry)))))))
 
 (defun read-standard-tag (name)
-  "Reads an arbitrary tag and returns it.
-This recurses with READ-CHILDREN."
   (let* ((closing (consume))
          (attrs (if (member closing *whitespace* :test #'eql)
                     (prog1 (read-attributes)
@@ -112,8 +98,6 @@ This recurses with READ-CHILDREN."
          *root*)))))
 
 (defun read-tag ()
-  "Attempts to read a tag and dispatches or defaults to READ-STANDARD-TAG.
-Returns the completed node if one can be read."
   (if (and (char= #\< (or (consume) #\ ))
            (funcall (make-matcher :name)))
       (let ((name (read-name)))
@@ -132,16 +116,12 @@ Returns the completed node if one can be read."
       (progn (unread) NIL)))
 
 (defun read-root (&optional (root (make-root)))
-  "Creates a root element and reads nodes into it.
-Optionally uses the specified root to append child nodes to.
-Returns the root."
   (let ((*root* root))
     (loop while (peek)
           do (or (read-tag) (read-text)))
     *root*))
 
 (defun slurp-stream (stream)
-  "Quickly slurps the stream's contents into an array with fill pointer."
   (declare (stream stream))
   (with-output-to-string (string)
     (let ((buffer (make-array 4096 :element-type 'character)))
@@ -150,10 +130,6 @@ Returns the root."
             while (= bytes 4096)))))
 
 (defgeneric parse (input &key root)
-  (:documentation "Parses the given input into a DOM representation.
-By default, methods for STRING, PATHNAME and STREAM are defined.
-If supplied, the given root is used to append children to as per READ-ROOT.
-Returns the root.")
   (:method ((input string) &key root)
     (let ((input (typecase input
                    (simple-string input)
