@@ -28,12 +28,14 @@ The lexer will be at the point straight after reading in the PROCESS-NAME.
 Expected return value is a string to use as the processing-instructions' TEXT.
 The closing tag (?>) should NOT be consumed by a processing-parser."
   `(setf (processing-parser ,(string process-name))
-         #'(lambda () ,@body)))
+         (lambda () ,@body)))
 
 ;; Special handling for processing instructions
 (define-tag-dispatcher (process *xml-tags* *html-tags*) (name)
-      (and (<= 1 (length name))
-           (char= (aref name 0) #\?))
+  (and (<= 1 (length name))
+       (char= (aref name 0) #\?)))
+
+(define-tag-parser process (name)
   (let* ((name (subseq name 1))
          (text (funcall (or (processing-parser name)
                             (progn (warn "Don't know how to properly parse processing instructions of type ~a!" name)

@@ -115,9 +115,9 @@ This recurses with READ-CHILDREN."
   "Attempts to read a tag and dispatches or defaults to READ-STANDARD-TAG.
 Returns the completed node if one can be read."
   (if (and (char= #\< (or (consume) #\ ))
-           (funcall (make-matcher :name)))   
+           (funcall (make-matcher :name)))
       (let ((name (read-name)))
-        (or (do-tag-dispatchers (test func (read-standard-tag name))
+        (or (do-tag-parsers (test func (read-standard-tag name))
               (when (funcall (the function test) name)
                 (return (funcall (the function func) name))))
             (progn ;; It seems we can't parse this tag for some reason,

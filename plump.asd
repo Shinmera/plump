@@ -14,15 +14,11 @@
   :homepage "https://github.com/Shinmera/plump"
   :serial T
   :components ((:file "package")
-               ;; Dom
                (:file "entities")
-               (:file "dom")
-               ;; Lexer
                (:file "lexer")
-               ;; Parser
                (:file "tag-dispatcher")
+               (:file "dom")
                (:file "parser")
                (:file "processing")
                (:file "special-tags"))
-  :depends-on (:array-utils
-               :trivial-indent))
+  :depends-on (:array-utils))

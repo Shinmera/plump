@@ -6,6 +6,16 @@
 
 (in-package #:org.shirakumo.plump.parser)
 
+(declaim (inline starts-with ends-with))
+(defun starts-with (find string)
+  (and (<= (length find) (length string))
+       (string= find string :start2 0 :end2 (length find))))
+
+(defun ends-with (find string)
+  (let ((end (length string)))
+    (and (<= (length find) (length string))
+         (string= find string :start2 (- end (length find)) :end2 end))))
+
 ;; We simply ignore closing tags.
 ;; We can do this because the matching of the proper
 ;; closing tag in READ-CHILDREN happens before this
@@ -15,7 +25,9 @@
 ;; That way the order of the closing tags is
 ;; restored naturally by the reading algorithm.
 (define-tag-dispatcher (invalid-closing-tag *tag-dispatchers* *xml-tags* *html-tags*) (name)
-      (and (< 0 (length name)) (char= (elt name 0) #\/))
+      (and (< 0 (length name)) (char= (elt name 0) #\/)))
+
+(define-tag-parser invalid-closing-tag (name)
   (consume-until (make-matcher (is #\>)))
   (advance)
   (dolist (tag *tagstack*)
@@ -23,20 +35,14 @@
       (throw tag NIL)))
   NIL)
 
-(defun starts-with (find string &key (start 0))
-  (string= find string :start2 start :end2 (length find)))
-
-(defun ends-with (find string &key (end (length string)))
-  (when (<= (length find) end)
-    (string= find string :start2 (- end (length find)) :end2 end)))
-
 ;; Comments are special nodes. We try to handle them
 ;; with a bit of grace, but having the inner content
 ;; be read in the best way possible is hard to get
 ;; right due to various commenting styles.
 (define-tag-dispatcher (comment *tag-dispatchers* *xml-tags* *html-tags*) (name)
-      (and (<= 3 (length name))
-           (string= name "!--" :end1 3))
+      (starts-with "!--" name))
+
+(define-tag-parser comment (name)
   (make-comment
    *root*
    (decode-entities
@@ -51,7 +57,9 @@
 
 ;; Special handling for the doctype tag
 (define-tag-dispatcher (doctype *tag-dispatchers* *xml-tags* *html-tags*) (name)
-      (string-equal name "!DOCTYPE")
+      (string-equal name "!DOCTYPE"))
+
+(define-tag-parser doctype (name)
   (let ((declaration (read-tag-contents)))
     (when (char= (or (consume) #\ ) #\/)
       (advance)) ;; Consume closing
@@ -59,7 +67,9 @@
 
 ;; Special handling for the XML header
 (define-tag-dispatcher (xml-header *tag-dispatchers* *xml-tags*) (name)
-      (string-equal name "?xml")
+      (string-equal name "?xml"))
+
+(define-tag-parser xml-header (name)
   (let ((attrs (consume-until (make-matcher (and (is #\?)
                                                  (next (is #\>)))))))
     (advance-n 2)
@@ -68,8 +78,9 @@
 
 ;; Special handling for CDATA sections
 (define-tag-dispatcher (cdata *tag-dispatchers* *xml-tags*) (name)
-      (and (<= 8 (length name))
-           (string-equal name "![CDATA[" :end1 8))
+      (starts-with "![CDATA[" name))
+
+(define-tag-parser cdata (name)
   ;; KLUDGE: Since tag names can contain [ and ] we need to
   ;; take special care of cases where there is a token in the
   ;; cdata without any characters that would stop the tag
@@ -86,12 +97,27 @@
 ;; Shorthand macro to define self-closing elements
 (defmacro define-self-closing-element (tag &rest lists)
   "Defines an element that does not need to be closed with /> and cannot contain child nodes."
-  `(define-tag-dispatcher (,tag ,@lists) (name)
-         (string-equal name ,(string tag))
-     (let ((attrs (read-attributes)))
-       (when (char= (or (consume) #\ ) #\/)
-         (advance)) ;; Consume closing
-       (make-element *root* ,(string-downcase tag) :attributes attrs))))
+  `(progn
+     (define-tag-dispatcher (,tag ,@lists) (name)
+           (string-equal name ,(string tag)))
+
+     (define-tag-parser ,tag (name)
+       (let ((attrs (read-attributes)))
+         (when (char= (or (consume) #\ ) #\/)
+           (advance)) ;; Consume closing
+         (make-element *root* ,(string-downcase tag) :attributes attrs)))
+
+     (define-tag-printer ,tag (node)
+       (plump-dom::wrs "<" (tag-name node))
+       (serialize (attributes node) *stream*)
+       (if (< 0 (length (children node)))
+           (progn
+             (plump-dom::wrs ">")
+             (loop for child across (children node)
+                   do (serialize child *stream*))
+             (plump-dom::wrs "</" (tag-name node) ">"))
+           (plump-dom::wrs ">"))
+       node)))
 
 ;; According to http://www.w3.org/html/wg/drafts/html/master/syntax.html#void-elements
 ;; area, base, br, col, embed, hr, img, input, keygen, link, menuitem, meta, param, source, track, wbr
@@ -123,21 +149,25 @@
 This means that it cannot contain any child-nodes and everything up until its closing
 tag is used as its text."
   (let ((name (string-downcase tag)))
-    `(define-tag-dispatcher (,tag ,@lists) (name) (string-equal name ,name)
-       (let* ((closing (consume))
-              (attrs (if (char= closing #\Space)
-                         (prog1 (read-attributes)
-                           (setf closing (consume)))
-                         (make-attribute-map))))
-         (case closing
-           (#\/
-            (advance)
-            (make-element *root* ,name :attributes attrs))
-           (#\>
-            (let ((*root* (make-fulltext-element *root* ,name :attributes attrs))
-                  (string (read-fulltext-element-content name)))
-              (make-text-node *root* string)
-              *root*)))))))
+    `(progn
+       (define-tag-dispatcher (,tag ,@lists) (name)
+             (string-equal name ,name))
+
+       (define-tag-parser ,tag (name)
+         (let* ((closing (consume))
+                (attrs (if (char= closing #\Space)
+                           (prog1 (read-attributes)
+                             (setf closing (consume)))
+                           (make-attribute-map))))
+           (case closing
+             (#\/
+              (advance)
+              (make-element *root* ,name :attributes attrs))
+             (#\>
+              (let ((*root* (make-fulltext-element *root* ,name :attributes attrs))
+                    (string (read-fulltext-element-content name)))
+                (make-text-node *root* string)
+                *root*))))))))
 
 (define-fulltext-element style *tag-dispatchers* *html-tags*)
 (define-fulltext-element script *tag-dispatchers* *html-tags*)

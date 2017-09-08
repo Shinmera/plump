@@ -168,14 +168,17 @@
    #:define-fulltext-element)
   ;; tag-dispatcher.lisp
   (:export
+   #:*all-tag-dispatchers*
    #:*tag-dispatchers*
    #:*xml-tags*
    #:*html-tags*
    #:tag-dispatcher
-   #:set-tag-dispatcher
-   #:define-tag-dispatcher
    #:remove-tag-dispatcher
-   #:do-tag-dispatchers))
+   #:define-tag-dispatcher
+   #:define-tag-parser
+   #:define-tag-printer
+   #:do-tag-parsers
+   #:do-tag-printers))
 
 (defpackage #:plump
   (:nicknames #:org.shirakumo.plump)
