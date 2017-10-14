@@ -426,7 +426,7 @@
 (defun render-text (node)
   (with-output-to-string (stream)
     (let ((have-space NIL)
-          (char-func))
+          (char-func #'identity))
       (labels ((beginning (char)
                  (case char
                    ((#\Space #\Tab #\Return #\Linefeed))
@@ -443,8 +443,8 @@
                     (write-char char stream))))
                (r (node)
                  (typecase node
-                   (textual-node (map NIL char-func (text node)))
-                   (nesting-node (map NIL #'r (children node))))))
+                   (textual-node (loop for c across (text node) do (funcall char-func c)))
+                   (nesting-node (loop for c across (children node) do (r c))))))
         (setf char-func #'beginning)
         (r node)))))
 
