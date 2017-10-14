@@ -275,6 +275,18 @@ Returns NIL.")
   (function has-attribute
     "Returns T if the provided attribute exists.")
 
+  (function render-text
+    "\"Renders\" the text of this element and its children.
+
+In effect the text is gathered from the component and all of
+its children, but transforming the text in such a way that:
+- All ASCII white space (Space, Tab, CR, LF) is converted into spaces.
+- There are no consecutive spaces.
+- There are no spaces at the beginning or end.
+
+This is somewhat analogous to how the text will be shown to
+the user when rendered by a browser. Hence, render-text.")
+
   (function get-elements-by-tag-name
     "Searches the given node and returns an unordered
 list of child nodes at arbitrary depth that match

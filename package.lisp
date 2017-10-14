@@ -103,6 +103,7 @@
    #:set-attribute
    #:remove-attribute
    #:has-attribute
+   #:render-text
    #:get-elements-by-tag-name
    #:get-element-by-id
    #:node-p

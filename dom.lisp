@@ -423,6 +423,31 @@
                           (nesting-node (r child))))))
       (r node))))
 
+(defun render-text (node)
+  (with-output-to-string (stream)
+    (let ((have-space NIL)
+          (char-func))
+      (labels ((beginning (char)
+                 (case char
+                   ((#\Space #\Tab #\Return #\Linefeed))
+                   (T (setf char-func #'body)
+                    (write-char char stream))))
+               (body (char)
+                 (case char
+                   ((#\Space #\Tab #\Return #\Linefeed)
+                    (setf have-space T))
+                   (T
+                    (when have-space
+                      (write-char #\Space stream)
+                      (setf have-space NIL))
+                    (write-char char stream))))
+               (r (node)
+                 (typecase node
+                   (textual-node (map NIL char-func (text node)))
+                   (nesting-node (map NIL #'r (children node))))))
+        (setf char-func #'beginning)
+        (r node)))))
+
 (defun get-elements-by-tag-name (node tag)
   (let ((finds ()))
     (labels ((scanren (node)
