@@ -127,10 +127,11 @@
 (defun read-fulltext-element-content (name)
   (with-output-to-string (out)
     (tagbody
-     start (case (peek)
-             ((NIL) (go end))
-             (#\< (advance) (go tag))
-             (T (write-char (consume) out) (go start)))
+     start (let ((next (peek)))
+             (case next
+               ((NIL) (go end))
+               (#\< (advance) (go tag))
+               (T (write-char next out) (go start))))
      tag (case (peek)
            (#\/ (advance) (go name))
            (T (write-char #\< out) (go start)))
