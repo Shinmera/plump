@@ -116,7 +116,7 @@
                    do (serialize child *stream*))
              (plump-dom::wrs "</" (tag-name node) ">"))
            (plump-dom::wrs ">"))
-       node)))
+       T)))
 
 ;; According to http://www.w3.org/html/wg/drafts/html/master/syntax.html#void-elements
 ;; area, base, br, col, embed, hr, img, input, keygen, link, menuitem, meta, param, source, track, wbr
