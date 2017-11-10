@@ -131,7 +131,7 @@
              (case next
                ((NIL) (go end))
                (#\< (advance) (go tag))
-               (T (write-char next out) (go start))))
+               (T (write-char next out) (advance) (go start))))
      tag (case (peek)
            (#\/ (advance) (go name))
            (T (write-char #\< out) (go start)))
