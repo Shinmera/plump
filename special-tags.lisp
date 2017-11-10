@@ -148,7 +148,7 @@
   (let ((name (string-downcase tag)))
     `(progn
        (define-tag-dispatcher (,tag ,@lists) (name)
-             (string-equal name ,name))
+         (string-equal name ,name))
 
        (define-tag-parser ,tag (name)
          (let* ((closing (consume))
@@ -164,7 +164,16 @@
               (let ((*root* (make-fulltext-element *root* ,name :attributes attrs))
                     (string (read-fulltext-element-content name)))
                 (make-text-node *root* string)
-                *root*))))))))
+                *root*)))))
+
+       (define-tag-printer ,tag (node)
+         (plump-dom::wrs "<" (tag-name node))
+         (serialize (attributes node) *stream*)
+         (plump-dom::wrs ">")
+         (loop for child across (children node)
+               do (serialize child *stream*))
+         (plump-dom::wrs "</" (tag-name node) ">")
+         T))))
 
 (define-fulltext-element style *tag-dispatchers* *html-tags*)
 (define-fulltext-element script *tag-dispatchers* *html-tags*)
