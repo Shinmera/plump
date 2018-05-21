@@ -143,7 +143,7 @@
 
 (macrolet ((define-all (&rest tags)
              `(progn ,@(loop for tag in tags collect `(define-grouping-element ,tag *tag-dispatchers* *html-tags*)))))
-  (define-all div span))
+  (define-all blockquote dd dir div span dl dt figcaption figure hr li main ol p pre ul))
 
 (defun read-fulltext-element-content (name)
   (with-output-to-string (out)
