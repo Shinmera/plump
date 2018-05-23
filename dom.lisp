@@ -263,6 +263,18 @@
     map))
 
 (defgeneric clone-node (node &optional deep)
+  (:method ((vector vector) &optional (deep T))
+    (loop with array = (make-child-array (length vector))
+          for child across vector
+          do (vector-push (if deep (clone-node child T) child) array)
+          finally (return array)))
+  (:method ((table hash-table) &optional (deep T))
+    (declare (ignore deep))
+    (loop with map = (make-attribute-map)
+          for key being the hash-keys of table
+          for val being the hash-values of table
+          do (setf (gethash key map) val)
+          finally (return map)))
   (:method ((node node) &optional (deep T))
     (declare (ignore deep))
     (make-instance (class-of node)))
