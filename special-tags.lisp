@@ -48,7 +48,7 @@
    (decode-entities
     (if (and (ends-with "--" name)
              (char= (or (peek) #\!) #\>))
-        (prog1 (subseq name 3 (- (length name) 2))
+        (prog1 (subseq name 3 (max 3 (- (length name) 2)))
           (advance))
         (prog1 (concatenate
                 'string (subseq name 3)
