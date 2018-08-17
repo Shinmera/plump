@@ -11,7 +11,9 @@
   :author "Nicolas Hafner <shinmera@tymoon.eu>"
   :maintainer "Nicolas Hafner <shinmera@tymoon.eu>"
   :description "Plump's core parser component."
-  :homepage "https://github.com/Shinmera/plump"
+  :homepage "https://Shinmera.github.io/plump/"
+  :bug-tracker "https://github.com/Shinmera/plump/issues"
+  :source-control (:git "https://github.com/Shinmera/plump.git")
   :serial T
   :components ()
   :depends-on (:plump))
