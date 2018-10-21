@@ -243,8 +243,8 @@ if the parent is empty. This excludes comments, text-nodes and the like.")
 if the parent is empty. This excludes comments, text-nodes and the like.")
 
   (function previous-element
-    "Returns the sibling element next to this one or NIL if
-it is already last. This excludes comments, text-nodes and the like.")
+    "Returns the sibling element before this one or NIL if
+it is already the first. This excludes comments, text-nodes and the like.")
 
   (function next-element
     "Returns the sibling element next to this one or NIL if
