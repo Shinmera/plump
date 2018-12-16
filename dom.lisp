@@ -149,16 +149,17 @@
 
 
 (defmacro define-predicates (&rest classes)
-  `(progn
-     ,@(loop for class in classes
-             for predicate = (intern (format NIL "~a-~a" (string class) (string 'p)))
-             for docstring = (format NIL "Returns T if the given OBJECT is of type ~a" class)
-             collect `(defun ,predicate (object)
-                        ,docstring
-                        (typep object ',class)) into definitions
-             collect predicate into predicates
-             finally (return `((declaim (inline ,@predicates))
-                               ,@definitions)))))
+  (let ((*print-case* (readtable-case *readtable*)))
+    `(progn
+       ,@(loop for class in classes
+               for predicate = (intern (format NIL "~a-~a" (string class) (string 'p)))
+               for docstring = (format NIL "Returns T if the given OBJECT is of type ~a" class)
+               collect `(defun ,predicate (object)
+                          ,docstring
+                          (typep object ',class)) into definitions
+               collect predicate into predicates
+               finally (return `((declaim (inline ,@predicates))
+                                 ,@definitions))))))
 
 (define-predicates
   node
