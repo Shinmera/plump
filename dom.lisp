@@ -519,12 +519,12 @@
               (progn
                 (wrs ">")
                 (loop for child across (children node)
-                      do (serialize child *stream*))
+                      do (serialize-object child))
                 (wrs "</" (tag-name node) ">"))
               (wrs "/>")))))
   (:method ((node fulltext-element))
     (wrs "<" (tag-name node))
-    (serialize (attributes node) *stream*)
+    (serialize-object (attributes node))
     (if (< 0 (length (children node)))
         (progn
           (wrs ">")
@@ -535,7 +535,7 @@
         (wrs "/>")))
   (:method ((node xml-header))
     (wrs "<?xml")
-    (serialize (attributes node) *stream*)
+    (serialize-object (attributes node))
     (wrs "?>"))
   (:method ((node cdata))
     (wrs "<![CDATA[" (text node) "]]>"))
@@ -554,10 +554,10 @@
                (wrs "\""))))
   (:method ((node nesting-node))
     (loop for child across (children node)
-          do (serialize child *stream*)))
+          do (serialize-object child)))
   (:method ((nodes vector))
     (loop for child across nodes
-          do (serialize child *stream*))))
+          do (serialize-object child))))
 
 (defgeneric traverse (node function &key test)
   (:method ((node node) function &key (test (constantly T)))
