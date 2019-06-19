@@ -15,7 +15,7 @@
   (name (error "NAME required") :type symbol)
   (test (lambda (a) (declare (ignore a)) NIL) :type (function (string) boolean))
   (parser (lambda (a) (declare (ignore a)) NIL) :type (function (string) (or null node)))
-  (printer (lambda (a) (declare (ignore a)) NIL) :type (function (node) boolean)))
+  (printer (lambda (a) (declare (ignore a)) NIL) :type (function (T) boolean)))
 
 (defun tag-dispatcher (name &optional (list *all-tag-dispatchers*))
   (find name list :key #'tag-dispatcher-name))
