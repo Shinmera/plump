@@ -7,7 +7,7 @@
 
 (asdf:defsystem plump-lexer
   :version "2.0.0"
-  :license "Artistic"
+  :license "zlib"
   :author "Nicolas Hafner <shinmera@tymoon.eu>"
   :maintainer "Nicolas Hafner <shinmera@tymoon.eu>"
   :description "A very simple toolkit to help with lexing used mainly in Plump."

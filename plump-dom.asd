@@ -7,7 +7,7 @@
 
 (asdf:defsystem plump-dom
   :version "2.0.0"
-  :license "Artistic"
+  :license "zlib"
   :author "Nicolas Hafner <shinmera@tymoon.eu>"
   :maintainer "Nicolas Hafner <shinmera@tymoon.eu>"
   :description "A DOM for use with the Plump parser."
