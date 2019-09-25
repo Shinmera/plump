@@ -1,3 +1,4 @@
+;;;; -*- coding: utf-8  -*-
 #|
  This file is a part of Plump
  (c) 2014 Shirakumo http://tymoon.eu (shinmera@tymoon.eu)
