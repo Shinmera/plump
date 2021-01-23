@@ -48,6 +48,18 @@
                                          (setf (tag-dispatcher ',name ,list) ,disp))))
                           (setf (tag-dispatcher-test ,disp) ,test))))))
 
+(defmacro define-wildcard-dispatcher (name &rest lists)
+  (let ((test (gensym "TEST"))
+        (disp (gensym "DISP")))
+    `(let ((,test (lambda (tagvar) (declare (ignore tagvar)) T))
+           (,disp (make-tag-dispatcher :name ',name)))
+       ,@(loop for list in (list* '*all-tag-dispatchers* lists)
+               collect `(let ((,disp (or (tag-dispatcher ',name ,list)
+                                         (progn
+                                           (setf ,list (append ,list (list ,disp)))
+                                           ,disp))))
+                          (setf (tag-dispatcher-test ,disp) ,test))))))
+
 (defmacro define-tag-parser (name (tagvar) &body body)
   `(setf (tag-dispatcher-parser
           (or (tag-dispatcher ',name)

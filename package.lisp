@@ -176,6 +176,7 @@
    #:tag-dispatcher
    #:remove-tag-dispatcher
    #:define-tag-dispatcher
+   #:define-wildcard-dispatcher
    #:define-tag-parser
    #:define-tag-printer
    #:do-tag-parsers

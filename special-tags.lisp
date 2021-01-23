@@ -125,12 +125,9 @@
   (define-all area base br col embed hr img input keygen link menuitem meta param source track wbr))
 
 ;; wildcard dispatcher
-(define-tag-dispatcher (* *tag-dispatchers* *html-tags*) (name)
-  (declare (ignore name))
-  ;; match everything
-  T)
+(define-wildcard-dispatcher html-default *tag-dispatchers* *html-tags*)
 ;; default html5 behavior
-(define-tag-printer * (node)
+(define-tag-printer html-default (node)
   (plump-dom::wrs "<" (tag-name node))
   (serialize (attributes node) *stream*)
   (plump-dom::wrs ">")
@@ -138,7 +135,7 @@
         do (serialize child *stream*))
   (plump-dom::wrs "</" (tag-name node) ">")
   T)
-(define-tag-parser * (name)
+(define-tag-parser html-default (name)
   (read-standard-tag name))
 
 (defun read-fulltext-element-content (name)
