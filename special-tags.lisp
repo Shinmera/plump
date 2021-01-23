@@ -126,6 +126,7 @@
 
 ;; wildcard dispatcher
 (define-tag-dispatcher (* *tag-dispatchers* *html-tags*) (name)
+  (declare (ignore name))
   ;; match everything
   T)
 ;; default html5 behavior
