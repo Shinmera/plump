@@ -124,26 +124,21 @@
              `(progn ,@(loop for tag in tags collect `(define-self-closing-element ,tag *tag-dispatchers* *html-tags*)))))
   (define-all area base br col embed hr img input keygen link menuitem meta param source track wbr))
 
-(defmacro define-grouping-element (tag &rest lists)
-  `(progn
-     (define-tag-dispatcher (,tag ,@lists) (name)
-       (string-equal name ,(string tag)))
-
-     (define-tag-parser ,tag (name)
-       (read-standard-tag name))
-     
-     (define-tag-printer ,tag (node)
-       (plump-dom::wrs "<" (tag-name node))
-       (serialize (attributes node) *stream*)
-       (plump-dom::wrs ">")
-       (loop for child across (children node)
-             do (serialize child *stream*))
-       (plump-dom::wrs "</" (tag-name node) ">")
-       T)))
-
-(macrolet ((define-all (&rest tags)
-             `(progn ,@(loop for tag in tags collect `(define-grouping-element ,tag *tag-dispatchers* *html-tags*)))))
-  (define-all a blockquote code dd dir div dl dt figcaption figure i iframe li main ol p pre span ul))
+;; wildcard dispatcher
+(define-tag-dispatcher (* *tag-dispatchers* *html-tags*) (name)
+  ;; match everything
+  T)
+;; default html5 behavior
+(define-tag-printer * (node)
+  (plump-dom::wrs "<" (tag-name node))
+  (serialize (attributes node) *stream*)
+  (plump-dom::wrs ">")
+  (loop for child across (children node)
+        do (serialize child *stream*))
+  (plump-dom::wrs "</" (tag-name node) ">")
+  T)
+(define-tag-parser * (name)
+  (read-standard-tag name))
 
 (defun read-fulltext-element-content (name)
   (with-output-to-string (out)

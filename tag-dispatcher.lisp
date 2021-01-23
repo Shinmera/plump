@@ -18,7 +18,8 @@
   (printer (lambda (a) (declare (ignore a)) NIL) :type (function (T) boolean)))
 
 (defun tag-dispatcher (name &optional (list *all-tag-dispatchers*))
-  (find name list :key #'tag-dispatcher-name))
+  (or (find name list :key #'tag-dispatcher-name)
+      (find '* list :key #'tag-dispatcher-name)))
 
 (define-setf-expander tag-dispatcher (name &optional (list '*all-tag-dispatchers*))
   (let ((nameg (gensym "NAME"))
