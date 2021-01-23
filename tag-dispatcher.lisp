@@ -21,13 +21,17 @@
   (find name list :key #'tag-dispatcher-name))
 
 (define-setf-expander tag-dispatcher (name &optional (list '*all-tag-dispatchers*))
-  (let ((nameg (gensym "NAME"))
-        (disp (gensym "DISP")))
+  (let* ((nameg (gensym "NAME"))
+         (disp (gensym "DISP"))
+         (removed (gensym)))
     (values (list nameg)
             (list name)
             (list disp)
-            `(progn
-               (setf ,list (list* ,disp (remove ,nameg ,list :key #'tag-dispatcher-name)))
+            `(let ((,removed (remove ,nameg ,list :key #'tag-dispatcher-name)))
+               (setf ,list
+                     (if (eq '* ,nameg)
+                         (append ,removed (list ,disp))
+                         (list* ,disp ,removed)))
                ,disp)
             disp)))
 
