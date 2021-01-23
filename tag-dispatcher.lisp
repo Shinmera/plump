@@ -21,17 +21,13 @@
   (find name list :key #'tag-dispatcher-name))
 
 (define-setf-expander tag-dispatcher (name &optional (list '*all-tag-dispatchers*))
-  (let* ((nameg (gensym "NAME"))
-         (disp (gensym "DISP"))
-         (removed (gensym)))
+  (let ((nameg (gensym "NAME"))
+        (disp (gensym "DISP")))
     (values (list nameg)
             (list name)
             (list disp)
-            `(let ((,removed (remove ,nameg ,list :key #'tag-dispatcher-name)))
-               (setf ,list
-                     (if (eq '* ,nameg)
-                         (append ,removed (list ,disp))
-                         (list* ,disp ,removed)))
+            `(progn
+               (setf ,list (list* ,disp (remove ,nameg ,list :key #'tag-dispatcher-name)))
                ,disp)
             disp)))
 
@@ -46,6 +42,18 @@
        ,@(loop for list in (list* '*all-tag-dispatchers* lists)
                collect `(let ((,disp (or (tag-dispatcher ',name ,list)
                                          (setf (tag-dispatcher ',name ,list) ,disp))))
+                          (setf (tag-dispatcher-test ,disp) ,test))))))
+
+(defmacro define-wildcard-dispatcher (name &rest lists)
+  (let ((test (gensym "TEST"))
+        (disp (gensym "DISP")))
+    `(let ((,test (lambda (tagvar) (declare (ignore tagvar)) T))
+           (,disp (make-tag-dispatcher :name ',name)))
+       ,@(loop for list in (list* '*all-tag-dispatchers* lists)
+               collect `(let ((,disp (or (tag-dispatcher ',name ,list)
+                                         (progn
+                                           (setf ,list (append ,list (list ,disp)))
+                                           ,disp))))
                           (setf (tag-dispatcher-test ,disp) ,test))))))
 
 (defmacro define-tag-parser (name (tagvar) &body body)

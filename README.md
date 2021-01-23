@@ -42,6 +42,10 @@ If you don't want to disturb the standard Plump tag dispatchers list, you can de
     (plump:define-self-closing-element img *tag-dispatchers* *html-tags*)
     (plump:define-fulltext-element style *tag-dispatchers* *html-tags*)
 
+You can also define a wild card dispatcher for your own special variable that will dispatch on any tag that doesn't match another dispatcher:
+
+    (plump:define-wildcard-dispatcher your-default *your-special-variable*)
+
 XML allows for script tags (like `<?php ?>`). By default Plump does not specify any special reading for any script tag. If an unhandled script tag is encountered, a warning is emitted and Plump will try to just read anything until `?>` is encountered. For most script tags this probably will not suffice, as they might contain some form of escaped `?>`. If you do want to use Plump to process script tags properly as well, you will have to define your own reader with `define-processing-parser`. You can also use that macro to define a reader that outputs a more suitable format than a text tag.
 
 During parsing, all elements are created through `MAKE-*` functions like `MAKE-ROOT`, `MAKE-ELEMENT`, `MAKE-TEXT-NODE`, and so on. By overriding these functions you can instead delegate the parsing to your own DOM.
