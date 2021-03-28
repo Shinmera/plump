@@ -70,11 +70,13 @@
       (string-equal name "?xml"))
 
 (define-tag-parser xml-header (name)
-  (let ((attrs (consume-until (make-matcher (and (is #\?)
-                                                 (next (is #\>)))))))
-    (advance-n 2)
-    (make-xml-header *root* :attributes (with-lexer-environment (attrs)
-                                          (read-attributes)))))
+  (let* ((attrs-string (consume-until (make-matcher (and (is #\?) (next (is #\>))))))
+         (attrs (with-lexer-environment (attrs-string)
+                  (read-attributes))))
+        (unless (gethash "version" attrs)
+          (setf (gethash "version" attrs) "1.0"))
+        (advance-n 2)
+        (make-xml-header *root* :attributes attrs)))
 
 ;; Special handling for CDATA sections
 (define-tag-dispatcher (cdata *tag-dispatchers* *xml-tags*) (name)

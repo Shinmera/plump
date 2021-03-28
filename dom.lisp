@@ -532,7 +532,18 @@
     (wrs "</" (tag-name node) ">"))
   (:method ((node xml-header))
     (wrs "<?xml")
-    (serialize-object (attributes node))
+    (let ((attributes (attributes node)))
+      (wrs " " "version" "=\"")
+      (encode-entities (gethash "version" attributes) *stream*)
+      (wrs "\"")
+      (loop for key being the hash-keys of attributes
+            for val being the hash-values of attributes
+            unless (string-equal key "version")
+            do (wrs " " key)
+               (when val
+                 (wrs "=\"")
+                 (encode-entities val *stream*)
+                 (wrs "\""))))
     (wrs "?>"))
   (:method ((node cdata))
     (wrs "<![CDATA[" (text node) "]]>"))
