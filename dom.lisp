@@ -532,7 +532,16 @@
     (wrs "</" (tag-name node) ">"))
   (:method ((node xml-header))
     (wrs "<?xml")
-    (serialize-object (attributes node))
+    (let*
+      ((attributes (attributes node))
+       (version (cons "version" (gethash "version" attributes)))
+       (optional-attributes (make-hash-table)))
+      (loop for key being the hash-keys of attributes
+            for val being the hash-values of attributes
+            unless (string-equal key "version")
+            do (setf (gethash key optional-attributes) val))
+      (serialize-object version)
+      (serialize-object optional-attributes))
     (wrs "?>"))
   (:method ((node cdata))
     (wrs "<![CDATA[" (text node) "]]>"))
@@ -544,11 +553,16 @@
   (:method ((table hash-table))
     (loop for key being the hash-keys of table
           for val being the hash-values of table
-          do (wrs " " key)
-             (when val
-               (wrs "=\"")
-               (encode-entities val *stream*)
-               (wrs "\""))))
+          do (serialize-object (cons key val))))
+  (:method ((attribute cons))
+    (let
+      ((key (car attribute))
+       (val (cdr attribute)))
+      (wrs " " key)
+      (when val
+        (wrs "=\"")
+        (encode-entities val *stream*)
+        (wrs "\""))))
   (:method ((node nesting-node))
     (loop for child across (children node)
           do (serialize-object child)))
