@@ -70,10 +70,9 @@
       (string-equal name "?xml"))
 
 (define-tag-parser xml-header (name)
-  (let* ((attrs-string (consume-until (make-matcher (and (is #\?)
-                                                         (next (is #\>))))))
+  (let* ((attrs-string (consume-until (make-matcher (and (is #\?) (next (is #\>))))))
          (attrs (with-lexer-environment (attrs-string)
-                                        (read-attributes))))
+                  (read-attributes))))
         (unless (gethash "version" attrs)
           (setf (gethash "version" attrs) "1.0"))
         (advance-n 2)
