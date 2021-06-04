@@ -281,7 +281,6 @@
     (make-instance (class-of node)))
   (:method ((node nesting-node) &optional (deep T))
     (let ((clone (make-instance (class-of node)
-                                :parent (parent node)
                                 :children (make-child-array))))
       (setf (children clone) (clone-children node deep clone))
       clone))
