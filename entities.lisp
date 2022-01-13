@@ -366,32 +366,35 @@
 (setf (documentation 'faulty-char 'function)
       "Returns the faulty char that caused the signal.")
 
+(defparameter *encoding-chars*
+  '((#\< "&lt;")
+    (#\> "&gt;")
+    (#\" "&quot;")
+    (#\& "&amp;")))
 (defun write-encode-char (char stream)
-  (declare (optimize speed))
-  (case char
-    (#\< (write-string "&lt;" stream))
-    (#\> (write-string "&gt;" stream))
-    (#\" (write-string "&quot;" stream))
-    (#\& (write-string "&amp;" stream))
-    (t
-     (restart-case
-         (progn
-           (unless (allowed-char-p char)
-             (error 'invalid-xml-character :faulty-char char))
-           (when (discouraged-char-p char)
-             (warn 'discouraged-xml-character :faulty-char char))
-           (write-char char stream))
-       (abort ()
-         :report "Do not output the faulty character.")
-       (use-new-character (new-char)
-         :report "Output a replacement character instead."
-         :interactive (lambda ()
-                        (write-string "Enter replacement character: " *query-io*)
-                        (list (read-char *query-io*)))
-         (write-char new-char stream))
-       (continue ()
-         :report "Continue and output the faulty character anyway."
-         (write-char char stream))))))
+  (declare (type character char)
+           (optimize speed))
+  (let ((encoding (assoc char *encoding-chars*)))
+    (if encoding
+        (write-string (second encoding) stream)
+        (restart-case
+            (progn
+              (unless (allowed-char-p char)
+                (error 'invalid-xml-character :faulty-char char))
+              (when (discouraged-char-p char)
+                (warn 'discouraged-xml-character :faulty-char char))
+              (write-char char stream))
+          (abort ()
+            :report "Do not output the faulty character.")
+          (use-new-character (new-char)
+            :report "Output a replacement character instead."
+            :interactive (lambda ()
+                           (write-string "Enter replacement character: " *query-io*)
+                           (list (read-char *query-io*)))
+            (write-char new-char stream))
+          (continue ()
+            :report "Continue and output the faulty character anyway."
+            (write-char char stream))))))
 
 (defun encode-entities (text &optional stream)
   (declare (optimize speed)
