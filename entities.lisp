@@ -371,6 +371,13 @@
     (#\> "&gt;")
     (#\" "&quot;")
     (#\& "&amp;")))
+(defparameter *attrval-encoding-chars*
+  (append
+   '((#\Tab      "&#x9;")
+     (#\Return   "&#xD;")
+     (#\Linefeed "&#xA;"))
+   *encoding-chars*))
+
 (defun write-encode-char (char stream)
   (declare (type character char)
            (optimize speed))

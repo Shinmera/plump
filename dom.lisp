@@ -541,7 +541,8 @@
             do (wrs " " key)
                (when val
                  (wrs "=\"")
-                 (encode-entities val *stream*)
+                 (let ((*encoding-chars* *attrval-encoding-chars*))
+                   (encode-entities val *stream*))
                  (wrs "\""))))
     (wrs "?>"))
   (:method ((node cdata))
@@ -557,7 +558,8 @@
           do (wrs " " key)
              (when val
                (wrs "=\"")
-               (encode-entities val *stream*)
+               (let ((*encoding-chars* *attrval-encoding-chars*))
+                 (encode-entities val *stream*))
                (wrs "\""))))
   (:method ((node nesting-node))
     (loop for child across (children node)
