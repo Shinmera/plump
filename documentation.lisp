@@ -131,7 +131,7 @@ Note that the element is automatically appended to the parent's child list.")
   (function clear
     "Clears all children from the node.
 
-Noe that the PARENT of all child elements is set to NIL.")
+Note that the PARENT of all child elements is set to NIL.")
 
   (function siblings
     "Returns the array of siblings of the given child.
@@ -266,7 +266,7 @@ second return value is set to NIL.")
     "Synonymous to ATTRIBUTE.")
 
   (function set-attribute
-    "Synonymous to (SETF (ATTIBUTE ..) ..)")
+    "Synonymous to (SETF (ATTRIBUTE ..) ..)")
 
   (function remove-attribute
     "Remove the specified attribute if it exists.
@@ -391,7 +391,7 @@ If no STREAM is given, it encodes to a new string."))
 Otherwise returns NIL.")
   
   (function advance
-    "Skips a chracter if possible.
+    "Skips a character if possible.
 Returns the new index or NIL.")
   
   (function unread
