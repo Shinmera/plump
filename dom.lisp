@@ -258,8 +258,7 @@
 
 (defun clone-attributes (node)
   (let ((map (make-attribute-map)))
-    (loop for key being the hash-keys of (attributes node)
-          for val being the hash-values of (attributes node)
+    (loop for key being the hash-keys using (hash-value val) of (attributes node)
           do (setf (gethash key map) val))
     map))
 
@@ -272,8 +271,7 @@
   (:method ((table hash-table) &optional (deep T))
     (declare (ignore deep))
     (loop with map = (make-attribute-map)
-          for key being the hash-keys of table
-          for val being the hash-values of table
+          for key being the hash-keys using (hash-value val) of table
           do (setf (gethash key map) val)
           finally (return map)))
   (:method ((node node) &optional (deep T))
@@ -535,8 +533,7 @@
       (wrs " " "version" "=\"")
       (encode-entities (gethash "version" attributes) *stream*)
       (wrs "\"")
-      (loop for key being the hash-keys of attributes
-            for val being the hash-values of attributes
+      (loop for key being the hash-keys using (hash-value val) of attributes
             unless (string-equal key "version")
             do (wrs " " key)
                (when val
@@ -552,8 +549,7 @@
       (wrs (tag-name node)))
     (wrs " " (text node) "?>"))
   (:method ((table hash-table))
-    (loop for key being the hash-keys of table
-          for val being the hash-values of table
+    (loop for key being the hash-keys using (hash-value val) of table
           do (wrs " " key)
              (when val
                (wrs "=\"")
