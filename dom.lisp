@@ -467,7 +467,7 @@
                             (push child finds))
                           (scanren child)))))
       (scanren node))
-    finds))
+    (nreverse finds)))
 
 (defun get-element-by-id (node id)
   (labels ((scanren (node)
