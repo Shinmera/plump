@@ -168,7 +168,7 @@
 
        (define-tag-parser ,tag (name)
          (let* ((closing (consume))
-                (attrs (if (char= closing #\Space)
+                (attrs (if (member closing *whitespace*)
                            (prog1 (read-attributes)
                              (setf closing (consume)))
                            (make-attribute-map))))
