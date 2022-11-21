@@ -147,15 +147,15 @@
 (defun matcher-next (matcher)
   #'(lambda ()
       (let ((*index* (1+ *index*)))
-	(when (< *index* *length*))
-        (funcall matcher))))
+        (when (< *index* *length*)
+          (funcall matcher)))))
 
 (declaim (ftype (function (function) function) matcher-prev))
 (defun matcher-prev (matcher)
   #'(lambda ()
       (let ((*index* (1- *index*)))
-	(when (<= 0 *index*)
-	  (funcall matcher)))))
+        (when (<= 0 *index*)
+          (funcall matcher)))))
 
 (defmacro matcher-any (&rest is)
   `(matcher-or ,@(loop for i in is
