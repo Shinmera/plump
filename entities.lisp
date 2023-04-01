@@ -366,13 +366,25 @@
 (setf (documentation 'faulty-char 'function)
       "Returns the faulty char that caused the signal.")
 
-(defun write-encode-char (char stream)
+(defun write-encode-char (char stream &optional encode-whitespace)
   (declare (optimize speed))
   (case char
     (#\< (write-string "&lt;" stream))
     (#\> (write-string "&gt;" stream))
     (#\" (write-string "&quot;" stream))
     (#\& (write-string "&amp;" stream))
+    (#\Tab
+     (if encode-whitespace
+         (write-string "&#x9;" stream)
+         (write-char char stream)))
+    (#\Return
+     (if encode-whitespace
+         (write-string "&#xD;" stream)
+         (write-char char stream)))
+    (#\Linefeed
+     (if encode-whitespace
+         (write-string "&#xA;" stream)
+         (write-char char stream)))
     (t
      (restart-case
          (progn
@@ -392,6 +404,14 @@
        (continue ()
          :report "Continue and output the faulty character anyway."
          (write-char char stream))))))
+
+(declaim (inline %encode-entities))
+(defun %encode-entities (text output &optional encode-whitespace)
+  (declare (optimize speed)
+           (type simple-string text)
+           (type stream output))
+  (loop for c across text
+        do (write-encode-char c output encode-whitespace)))
 
 (defun encode-entities (text &optional stream)
   (declare (optimize speed)
