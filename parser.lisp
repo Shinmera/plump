@@ -1,9 +1,3 @@
-#|
- This file is a part of Plump
- (c) 2014 Shirakumo http://tymoon.eu (shinmera@tymoon.eu)
- Author: Nicolas Hafner <shinmera@tymoon.eu>
-|#
-
 (in-package #:org.shirakumo.plump.parser)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
