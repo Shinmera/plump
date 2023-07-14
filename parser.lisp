@@ -94,19 +94,81 @@
 (defun read-tag ()
   (if (and (char= #\< (or (consume) #\ ))
            (funcall (make-matcher :name)))
-      (let ((name (read-name)))
-        (or (do-tag-parsers (test func (read-standard-tag name))
-              (when (funcall (the function test) name)
-                (return (funcall (the function func) name))))
-            (progn ;; It seems we can't parse this tag for some reason,
-              ;; read it as a text node instead. In order to avoid the
-              ;; auto-breaking of the text node on < and a subsequently
-              ;; resulting infinite-loop, don't unwind fully and instead
-              ;; prepend the < manually.
-              (unread-n (length name))
-              (let ((text (read-text)))
-                (setf (text text) (concatenate 'string "<" (text text)))
-                text))))
+      (let* ((name (read-name)))
+        (labels ((unread-throw (tag)
+                   (unread-n (1+ (length name)))
+                   (throw tag NIL))
+                 (pop-implied-end-tags ()
+                   "Pop up the tag stack, closing all the implicit end tags.
+If there are none, return NIL."
+                   ;; Better way to write it?
+                   (let ((implicit nil))
+                     (dolist (tag *tagstack*)
+                       ;; 13.2.6.3
+                       (when (member tag '("</dd" "</dt" "</li"
+                                           "</optgroup" "</option"
+                                           "</p" "</rb" "</rp" "</rt" "</rtc")
+                                     :test #'string-equal)
+                         (setf implicit tag)))
+                     (when implicit
+                       (unread-throw implicit)))))
+          (or
+           ;; Self-closing list elements (13.2.6.4.7).
+           (and (member name '("li" "dd" "dt") :test #'string-equal)
+                (pop-implied-end-tags))
+           ;; Form elements are mutually exclusive (13.2.6.4.7, 13.2.6.4.17, and... common sense?)
+           (let ((input-parent (or (find "</select" *tagstack* :test #'string-equal)
+                                   (find "</button" *tagstack* :test #'string-equal))))
+             (and input-parent
+                  (member name '("input" "select" "textarea" "button" "keygen") :test #'string-equal)
+                  (unread-throw input-parent)))
+           ;; Implicitly closed paragraphs.
+           (let ((paragraph-parent (find "</p" *tagstack* :test #'string-equal)))
+             (when (member name '(;; 13.2.6.4.7
+                                  "address" "article" "aside" "blockquote" "button" "center" "details"
+                                  "dialog" "dir" "div" "dl" "fieldset" "figcaption" "figure" "footer"
+                                  "header"  "hgroup" "listing" "main" "menu" "nav" "ol" "pre" "search"
+                                  "section" "summary" "ul"
+                                  ;; Same section later.
+                                  "applet" "marquee" "xmp" "hr" "table" "p" "plaintext" "form" "object"
+                                  "h1" "h2" "h3" "h4" "h5" "h6")
+                           :test #'string-equal)
+               (if paragraph-parent
+                   (unread-throw paragraph-parent)
+                   (pop-implied-end-tags))))
+           ;; Ruby tags.
+           (let ((ruby-parent (find "</ruby" *tagstack* :test #'string-equal))
+                 (rtc-parent (find "</ruby" *tagstack* :test #'string-equal)))
+             (cond
+               ((and (or (string-equal name "rp")
+                         (string-equal name "rt"))
+                     rtc-parent)
+                (unread-throw rtc-parent))
+               ((and (member name '("rb" "rtc" "rp" "rt")
+                             :test #'string-equal)
+                     ruby-parent)
+                (unread-throw ruby-parent))))
+           ;; Wrap table cells.
+           (let ((cell-parent (or (find "</td" *tagstack* :test #'string-equal)
+                                  (find "</th" *tagstack* :test #'string-equal))))
+             (and cell-parent
+                  (member name '(;; 13.2.6.4.11
+                                 "caption" "col" "colgroup" "tbody" "td" "tfoot" "th" "thead" "tr")
+                          :test #'string-equal)
+                  (unread-throw cell-parent)))
+           ;; No implicitly closed tags, proceed regularly.
+           (do-tag-parsers (test func (read-standard-tag name))
+             (when (funcall (the function test) name)
+               (return (funcall (the function func) name))))
+           (progn ;; It seems we can't parse this tag for some reason,
+             ;; read it as a text node instead. In order to avoid the
+             ;; auto-breaking of the text node on < and a subsequently
+             ;; resulting infinite-loop, don't unwind fully and instead
+             ;; prepend the < manually.
+             (unread-n (length name))
+             (let ((text (read-text)))
+               (setf (text text) (concatenate 'string "<" (text text)))
+               text)))))
       (progn (unread) NIL)))
 
 (defun read-root (&optional (root (make-root)))
