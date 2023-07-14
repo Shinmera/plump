@@ -112,6 +112,8 @@ If there are none, return NIL."
                          (setf implicit tag)))
                      (when implicit
                        (unread-throw implicit)))))
+          ;; TODO: 13.2.6.4.14 tr/caption/tbody
+          ;; etc. wrapping. Possibly some other that slipped through.
           (or
            ;; Self-closing list elements (13.2.6.4.7).
            (and (member name '("li" "dd" "dt") :test #'string-equal)
