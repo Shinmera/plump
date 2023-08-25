@@ -79,3 +79,10 @@ If you know of other native-lisp libraries that beat Plump, please do let me kno
 * [CLSS](https://shinmera.github.io/CLSS/) Traverse the DOM by CSS selectors.
 * [plump-tex](https://github.com/Shinmera/plump-tex) Serialize between TeX and the Plump DOM.
 * [plump-sexp](https://github.com/Shinmera/plump-sexp) Serialize between SEXPrs and the Plump DOM.
+
+## Support
+If you'd like to support the continued development of Plump, please consider becoming a backer on Patreon:
+
+<a href="https://patreon.com/shinmera">
+  <img alt="Patreon" src="https://filebox.tymoon.eu//file/TWpjeU9RPT0=" />
+</a>
