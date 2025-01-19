@@ -1,6 +1,11 @@
 ## What is Plump?
 Plump is a parser for HTML/XML like documents, focusing on being lenient towards invalid markup. It can handle things like invalid attributes, bad closing tag order, unencoded entities, inexistent tag types, self-closing tags and so on. It parses documents to a class representation and offers a small set of DOM functions to manipulate it. You are free to change it to parse to your own classes though.
 
+## Notice
+Plump mains to "correct" invalid markup, and generates DOM. So if you intend to manipulate, like extracting contect from HTML/XML like documents, you should turn to packages like [Lquery](https://shinmera.github.io/lquery/). If you insist on Plump, you may get half the results with double the effort.
+
+If you want to do some web scraping, [Web Scraping](https://lispcookbook.github.io/cl-cookbook/web-scraping.html) could be a good start.
+
 ## How To
 Load Plump through Quicklisp or ASDF:
 
@@ -9,11 +14,28 @@ Load Plump through Quicklisp or ASDF:
 Using the `PARSE` function, plump will transform a string, pathname or stream into a document:
 
     (plump:parse "<foo><bar this is=\"a thing\">baz</bar><span id=\"test\">oh my")
+Which print
 
-This returns a root node. If you want to append a document to a root node (or any other node that accepts children) that you've made, you can pass it into the parse function. To return the document into a readable form, you can call `SERIALIZE`:
+	#<PLUMP_DOM:ROOT {1004412703}>
+in my device.
+
+
+This returns a root node. If you want to append a document to a root node (or any other node that accepts children) that you've made, you can pass it into the parse function. To return the document into a readable form, you can call `SERIALIZE`(replace  stars like * ,** , *** in the example codes with your things.):
 
     (plump:serialize *)
-        
+
+
+
+For example, 
+
+	(plump:serialize (plump:parse "<foo><bar this is=\"a thing\">baz</bar><span id=\"test\">oh my"))
+	
+could gives us:
+
+	<foo><bar this="" is="a thing">baz</bar><span id="test">oh my</span></foo>
+	NIL
+    
+Notice that the string we give have been correct.	
 Using the DOM you can easily traverse the document and change it:
 
     (plump:remove-child (plump:get-element-by-id ** "test"))
