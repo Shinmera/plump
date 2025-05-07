@@ -402,10 +402,17 @@
 (declaim (inline %encode-entities))
 (defun %encode-entities (text output &optional encode-whitespace)
   (declare (optimize speed)
-           (type simple-string text)
            (type stream output))
-  (loop for c across text
-        do (write-encode-char c output encode-whitespace)))
+  (etypecase text
+    (simple-base-string
+     (loop for c across text
+           do (write-encode-char c output encode-whitespace)))
+    (simple-string
+     (loop for c across text
+           do (write-encode-char c output encode-whitespace)))
+    (string
+     (loop for c across text
+           do (write-encode-char c output encode-whitespace)))))
 
 (defun encode-entities (text &optional stream)
   (declare (optimize speed)
