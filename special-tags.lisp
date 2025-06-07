@@ -181,7 +181,9 @@
          (serialize (attributes node) *stream*)
          (plump-dom::wrs ">")
          (loop for child across (children node)
-               do (serialize child *stream*))
+               do (if (text-node-p child)
+                      (plump-dom::wrs (text child))
+                      (serialize child *stream*)))
          (plump-dom::wrs "</" (tag-name node) ">")
          T))))
 
