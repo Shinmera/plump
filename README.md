@@ -75,10 +75,10 @@ Available matcher constructs are `not`, `and`, `or`, `is`, `in`, `next`, `prev`,
 If you know of other native-lisp libraries that beat Plump, please do let me know, I would be very interested!
 
 ## See Also
-* [lQuery](https://shinmera.github.io/lquery/) Dissect and manipulate the DOM with jQuery-like commands.
-* [CLSS](https://shinmera.github.io/CLSS/) Traverse the DOM by CSS selectors.
-* [plump-tex](https://github.com/Shinmera/plump-tex) Serialize between TeX and the Plump DOM.
-* [plump-sexp](https://github.com/Shinmera/plump-sexp) Serialize between SEXPrs and the Plump DOM.
+* [lQuery](https://shinmera.com/docs/lquery/) Dissect and manipulate the DOM with jQuery-like commands.
+* [CLSS](https://shinmera.com/docs/CLSS/) Traverse the DOM by CSS selectors.
+* [plump-tex](https://shinmera.com/project/plump-tex) Serialize between TeX and the Plump DOM.
+* [plump-sexp](https://shinmera.com/project/plump-sexp) Serialize between SEXPrs and the Plump DOM.
 
 ## Support
 If you'd like to support the continued development of Plump, please consider becoming a backer on Patreon:

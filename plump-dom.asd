@@ -4,9 +4,9 @@
   :author "Yukari Hafner <shinmera@tymoon.eu>"
   :maintainer "Yukari Hafner <shinmera@tymoon.eu>"
   :description "A DOM for use with the Plump parser."
-  :homepage "https://Shinmera.github.io/plump/"
-  :bug-tracker "https://github.com/Shinmera/plump/issues"
-  :source-control (:git "https://github.com/Shinmera/plump.git")
+  :homepage "https://shinmera.com/docs/plump/"
+  :bug-tracker "https://shinmera.com/project/plump/issues"
+  :source-control (:git "https://shinmera.com/project/plump.git")
   :serial T
   :components ()
   :depends-on (:plump))
